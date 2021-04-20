@@ -15,9 +15,16 @@ class CreateTemplatesTable extends Migration
     {
         Schema::create('templates', function (Blueprint $table) {
             $table->id();
-            $table->string('trigger');
-            $table->text('template');
-            $table->string('endpoint');
+            $table->string('uuid')->unique();
+            $table->string('name');
+            $table->string('type');
+            $table->string('description');
+            $table->string('trigger')->nullable();
+            $table->string('endpoint')->nullable();
+            $table->smallInteger('order')->default(1);
+            $table->foreignId('error_template_id')->nullable();
+            $table->foreignId('template_id')->nullable();
+            $table->smallInteger('is_enabled')->default(1);
             $table->foreignId('user_id');
             $table->timestamps();
         });

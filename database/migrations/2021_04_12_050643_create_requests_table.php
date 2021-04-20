@@ -16,11 +16,14 @@ class CreateRequestsTable extends Migration
         Schema::create('requests', function (Blueprint $table) {
             $table->id();
             $table->string('source_id');
-            $table->text('context');
+            $table->string('reply');
             $table->string('media');
             $table->string('from');
-            $table->string('identity');
+            $table->string('identity')->nullable();
+            $table->foreignId('context_id')->nullable();
+            $table->foreignId('template_id')->nullable();
             $table->foreignId('user_id');
+            $table->string('type');
             $table->timestamps();
         });
     }

@@ -1,7 +1,9 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\DevhookController;
+use App\Http\Controllers\WebhookController;
+use App\Http\Livewire\ShowTemplate;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -17,18 +19,57 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::middleware(['auth:sanctum', 'verified'])->get('/dashboard', function () {
-    return view('dashboard');
-})->name('dashboard');
-Route::middleware(['auth:sanctum', 'verified'])->get('/client', function () {
-    return view('client');
-})->name('client');
-Route::middleware(['auth:sanctum', 'verified'])->get('/message', function () {
-    return view('message');
-})->name('message');
-Route::middleware(['auth:sanctum', 'verified'])->get('/template', function () {
-    return view('template');
-})->name('template');
-Route::middleware(['auth:sanctum', 'verified'])->get('/billing', function () {
-    return view('billing');
-})->name('billing');
+// Route::middleware(['auth:sanctum', 'verified'])->get('/dashboard', function () {
+//     return view('dashboard');
+// })->name('dashboard');
+// Route::middleware(['auth:sanctum', 'verified'])->get('/client', function () {
+//     return view('client');
+// })->name('client');
+// Route::middleware(['auth:sanctum', 'verified'])->get('/message', function () {
+//     return view('message');
+// })->name('message');
+// Route::middleware(['auth:sanctum', 'verified'])->get('/template', function () {
+//     return view('template');
+// })->name('template');
+// Route::middleware(['auth:sanctum', 'verified'])->get('/billing', function () {
+//     return view('billing');
+// })->name('billing');
+
+Route::middleware(['auth:sanctum', 'verified'])->group(function () {
+
+    Route::get('/dashboard', function () {
+        return view('dashboard');
+    })->name('dashboard');
+
+    Route::get('/message', function () {
+        return view('message');
+    })->name('message');
+
+    Route::get('/client', function () {
+        return view('client');
+    })->name('client');
+
+    Route::get('/template', function () {
+        return view('template.index');
+    })->name('template');
+
+    Route::get('/template/create', function () {
+        return view('template.form-template');
+    })->name('create.template');
+
+    Route::get('/template/{uuid}', function ($uuid) {
+        return view('template.show', ['uuid'=> $uuid]);
+    })->name('show.template');
+
+    // Route::get('/template/{uuid}', ShowTemplate::class);
+
+    Route::get('/billing', function () {
+        return view('billing');
+    })->name('billing');
+
+});
+
+
+Route::get('/devhook', [DevhookController::class, 'index']);
+
+Route::get('/webhook', [WebhookController::class, 'index']);

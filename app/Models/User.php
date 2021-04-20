@@ -58,4 +58,15 @@ class User extends Authenticatable
     protected $appends = [
         'profile_photo_url',
     ];
+
+
+    public function clients(){
+    	return $this->hasMany('App\Models\Client', 'user_id');
+    }
+    public function inbounds(){
+    	return $this->hasMany('App\Models\Request', 'user_id')->where('type', 'inbound');
+    }
+    public function outbounds(){
+    	return $this->hasMany('App\Models\Request', 'user_id')->where('type', 'outbound');
+    }
 }
