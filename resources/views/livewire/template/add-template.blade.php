@@ -7,6 +7,7 @@
             {{__('Add Template')}}
         </x-jet-button>
     </div>
+
     <!-- Form Action Modal -->
     <x-jet-dialog-modal wire:model="modalActionVisible">
         <x-slot name="title">
@@ -22,7 +23,8 @@
                     class="border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full"
                     wire:model.debunce.800ms="type"
                     >
-                    <option value="welcome" selected>Welcome</option>
+                    <option selected>-- Select Type --</option>
+                    <option value="welcome">Welcome</option>
                     <option value="text">Message</option>
                     <option value="question">Question</option>
                     <option value="api">Integration</option>

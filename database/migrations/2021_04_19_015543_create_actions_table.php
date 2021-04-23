@@ -17,6 +17,7 @@ class CreateActionsTable extends Migration
             $table->id();
             $table->smallInteger('order');
             $table->string('message');
+            $table->foreignId('template_id');
             $table->timestamps();
         });
     }

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Livewire;
+namespace App\Http\Livewire\Template;
 
 use App\Models\Template;
 use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
@@ -19,7 +19,7 @@ class TemplatesTable extends LivewireDatatable
     		Column::name('name')->label('Name'),
     		Column::name('description')->label('Description'),
     		Column::name('type')->label('Type'),
-    		BooleanColumn::name('is_enabled')->label('Enabled')
+    		BooleanColumn::name('is_enabled')->label('Active')
     	];
     }
 }

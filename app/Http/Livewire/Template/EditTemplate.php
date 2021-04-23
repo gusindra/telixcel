@@ -1,23 +1,25 @@
 <?php
 
-namespace App\Http\Livewire;
+namespace App\Http\Livewire\Template;
 
 use Livewire\Component;
 use App\Models\Template;
 
-class ShowTemplate extends Component
+class EditTemplate extends Component
 {
     public $template;
     public $templateId;
     public $name;
     public $description;
+    public $is_enabled;
     public $uuid;
 
     public function mount($uuid)
     {
-        $this->template = Template::where('uuid', $uuid)->first();
+        $this->template = Template::with('question')->where('uuid', $uuid)->first();
         $this->name = $this->template->name;
         $this->description = $this->template->description;
+        $this->is_enabled = $this->template->is_enabled;
         $this->templateId = $this->template->id;
     }
 
@@ -33,12 +35,13 @@ class ShowTemplate extends Component
     {
         return [
             'name'          => $this->name,
-            'description'   => $this->description
+            'description'   => $this->description,
+            'is_enabled'    => $this->is_enabled,
         ];
     }
 
     /**
-     * updateTemplate
+     * Update Template
      *
      * @return void
      */
@@ -51,6 +54,7 @@ class ShowTemplate extends Component
 
     public function render()
     {
-        return view('livewire.template.show-template')->layout('template.show');
+        return view('livewire.template.edit-template')
+                    ->layout('template.show');
     }
 }

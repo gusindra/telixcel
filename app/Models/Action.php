@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Input extends Model
+class Action extends Model
 {
     use HasFactory;
 
@@ -15,8 +15,9 @@ class Input extends Model
      * @var array
      */
     protected $fillable = [
-        'name',
-        'endpoint_id',
+        'message',
+        'order',
+        'template_id',
     ];
 
     protected $guarded = [];
@@ -26,8 +27,8 @@ class Input extends Model
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function endpoint()
+    public function template()
     {
-        return $this->belongsTo('App\Models\Endpoint');
+        return $this->belongsTo('App\Models\Template');
     }
 }

@@ -8,11 +8,11 @@
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
-                @livewire('templates')
+                @livewire('template.templates')
 
                 <div class="p-3">
                     <div>
-                        <livewire:templates-table searchable="name, description" />
+                        <livewire:template.templates-table searchable="name, description" />
                     </div>
                 </div>
             </div>

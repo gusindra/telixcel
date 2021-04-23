@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateInputsTable extends Migration
+class CreateEndpointsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,12 +13,13 @@ class CreateInputsTable extends Migration
      */
     public function up()
     {
-        Schema::create('inputs', function (Blueprint $table) {
+        Schema::create('endpoints', function (Blueprint $table) {
             $table->id();
-            $table->integer('order')->nullable();
-            $table->string('name');
-            $table->string('type')->nullable();
-            $table->foreignId('endpoint_id');
+            $table->string('request');
+            $table->string('endpoint');
+            $table->string('body')->default('none');
+            $table->string('token')->nullable();
+            $table->foreignId('template_id');
             $table->timestamps();
         });
     }
@@ -30,6 +31,6 @@ class CreateInputsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('inputs');
+        Schema::dropIfExists('endpoints');
     }
 }

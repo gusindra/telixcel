@@ -19,8 +19,8 @@ class CreateTemplatesTable extends Migration
             $table->string('name');
             $table->string('type');
             $table->string('description');
+            $table->string('trigger_condition')->default('equals');
             $table->string('trigger')->nullable();
-            $table->string('endpoint')->nullable();
             $table->smallInteger('order')->default(1);
             $table->foreignId('error_template_id')->nullable();
             $table->foreignId('template_id')->nullable();
