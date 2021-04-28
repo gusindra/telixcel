@@ -14,34 +14,34 @@
 
             <!-- Team Action List -->
             <x-slot name="content">
+                @if(!$errorTemplate)
                 <div class="flex items-center justify-end text-right">
                     <x-jet-action-message class="mr-3" on="added">
-                        {{ __('Respond added.') }}
+                        {{ __('Error message added.') }}
                     </x-jet-action-message>
                     <x-jet-action-message class="mr-3" on="saved">
                         {{ __('Respond saved.') }}
                     </x-jet-action-message>
                     @if($selectionTemplate)
                     <x-jet-button wire:click="selectionShowModal">
-                        {{__('Add error respond')}}
+                        {{__('Add Template Error')}}
                     </x-jet-button>
                     @else
                     <x-jet-button wire:click="createShowModal">
-                        {{__('Add error respond')}}
+                        {{__('Add Template Error')}}
                     </x-jet-button>
                     @endif
                 </div>
-
+                @endif
                 <div class="space-y-6">
                     <div class="flex flex-col">
                         <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                             <div class="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
-                                @if ($data)
+                                @if ($errorTemplate)
                                 <div class="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
                                     <table class="min-w-full divide-y divide-gray-200">
                                         <thead>
                                             <tr>
-                                                <th class="px-6 py-3 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider w-1/2">Trigger</th>
                                                 <th class="px-6 py-3 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider w-1/2">Template</th>
                                                 <th class="px-6 py-3 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider w-1/4"></th>
                                             </tr>
@@ -49,21 +49,13 @@
                                         <tbody class="bg-white divide-y divide-gray-200">
                                             <tr>
                                                 <td class="px-6 py-4 text-sm whitespace-no-wrap">
-                                                    <div class="w-full flex md:flex-col bg-gradient-to-br from-green-100 to-green-200 rounded-tr-2xl rounded-tr-2xl rounded-b-xl">
-                                                        <div class="sm:max-w-sm sm:flex-none md:w-auto md:flex-auto flex flex-col items-start relative z-10 p-3 xl:p-3">
-                                                            {{ $data->trigger }}
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td class="px-6 py-4 text-sm whitespace-no-wrap">
-                                                    {{ $data->name }}
+                                                    <a href="{{route('show.template', $errorUuid)}}" class=" p-2 border border-transparent text-base font-medium rounded-md {{$errorEnabled==1?'text-indigo-700 bg-indigo-200 hover:bg-indigo-200':'text-red-700 bg-red-100 hover:bg-red-200'}}" >
+                                                        {{ $errorName }}
+                                                    </a>
                                                 </td>
                                                 <td class="flex items-center justify-end px-4 py-3 text-right sm:px-6">
                                                     <div class="flex items-center">
-                                                        <a href="{{route('show.template', $data->uuid)}}" class="cursor-pointer ml-6 text-sm text-red-500" >
-                                                            {{ __('Update') }}
-                                                        </a>
-                                                        <button class="cursor-pointer ml-6 text-sm text-red-500" wire:click="deleteShowModal('{{ $item->id }}')">
+                                                        <button class="cursor-pointer ml-6 text-sm text-red-500" wire:click="deleteShowModal('{{ $errorId }}')">
                                                             {{ __('Remove') }}
                                                         </button>
                                                     </div>
@@ -77,7 +69,21 @@
                         </div>
                     </div>
                 </div>
-
+                <div class="p-6">
+                    <!-- is_enabled -->
+                    <div class="col-span-6 sm:col-span-6">
+                        <div class="flex items-start">
+                            <div class="flex items-center h-5">
+                                <input id="same_template" name="same_template" wire:model="sameTemplate" wire:click="setDefaultError"
+                                    wire:model.defer="sameTemplate" type="checkbox" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">
+                            </div>
+                            <div class="ml-3 text-sm">
+                                <label for="same_template" class="font-medium text-gray-700">Resent Action Message</label>
+                                <p class="text-gray-500">Enable to resend Action Message if error / wrong answer.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </x-slot>
         </x-jet-action-section>
     </div>
@@ -85,7 +91,7 @@
     <!-- Form Create Modal -->
     <x-jet-dialog-modal wire:model="modalCreateVisible">
         <x-slot name="title">
-            {{ __('Create new Respond template') }}
+            {{ __('Create new Error Respond') }}
         </x-slot>
 
         <x-slot name="content">
@@ -98,9 +104,8 @@
                     wire:model.debunce.800ms="type"
                     >
                     <option selected>-- Select Type --</option>
-                    <option value="text">Message</option>
+                    <option value="error">Error Message</option>
                     <option value="question">Question</option>
-                    <option value="api">Integration</option>
                 </select>
                 <x-jet-input-error for="type" class="mt-2" />
             </div>
@@ -112,11 +117,6 @@
             <div class="col-span-6 sm:col-span-4 p-3">
                 <x-jet-label for="description" value="{{ __('Description') }}" />
                 <x-jet-input id="description" type="text" class="mt-1 block w-full" wire:model.debunce.800ms="description" autofocus />
-                <x-jet-input-error for="description" class="mt-2" />
-            </div>
-            <div class="col-span-6 sm:col-span-4 p-3">
-                <x-jet-label for="trigger" value="{{ __('Trigger') }}" />
-                <x-jet-input id="trigger" type="text" class="mt-1 block w-full" wire:model.debunce.800ms="trigger" autofocus />
                 <x-jet-input-error for="description" class="mt-2" />
             </div>
         </x-slot>
@@ -186,7 +186,7 @@
         </x-slot>
 
         <x-slot name="content">
-            {{ __('Are you sure you would like to remove this respond?') }}<br>
+            {{ __('Are you sure you would like to remove error respond?') }}<br>
         </x-slot>
 
         <x-slot name="footer">

@@ -60,6 +60,8 @@
                                         Sent message base on the text/keyword send by customer.
                                     @elseif($template->type == 'question')
                                         Sent message helper/question for customer.
+                                    @elseif($template->type == 'error')
+                                        Sent error message to customer.
                                     @endif
                                 </div>
                             </div>
@@ -131,10 +133,13 @@
     @if($template->type==='api')
     @livewire('template.edit-api', ['template' => $template])
     @endif
+
     @if($template->type==='question')
     @livewire('template.edit-answer', ['template' => $template])
     @endif
 
+    @if($template->type!=='error')
     @livewire('template.add-error', ['template' => $template])
+    @endif
 
 </div>

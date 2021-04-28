@@ -1,7 +1,57 @@
 <div>
     <x-jet-section-border />
-
     {{--Trigger Condition--}}
+    @if($template->type=='error')
+    <x-jet-action-section submit="updateTrigger">
+        <x-slot name="title">
+            {{ __('Condition Response') }}
+        </x-slot>
+
+        <x-slot name="description">
+            {{ __('Triger will send if fail to awnser Template.') }}
+        </x-slot>
+
+        <x-slot name="content">
+            <!-- Trigger Condition -->
+            <div class="space-y-6">
+                <div class="flex flex-col">
+                    <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+                        <div class="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
+
+                            <div class="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead>
+                                        <tr>
+                                            <th class="px-6 py-3 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider w-1/2">Error Template For</th>
+                                            <th class="px-6 py-3 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider w-1/4"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-200">
+
+                                        @foreach($template->questionError as $question)
+                                            <tr>
+                                                <td class="px-6 py-4 text-sm whitespace-no-wrap">
+                                                    <a href="{{route('show.template', $question->uuid)}}" class="p-2 border border-transparent text-base font-medium rounded-md {{$question->is_enabled==1?'text-indigo-700 bg-indigo-200 hover:bg-indigo-200':'text-red-700 bg-red-100 hover:bg-red-200'}}" >
+                                                        {{$question->name}}
+                                                    </a>
+                                                </td>
+                                                <td class="flex items-center justify-end px-4 py-3 text-right sm:px-6">
+                                                    <div class="flex items-center"></div>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+
+                                    </tbody>
+                                </table>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </x-slot>
+    </x-jet-action-section>
+    @else
     <x-jet-form-section submit="updateTrigger">
         <x-slot name="title">
             {{ __('Condition Response') }}
@@ -61,4 +111,5 @@
             </x-slot>
         @endif
     </x-jet-form-section>
+    @endif
 </div>

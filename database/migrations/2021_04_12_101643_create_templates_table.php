@@ -23,6 +23,7 @@ class CreateTemplatesTable extends Migration
             $table->string('trigger')->nullable();
             $table->smallInteger('order')->default(1);
             $table->foreignId('error_template_id')->nullable();
+            $table->foreignId('is_repeat_if_error')->nullable();
             $table->foreignId('template_id')->nullable();
             $table->smallInteger('is_enabled')->default(1);
             $table->foreignId('user_id');

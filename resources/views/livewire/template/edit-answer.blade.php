@@ -57,13 +57,12 @@
                                                             </div>
                                                         </td>
                                                         <td class="px-6 py-4 text-sm whitespace-no-wrap">
-                                                            {{ $item->name }}
+                                                            <a href="{{route('show.template', $item->uuid)}}" class=" p-2 border border-transparent text-base font-medium rounded-md {{$item->is_enabled==1?'text-indigo-700 bg-indigo-200 hover:bg-indigo-200':'text-red-700 bg-red-100 hover:bg-red-200'}}" >
+                                                                {{ $item->name }}
+                                                            </a>
                                                         </td>
                                                         <td class="flex items-center justify-end px-4 py-3 text-right sm:px-6">
                                                             <div class="flex items-center">
-                                                                <a href="{{route('show.template', $item->uuid)}}" class="cursor-pointer ml-6 text-sm text-red-500" >
-                                                                    {{ __('Update') }}
-                                                                </a>
                                                                 <button class="cursor-pointer ml-6 text-sm text-red-500" wire:click="deleteShowModal('{{ $item->id }}')">
                                                                     {{ __('Remove') }}
                                                                 </button>

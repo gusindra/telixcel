@@ -46,11 +46,15 @@ class Template extends Model
     	return $this->belongsTo('App\Models\Template', 'template_id', 'id');
     }
 
-    public function errors(){
-    	return $this->hasOne('App\Models\Template', 'error_template_id');
+    public function error(){
+    	return $this->hasOne('App\Models\Template', 'id','error_template_id');
     }
 
     public function errorfor(){
     	return $this->belongsTo('App\Models\Template', 'error_template_id', 'id');
+    }
+
+    public function questionError(){
+    	return $this->hasMany('App\Models\Template', 'error_template_id');
     }
 }

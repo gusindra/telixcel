@@ -15,7 +15,7 @@ class EditTrigger extends Component
 
     public function mount($template)
     {
-        $this->template = $template;
+        $this->template = Template::with('questionError')->find($template->id);
         $this->trigger = $this->template->trigger;
         $this->trigger_condition = $this->template->trigger_condition;
         $this->templateId = $this->template->id;

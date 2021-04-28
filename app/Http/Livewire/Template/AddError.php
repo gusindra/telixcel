@@ -5,25 +5,42 @@ namespace App\Http\Livewire\Template;
 use Livewire\Component;
 use App\Models\Template;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 class AddError extends Component
 {
+    public $errorTemplate;
+    public $errorUuid;
+    public $errorName;
+    public $errorId;
+    public $errorEnabled;
     public $template;
     public $templateId;
-    public $actionId;
     public $type;
     public $name;
     public $description;
     public $selectionTemplate;
     public $selectedTemplate;
+    public $sameTemplate;
     public $modalCreateVisible = false;
     public $modalSelectionVisible = false;
     public $confirmingActionRemoval = false;
 
     public function mount($template)
     {
-        $this->template = $template;
+        $this->template = Template::with('error')->find($template->id);
         $this->templateId = $this->template->id;
+        if($this->template->is_repeat_if_error){
+            $this->sameTemplate = true;
+        }
+        $this->templateId = $this->template->id;
+        if($this->template->error_template_id){
+            $this->errorTemplate = true;
+            $this->errorUuid = $this->template->uuid;
+            $this->errorName = $this->template->name;
+            $this->errorId = $this->template->id;
+            $this->errorEnabled = $this->template->is_enabled;
+        }
     }
 
     public function rules()
@@ -32,7 +49,6 @@ class AddError extends Component
             'type' => 'required',
             'name' => 'required',
             'description' => 'required',
-            'trigger' => 'required',
         ];
     }
 
@@ -44,23 +60,29 @@ class AddError extends Component
     public function create()
     {
         $this->validate();
-        Template::create($this->modelData());
+        $addError = Template::create($this->modelData());
         $this->modalCreateVisible = false;
         $this->resetForm();
         $this->emit('added');
-        $this->actionId = null;
+
+        $parent = Template::find($this->templateId);
+        $parent->error_template_id = $addError->id;
+        $parent->save();
     }
 
     public function selectTemplate()
     {
         $this->modalSelectionVisible = false;
-        $choosen = Template::find($this->selectedTemplate);
-        $choosen->template_id = $this->templateId;
+        $choosen = Template::find($this->templateId);
+        $choosen->error_template_id = $this->selectedTemplate;
         $choosen->save();
+        $this->errorTemplate = true;
+        $this->errorId = $choosen->error->id;
+        $this->errorUuid = $choosen->error->uuid;
+        $this->errorName = $choosen->error->name;
+        $this->errorEnabled = $choosen->error->is_enabled;
         $this->resetForm();
         $this->emit('added');
-        $this->actionId = null;
-
     }
 
     /**
@@ -71,7 +93,7 @@ class AddError extends Component
      */
     public function loadModel()
     {
-        $this->selectionTemplate = Template::where('user_id', Auth::user()->id)->where('id', '!=', $this->templateId)->where('template_id', NULL)->get();
+        $this->selectionTemplate = Template::where('user_id', Auth::user()->id)->where('id', '!=', $this->templateId)->get();
     }
 
     /**
@@ -81,15 +103,16 @@ class AddError extends Component
      */
     public function delete()
     {
-        $choosen = Template::find($this->selectedTemplate);
-        $choosen->template_id = NULL;
+        $choosen = Template::find($this->templateId);
+        $choosen->error_template_id = NULL;
         $choosen->save();
 
         $this->confirmingActionRemoval = false;
+        $this->errorTemplate = false;
 
         $this->dispatchBrowserEvent('event-notification', [
             'eventName' => 'Deleted Page',
-            'eventMessage' => 'The page (' . $this->actionId . ') has been deleted!',
+            'eventMessage' => 'The error template (' . $this->templateId . ') has been removed!',
         ]);
     }
 
@@ -101,11 +124,11 @@ class AddError extends Component
     public function modelData()
     {
         return [
-            'type'          => $this->type,
-            'name'          => $this->name,
-            'description'   => $this->description,
-            'description'   => $this->orderAction($this->templateId),
-            'template_id'   => $this->templateId
+            'uuid'              => Str::uuid(),
+            'type'              => $this->type,
+            'name'              => $this->name,
+            'description'       => $this->description,
+            'user_id'           => Auth::user()->id,
         ];
     }
 
@@ -124,7 +147,6 @@ class AddError extends Component
         $this->modalCreateVisible = false;
         $this->modalSelectionVisible = true;
         $this->resetForm();
-        $this->actionId = null;
         $this->loadModel();
     }
 
@@ -138,7 +160,6 @@ class AddError extends Component
         $this->modalSelectionVisible = false;
         $this->modalCreateVisible = true;
         $this->resetForm();
-        $this->actionId = null;
     }
 
      /**
@@ -148,7 +169,7 @@ class AddError extends Component
      */
     public function read()
     {
-        return Template::where('error_template_id', $this->templateId)->first();
+        return $this->template->error;
     }
 
     public function deleteShowModal($id)
@@ -157,10 +178,26 @@ class AddError extends Component
         $this->confirmingActionRemoval = true;
     }
 
+    /**
+     * setDefaultError
+     *
+     * @return void
+     */
+    public function setDefaultError()
+    {
+        $data = Template::find($this->templateId);
+        if($this->sameTemplate){
+            $data->is_repeat_if_error = 1;
+        }else{
+            $data->is_repeat_if_error = NULL;
+        }
+        $data->save();
+    }
+
     public function render()
     {
         return view('livewire.template.add-error', [
-            'data' => $this->read()
+            'data' => $this->read(),
         ]);
     }
 }
