@@ -40,27 +40,27 @@
                                             </tr>
                                         </thead>
                                         <tbody class="bg-white divide-y divide-gray-200">
-                                                @foreach ($data as $item)
-                                                    <tr>
-                                                        <td class="px-6 py-4 text-sm whitespace-no-wrap">
-                                                            <div class="w-full flex md:flex-col bg-gradient-to-br from-green-100 to-green-200 rounded-tr-2xl rounded-tr-2xl rounded-b-xl">
-                                                                <div class="sm:max-w-sm sm:flex-none md:w-auto md:flex-auto flex flex-col items-start relative z-10 p-3 xl:p-3">
-                                                                    {{ $item->message }}
-                                                                </div>
+                                            @foreach ($data as $item)
+                                                <tr>
+                                                    <td class="px-6 py-4 text-sm whitespace-no-wrap">
+                                                        <div class="w-full flex md:flex-col bg-gradient-to-br from-green-100 to-green-200 rounded-tr-2xl rounded-tr-2xl rounded-b-xl">
+                                                            <div class="sm:max-w-sm sm:flex-none md:w-auto md:flex-auto flex flex-col items-start relative z-10 p-3 xl:p-3">
+                                                                {{ $item->message }}
                                                             </div>
-                                                        </td>
-                                                        <td class="flex items-center justify-end px-4 py-3 text-right sm:px-6">
-                                                            <div class="flex items-center">
-                                                                <button class="cursor-pointer ml-6 text-sm text-red-500">
-                                                                    {{ __('Update') }}
-                                                                </button>
-                                                                <button class="cursor-pointer ml-6 text-sm text-red-500" wire:click="deleteShowModal('{{ $item->id }}')">
-                                                                    {{ __('Delete') }}
-                                                                </button>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                @endforeach
+                                                        </div>
+                                                    </td>
+                                                    <td class="flex items-center justify-end px-4 py-3 text-right sm:px-6">
+                                                        <div class="flex items-center">
+                                                            <button class="cursor-pointer ml-6 text-sm text-red-500">
+                                                                {{ __('Update') }}
+                                                            </button>
+                                                            <button class="cursor-pointer ml-6 text-sm text-red-500" wire:click="deleteShowModal('{{ $item->id }}')">
+                                                                {{ __('Delete') }}
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            @endforeach
 
                                         </tbody>
                                     </table>

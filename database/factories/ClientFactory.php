@@ -24,6 +24,7 @@ class ClientFactory extends Factory
     public function definition()
     {
         return [
+            'uuid'          => Str::uuid(),
             'name'          =>  $this->faker->name(),
             'phone'         =>  $this->faker->unique()->safeEmail(),
             'identity'      =>  Str::random(10),

@@ -20,3 +20,4 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::get('/wa/{messege}',  [ApiWaController::class, 'show']);
+Route::post('/wa',  [ApiWaController::class, 'retriveNewMessage']);
