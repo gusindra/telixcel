@@ -15,7 +15,12 @@ class TemplatesTable extends LivewireDatatable
     public function columns()
     {
         return [
-    		NumberColumn::name('uuid')->label('ID')->sortBy('id')->linkTo('template'),
+    		NumberColumn::name('uuid')->label('ID')->sortBy('id')->callback('uuid', function ($value) {
+                return view('datatables::link', [
+                    'href' => "/template/" . $value,
+                    'slot' => substr($value, 30)
+                ]);
+            }),
     		Column::name('name')->label('Name'),
     		Column::name('description')->label('Description'),
     		Column::name('type')->label('Type'),

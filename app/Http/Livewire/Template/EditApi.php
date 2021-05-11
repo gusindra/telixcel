@@ -3,9 +3,7 @@
 namespace App\Http\Livewire\Template;
 
 use Livewire\Component;
-use App\Models\Input;
 use App\Models\Endpoint;
-use App\Models\Template;
 
 class EditApi extends Component
 {
@@ -28,6 +26,7 @@ class EditApi extends Component
     {
         return [
             'endpoint' => 'required',
+            'request' => 'required'
         ];
     }
 

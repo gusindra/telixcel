@@ -17,7 +17,7 @@ class Client extends Model
      * @var array
      */
     protected $fillable = [
-        'uuid', 'sender', 'name', 'phone', 'identity', 'user_id'
+        'uuid', 'sender', 'name', 'phone', 'identity', 'user_id', 'note', 'tag'
     ];
 
     /**
@@ -26,6 +26,61 @@ class Client extends Model
      * @var array
      */
     protected $appends = [
-        'profile_photo_url',
+        'profile_photo_url', 'date', 'active'
     ];
+
+    /**
+     * Get the action that Client has manny Request .
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function requests(){
+    	return $this->hasMany('App\Models\Request', 'from')->whereNotNull('source_id');
+    }
+
+    /**
+     * Get the first Request of client.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function lastestRequest(){
+    	return $this->hasOne('App\Models\Request', 'from')->whereNotNull('source_id')->orderBy('created_at', 'desc');
+    }
+
+    /**
+     * Get the action that Client has manny Request .
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function notice(){
+    	return $this->hasOne('App\Models\Request', 'client_id', 'uuid')->orderBy('id', 'desc');
+    }
+
+    /**
+     * get Updated message Date
+     *
+     * @return void
+     */
+    public function getDateAttribute()
+    {
+        if($this->lastestRequest){
+            return $this->lastestRequest->created_at;
+        }
+        return $this->created_at;
+    }
+
+    /**
+     * get is active message
+     *
+     * @return void
+     */
+    public function getActiveAttribute()
+    {
+        if($this->notice){
+            if($this->notice->source_id!==NULL){
+                return $this->notice;
+            }
+        }
+        return false;
+    }
 }

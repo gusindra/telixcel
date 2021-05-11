@@ -14,5 +14,5 @@
 </div>
 
 <div class="p-6 sm:px-20 bg-gray-200 bg-opacity-25 grid grid-cols-1 md:grid-cols-3">
-    <x-dashboard-stat :client="Auth::user()->clients->count()" :inbound="Auth::user()->inbounds->count()" :outbound="Auth::user()->outbounds->count()"></x-switchable-stat>
+    <x-dashboard-stat :client="Auth::user()->clients->count()" :inbound="Auth::user()->inbounds->count()" :outbound="Auth::user()->outbounds->count()"></x-dashboard-stat>
 </div>

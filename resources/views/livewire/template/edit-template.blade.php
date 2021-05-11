@@ -72,7 +72,6 @@
                 <!-- Template Name -->
                 <div class="col-span-1 sm:col-span-1">
                     <x-jet-label for="name" value="{{ __('Name') }}" />
-
                     <x-jet-input id="name"
                                 type="text"
                                 class="mt-1 block w-full"
@@ -80,7 +79,6 @@
                                 wire:model.defer="name"
                                 wire:model.debunce.800ms="name"
                                 :disabled="! Gate::check('update', $template)" />
-
                     <x-jet-input-error for="name" class="mt-2" />
                 </div>
             </div>
@@ -132,13 +130,14 @@
 
     @if($template->type==='api')
     @livewire('template.edit-api', ['template' => $template])
+    @livewire('template.add-respond-api', ['template' => $template])
     @endif
 
     @if($template->type==='question')
     @livewire('template.edit-answer', ['template' => $template])
     @endif
 
-    @if($template->type!=='error')
+    @if($template->type!=='error' && $template->type!=='text')
     @livewire('template.add-error', ['template' => $template])
     @endif
 

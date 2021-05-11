@@ -36,10 +36,10 @@ class AddError extends Component
         $this->templateId = $this->template->id;
         if($this->template->error_template_id){
             $this->errorTemplate = true;
-            $this->errorUuid = $this->template->uuid;
-            $this->errorName = $this->template->name;
-            $this->errorId = $this->template->id;
-            $this->errorEnabled = $this->template->is_enabled;
+            $this->errorUuid = $this->template->error->uuid;
+            $this->errorName = $this->template->error->name;
+            $this->errorId = $this->template->error->id;
+            $this->errorEnabled = $this->template->error->is_enabled;
         }
     }
 
@@ -68,6 +68,10 @@ class AddError extends Component
         $parent = Template::find($this->templateId);
         $parent->error_template_id = $addError->id;
         $parent->save();
+
+        $this->errorUuid = $addError->uuid;
+        $this->errorName = $addError->name;
+        $this->errorId = $addError->id;
     }
 
     public function selectTemplate()

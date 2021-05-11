@@ -5,6 +5,7 @@ namespace App\Http\Livewire\Template;
 use Livewire\Component;
 use App\Models\Template;
 use App\Models\Action;
+use App\Models\DataAction;
 
 class AddAction extends Component
 {
@@ -12,6 +13,8 @@ class AddAction extends Component
     public $templateId;
     public $actionId;
     public $message;
+    public $is_multidata;
+    public $array_data;
     public $modalActionVisible = false;
     public $confirmingActionRemoval = false;
 
@@ -31,10 +34,11 @@ class AddAction extends Component
     public function create()
     {
         $this->validate();
-        Action::create($this->modelData());
+        $action = Action::create($this->modelData());
         $this->modalActionVisible = false;
         $this->resetForm();
         $this->emit('added');
+        $this->emit('addArrayData', $action->id);
         $this->actionId = null;
     }
 
@@ -47,7 +51,9 @@ class AddAction extends Component
     {
         $this->validate();
         Action::find($this->actionId)->update([
-            'message' => $this->message
+            'message'       => $this->message,
+            'is_multidata'  => $this->is_multidata,
+            'array_data'    => $this->array_data
         ]);
         $this->modalActionVisible = false;
 
@@ -77,11 +83,23 @@ class AddAction extends Component
 
     public function modelData()
     {
-        return [
-            'message'       => $this->message,
-            'order'         => $this->orderAction(),
-            'template_id'   => $this->templateId
-        ];
+        $template = Template::find($this->templateId);
+        if($template->question && $template->question->type == 'api'){
+            $data = [
+                'message'       => $this->message,
+                'order'         => $this->orderAction(),
+                'is_multidata'  => $this->is_multidata,
+                'array_data'    => $this->array_data,
+                'template_id'   => $this->templateId
+            ];
+        }else{
+            $data = [
+                'message'       => $this->message,
+                'order'         => $this->orderAction(),
+                'template_id'   => $this->templateId
+            ];
+        }
+        return $data;
     }
 
     public function orderAction()
@@ -124,7 +142,9 @@ class AddAction extends Component
     public function loadModel()
     {
         $data = Action::find($this->actionId);
-        $this->message = $data->message;
+        $this->message      = $data->message;
+        $this->is_multidata = $data->is_multidata;
+        $this->array_data   = $data->array_data;
     }
 
     public function deleteShowModal($id)

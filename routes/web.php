@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DevhookController;
 use App\Http\Controllers\WebhookController;
 use App\Http\Livewire\ShowTemplate;
+use App\Http\Controllers\ApiWaController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -72,4 +73,6 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
 Route::get('/devhook', [DevhookController::class, 'index']);
 
-Route::get('/webhook', [WebhookController::class, 'index']);
+Route::get('/webhook/{slug}', [ApiWaController::class, 'index'])->name('webhook.client');
+
+Route::get('/endpoint', [ApiWaController::class, 'checkEndpoint'])->name('endpoint.check');

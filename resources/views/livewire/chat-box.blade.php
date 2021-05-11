@@ -1,8 +1,9 @@
 <div>
-    <div class="bg-gray-300 ">
+    <div class="bg-gray-400 h-14">
         <div class="w-full mx-auto p-3 px-3">
             <div class="flex items-center justify-between flex-wrap">
                 <div class="w-0 flex-1 flex items-center">
+                @if($client)
                     <p class="ml-3 font-medium text-white truncate">
                         <div class="md:h-auto text-sm border-2 border-transparent rounded-full focus:outline-none focus:border-gray-300 transition pr-3">
                             <img class="h-8 w-8 rounded-full object-cover" src="{{ $client->profile_photo_url }}" alt="{{ $client->name }}" />
@@ -11,6 +12,7 @@
                             {{$client->name}}
                         </span>
                     </p>
+                @endif
                 </div>
                 <div class="order-2 flex-shrink-0 sm:order-3 sm:ml-3">
                     <button type="button" class="mr-1 flex p-2 rounded-md hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-white sm:-mr-2"></button>
@@ -18,38 +20,44 @@
             </div>
         </div>
     </div>
-    <div class="">
-        <div id="messageBox" wire:poll class="overflow-auto h-80 bg-green-50 py-4" style="display: flex;flex-direction: column;">
+    <div id="messageArea" class="max-h-screen">
+        <div id="messageBox" wire:poll class="overflow-auto h-96 bg-green-50 py-4" style="display: flex;flex-direction: column;">
             @foreach($data as $item)
-            <div class="px-12 buble-chat object-left {{$item->from==$item->client_id?'':'text-right'}}">
-                <small class="ml-2">{{$item->from==$item->client_id?$item->client->name:$item->agent->name}}</small>
-                <div class="text-right mb-2 flex md:flex-col bg-gradient-to-br {{$item->from==$item->client_id?'from-green-100 to-green-200 rounded-tr-2xl rounded-b-xl':'from-indigo-100 to-indigo-200 rounded-bl-2xl rounded-t-xl'}}">
-                    <div class="sm:flex-none md:flex-auto flex flex-col {{$item->from==$item->client_id?'items-start':''}} relative z-10 p-3 xl:p-3">
-                        {{$item->reply}}
+            <div class="px-12 buble-chat object-left {{$item->source_id?'':'text-right right-0'}}">
+                <small class="text-gray-500 font-medium">{{$item->source_id?$client->name:($item->from=='bot'?'Bot':$item->agent->name)}}</small>
+                <div class="flex justify-between">
+                    <div class="text-sm flex-auto z-10 p-2 xl:p-3 bg-gradient-to-br {{$item->source_id?'items-start':'order-last text-right'}} {{$item->source_id?'from-green-100 to-green-200 rounded-tr-lg rounded-b-lg':'from-indigo-100 to-indigo-200 rounded-b-lg rounded-tl-lg right-0'}}">
+                        <span class="whitespace-pre-wrap">{{$item->reply}}</span><br>
+                        <p class="px-3 text-xs font-thin text-gray-400 {{$item->source_id?'text-right right-0':'text-left left-0'}}">{{$item->date}}</p>
                     </div>
+                    <div class="flex-1"></div>
                 </div>
             </div>
             @endforeach
 
         </div>
-        <div class="md:flex px-4 py-2">
-            <button class="cursor-pointer text-sm text-grey-500 p-2" wire:click="actionShowModal">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-                </svg>
-            </button>
-            <x-textarea
-                id="message"
-                class="mt-1 block w-full"
-                placeholder="{{ __('write a reply...') }}"
-                wire:model="message"
-            />
+        @if($client)
+        <div class="bg-gray-200 py-3">
+            <div class="md:flex px-4 py-2">
+                <button class="cursor-pointer text-sm text-grey-500 p-2" wire:click="actionShowModal">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                    </svg>
+                </button>
+                <x-textarea
+                    id="message"
+                    class="mt-1 block w-full"
+                    placeholder="{{ __('write a reply...') }}"
+                    wire:model="message"
+                />
+            </div>
+            <div class="flex items-center justify-end px-4">
+                <x-jet-button wire:click="sendMessage">
+                    {{__('Send')}}
+                </x-jet-button>
+            </div>
         </div>
-        <div class="flex items-center justify-end px-4">
-            <x-jet-button wire:click="sendMessage">
-                {{__('Send')}}
-            </x-jet-button>
-        </div>
+        @endif
     </div>
 
     <!-- Form Action Modal -->
@@ -105,4 +113,19 @@
             </x-jet-button>
         </x-slot>
     </x-jet-dialog-modal>
+
+    <script>
+
+
+            jQuery(document).ready(checkContainer);
+
+            function checkContainer () {
+                if($('#messageBox').is(':visible')){ //if the container is visible on the page
+                    var d = $('#messageBox');
+                    d.scrollTop(d.prop("scrollHeight"));
+                } else {
+                    alert(2);
+                }
+            }
+    </script>
 </div>

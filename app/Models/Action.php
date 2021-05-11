@@ -18,6 +18,8 @@ class Action extends Model
         'message',
         'order',
         'template_id',
+        'is_multidata',
+        'array_data',
     ];
 
     protected $guarded = [];
@@ -30,5 +32,15 @@ class Action extends Model
     public function template()
     {
         return $this->belongsTo('App\Models\Template');
+    }
+
+    /**
+     * Get the action that belongs to template.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function data()
+    {
+    	return $this->hasMany('App\Models\DataAction', 'action_id');
     }
 }

@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Endpoint extends Model
+class DataAction extends Model
 {
     use HasFactory;
 
@@ -15,11 +15,9 @@ class Endpoint extends Model
      * @var array
      */
     protected $fillable = [
-        'request',
-        'endpoint',
-        'body',
-        'token',
-        'template_id',
+        'name',
+        'value',
+        'action_id',
     ];
 
     protected $guarded = [];
@@ -29,12 +27,8 @@ class Endpoint extends Model
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function template()
+    public function action()
     {
-        return $this->belongsTo('App\Models\Template');
-    }
-
-    public function inputs(){
-    	return $this->hasMany('App\Models\Input', 'endpoint_id');
+        return $this->belongsTo('App\Models\Action');
     }
 }

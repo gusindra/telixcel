@@ -5,7 +5,7 @@
         </h2>
     </x-slot> -->
 
-    <div class="py-3">
+    <div class="">
         @livewire('chat-component')
     </div>
 </x-app-layout>

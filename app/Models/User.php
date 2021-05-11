@@ -64,9 +64,9 @@ class User extends Authenticatable
     	return $this->hasMany('App\Models\Client', 'user_id');
     }
     public function inbounds(){
-    	return $this->hasMany('App\Models\Request', 'user_id')->where('type', 'inbound');
+    	return $this->hasMany('App\Models\Request', 'user_id')->whereNotNull('source_id');
     }
     public function outbounds(){
-    	return $this->hasMany('App\Models\Request', 'user_id')->where('type', 'outbound');
+    	return $this->hasMany('App\Models\Request', 'user_id')->whereNull('source_id');
     }
 }

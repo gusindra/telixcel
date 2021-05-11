@@ -15,7 +15,7 @@ class CreateEndpointsTable extends Migration
     {
         Schema::create('endpoints', function (Blueprint $table) {
             $table->id();
-            $table->string('request');
+            $table->string('request')->default('get');
             $table->string('endpoint');
             $table->string('body')->default('none');
             $table->string('token')->nullable();

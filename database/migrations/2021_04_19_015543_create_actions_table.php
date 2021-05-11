@@ -18,6 +18,8 @@ class CreateActionsTable extends Migration
             $table->smallInteger('order');
             $table->string('message');
             $table->foreignId('template_id');
+            $table->smallInteger('is_multidata')->default(0);
+            $table->string('array_data')->nullable();
             $table->timestamps();
         });
     }

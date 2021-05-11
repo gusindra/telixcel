@@ -30,26 +30,58 @@ class Template extends Model
 
     protected $guarded = [];
 
+    /**
+     * Template has many Action
+     *
+     * @return void
+     */
     public function actions(){
-    	return $this->hasMany('App\Models\Action', 'template_id');
+    	return $this->hasMany('App\Models\Action', 'template_id')->orderBy('order', 'asc');
     }
 
+    /**
+     * Template has one Endpoint
+     *
+     * @return void
+     */
     public function endpoint(){
     	return $this->hasOne('App\Models\Endpoint', 'template_id');
     }
 
+    /**
+     * Template has many anwser from template
+     *
+     * @return void
+     */
     public function anwsers(){
     	return $this->hasMany('App\Models\Template', 'template_id');
     }
 
+    /**
+     * Question Template is belong to Template
+     * to know what is question for this template
+     *
+     * @return void
+     */
     public function question(){
     	return $this->belongsTo('App\Models\Template', 'template_id', 'id');
     }
 
+    /**
+     * Template has one Error Template
+     *
+     * @return void
+     */
     public function error(){
     	return $this->hasOne('App\Models\Template', 'id','error_template_id');
     }
 
+    /**
+     * This error Template is belong to Template
+     * to know what the template
+     *
+     * @return void
+     */
     public function errorfor(){
     	return $this->belongsTo('App\Models\Template', 'error_template_id', 'id');
     }

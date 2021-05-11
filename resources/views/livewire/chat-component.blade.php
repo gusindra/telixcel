@@ -1,25 +1,39 @@
 <div>
-    <div class="max-w-8xl mx-auto sm:px-6 lg:px-8">
+    <div class="max-w-full mx-auto sm:px-6 lg:px-8">
         <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
-            <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg col-span-2">
-                <div class="p-3">
-                    <x-jet-nav-link href="#active" >
-                        {{ __('Active') }}
-                    </x-jet-nav-link>
-                    <x-jet-nav-link href="#waiting" >
-                        {{ __('Waiting') }}
-                    </x-jet-nav-link>
+            <div class="bg-white overflow-hidden shadow-xl sm:rounded-sm col-span-3 h-screen max-h-full">
+                <div class="bg-gray-400 h-14">
+                    <div class="w-full mx-auto p-3 px-3">
+                        <div class="flex items-center justify-between flex-wrap">
+                            <div class="w-0 flex-1 flex items-center">
+                                <x-jet-nav-link href="#active" >
+                                    {{ __('Active') }}
+                                </x-jet-nav-link>
+                                <x-jet-nav-link href="#waiting" >
+                                    {{ __('Waiting') }}
+                                </x-jet-nav-link>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="overflow-auto h-3/4">
+                <div class="overflow-auto md:h-3/4 sm:h-1/2">
                     @foreach ($data as $item)
-                        <a wire:click="chatCustomer('{{ $item->id }}')" class="cursor-pointer">
+                        <a wire:click="chatCustomer('{{ $item->id }}')" class="cursor-pointer client-click">
                             <div class="text-sm whitespace-no-wrap">
                                 <div class="md:flex px-2 py-2 {{$client_id!=0 && $client_id==$item->id?'bg-gray-300':'bg-white'}} hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-100 focus:ring-opacity-50">
                                     <div class="md:h-auto text-sm border-2 border-transparent rounded-full focus:outline-none focus:border-gray-300 transition">
                                         <img class="h-8 w-8 rounded-full object-cover" src="{{ $item->profile_photo_url }}" alt="{{ $item->name }}" />
                                     </div>
                                     <div class="sm:max-w-sm sm:flex-none md:w-auto md:flex-auto flex-col items-start relative z-10 p-2 xl:p-2">
-                                        {{ $item->name }}
+                                        <div class="flex">
+                                            <div class="flex-grow">{{ $item->name }}</div>
+                                            @if($item->active)
+                                            <div class="flex-none flex-none w-auto text-center">
+                                                <div class="px-1 rounded-full w-auto h-auto rounded-full bg-red-500 text-xs text-gray-50 text-center">1</div>
+                                            </div>
+                                            @endif
+                                        </div>
+                                        <p class="text-right text-xs">{{$item->date->diffForHumans()}}</p>
                                     </div>
                                 </div>
                             </div>
@@ -30,30 +44,49 @@
                     {{ __('Closed') }}
                 </x-jet-nav-link> -->
             </div>
-            <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg col-span-7 bg-blend-darken ">
-                @if($client)
+            <div class="bg-white overflow-hidden shadow-xl sm:rounded-sm col-span-7 bg-blend-darken ">
                     @livewire('chat-box', ['client_id' => $client_id], key($client_id))
-                @endif
             </div>
             @if($client)
-            <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6 col-span-3">
-                <x-jet-input type="text" class="mt-1 block w-full mb-4" placeholder="{{ __('Customer Name') }}"
-                    x-ref="name"
-                    wire:model.defer="client_name"
-                    wire:keydown.enter="customerName" />
-                <x-jet-input type="text" class="mt-1 block w-full mb-4" placeholder="{{ __('Customer Phone') }}"
-                    x-ref="phone"
-                    wire:model.defer="client_phone"
-                    wire:keydown.enter="customerPhone" />
-                <x-textarea
-                    id="note"
-                    class="mt-1 block w-full mb-4"
-                    placeholder="{{ __('note') }}"
-                    wire:model="note" />
-                <x-jet-input type="text" class="mt-1 block w-full mb-4" placeholder="{{ __('Tag') }}"
-                    x-ref="tag"
-                    wire:model.defer="tag"
-                    wire:keydown.enter="tag" />
+            <div class="bg-white overflow-hidden shadow-xl sm:rounded-sm col-span-2">
+                <div class="bg-gray-400 h-14">
+                    <div class="w-full mx-auto p-3 px-3">
+                        <div class="flex items-center justify-between flex-wrap">
+                            <div class="w-0 flex-1 flex items-center">
+                                <p class="ml-3 font-medium text-white truncate">
+                                    <span class="hidden md:inline">
+                                        Customer Info
+                                    </span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <input class="border-gray-300 focus:border-indigo-300 w-52 m-2 text-sm" type="text"  placeholder="{{ __('Customer Phone') }}"
+                        x-ref="phone"
+                        wire:model.defer="client_phone"
+                        readonly disabled>
+                    <input class="border-gray-300 focus:border-indigo-300 w-52 m-2 text-sm" type="text" placeholder="{{ __('Customer Name') }}"
+                        x-ref="client_name"
+                        wire:model.defer="client_name">
+                    <textarea class="border-gray-300 focus:border-indigo-300 w-52 m-2 text-sm" id="note"
+                        class="mt-1 block w-full mb-4"
+                        placeholder="{{ __('note') }}"
+                        wire:model.defer="note"
+                        wire:model="note"></textarea>
+                    <input class="border-gray-300 focus:border-indigo-300 w-52 m-2 text-sm" type="text" placeholder="{{ __('Tag') }}"
+                        x-ref="tag"
+                        wire:model.defer="tag">
+                    <div class="px-3 text-right">
+                        <button class="bg-gray-100 border border-gray-300 m-1 px-4 py-1" wire:click="save">
+                            {{__('Save')}}
+                        </button>
+                        <x-jet-action-message class="mr-3" on="saved">
+                            {{ __('Detail customer saved.') }}
+                        </x-jet-action-message>
+                    </div>
+                </div>
             </div>
             @endif
         </div>

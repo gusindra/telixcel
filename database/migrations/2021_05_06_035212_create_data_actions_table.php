@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateWaCredentialTable extends Migration
+class CreateDataActionsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,12 +13,11 @@ class CreateWaCredentialTable extends Migration
      */
     public function up()
     {
-        Schema::create('api_credentials', function (Blueprint $table) {
+        Schema::create('data_actions', function (Blueprint $table) {
             $table->id();
-            $table->string('api_key')->nullable();
-            $table->string('server_key')->nullable();
-            $table->string('credential')->nullable();
-            $table->foreignId('user_id');
+            $table->string('name');
+            $table->string('value');
+            $table->foreignId('action_id');
             $table->timestamps();
         });
     }
@@ -30,6 +29,6 @@ class CreateWaCredentialTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('wa_credential');
+        Schema::dropIfExists('data_actions');
     }
 }

@@ -43,6 +43,29 @@ class ChatComponent extends Component
         ]);
     }
 
+    public function rules()
+    {
+        return [
+            'client_name' => 'required',
+        ];
+    }
+
+    public function modelData()
+    {
+        return [
+            'name'  => $this->client_name,
+            'note'  => $this->note,
+            'tag'   => $this->tag
+        ];
+    }
+
+    public function save()
+    {
+        $this->validate();
+        $saved = Client::find($this->client_id)->update($this->modelData());
+        $this->emit('saved');
+    }
+
      /**
      * The read function.
      *
@@ -50,7 +73,11 @@ class ChatComponent extends Component
      */
     public function read()
     {
-        return Client::where('user_id', $this->owner)->get();
+        $clients = Client::where('user_id', $this->owner)->get();
+        $sorted  = $clients->sortByDesc(function($client){
+            return $client->date;
+        });
+        return $sorted->values()->all();
     }
 
     public function render()

@@ -27,21 +27,21 @@ class ChatBox extends Component
         $this->user_id = auth()->user()->id;
         $this->client_id = $client_id;
         $this->owner = auth()->user()->currentTeam->user_id;
-
     }
 
     public function sendMessage(){
+        // Check long of word if > will store to message
         Request::create([
             'reply'     => $this->message,
             'from'      => auth()->user()->id,
-            'client_id' => $this->client->id,
+            'client_id' => $this->client->uuid,
             'user_id'   => $this->owner,
             'type'      => 'text'
         ]);
         $this->message = null;
 
         $this->dispatchBrowserEvent('chat-send-message', [
-            'from'      => $this->client->id,
+            'from'      => $this->client->uuid,
             'user_id'   => $this->owner,
             'reply'     => $this->message,
         ]);
@@ -68,7 +68,6 @@ class ChatBox extends Component
     public function actionShowModal()
     {
         $this->modalAttachment = true;
-        // $this->resetForm();
     }
 
     public function resetForm()
@@ -83,7 +82,10 @@ class ChatBox extends Component
      */
     public function read()
     {
-        return Request::with('client','agent')->where('client_id', $this->client->id)->get();
+        if($this->client){
+            return Request::with('client','agent')->where('client_id', $this->client->uuid)->get();
+        }
+        return [];
     }
 
     public function render()

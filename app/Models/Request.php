@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Carbon\Carbon;
 
 class Request extends Model
 {
@@ -29,6 +30,8 @@ class Request extends Model
         'is_read'
     ];
 
+    protected $appends = ['date'];
+
     /**
      * Get the action that belongs to client.
      *
@@ -36,7 +39,7 @@ class Request extends Model
      */
     public function client()
     {
-        return $this->belongsTo('App\Models\Client', 'client_id', 'id');
+        return $this->belongsTo('App\Models\Client', 'client_id', 'uuid');
     }
 
     /**
@@ -57,5 +60,15 @@ class Request extends Model
     public function owner()
     {
         return $this->belongsTo('App\Models\User', 'user_id', 'id');
+    }
+
+    /**
+     * getLastUpdateAttribute
+     *
+     * @return void
+     */
+    public function getDateAttribute() {
+		$date = Carbon::parse($this->updated_at); // now date is a carbon instance
+		return Carbon::make($date)->diffForHumans();
     }
 }
