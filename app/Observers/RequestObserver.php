@@ -22,9 +22,27 @@ class RequestObserver
         //Check if request from customer
         if($request->source_id)
         {
+            // check if has first time template
+            $count = checkFirstRequest($request);
+            if($count == 1)
+            {
+                //send welcome
+                $template = Template::where('type', 'welcome')->where('user_id', $request->user_id)->get();
+                if($template){
+                    foreach($template as $trigger){
+                        if($trigger->actions->count()>0){
+                            foreach($trigger->actions as $action){
+                                //if chat type text
+                                $this->addRespond($action, $request, $trigger);
+                            }
+                        }
+                    }
+                }
+            }
+
             //check if any template sent before
             $last = getPreviousRequest($request);
-            if($last->id)
+            if($last && $last->id)
             {
                 //check if template if question
                 if($last->template_id)
@@ -208,7 +226,8 @@ class RequestObserver
                 }
             }
         }
-        else{
+        else
+        {
             $this->sendToWhatsapp($request);
         }
     }

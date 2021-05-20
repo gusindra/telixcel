@@ -25,7 +25,8 @@ class CreateRequestsTable extends Migration
             $table->foreignId('template_id')->nullable();
             $table->foreignId('user_id')->comment("owner");;
             $table->string('type');
-            $table->smallInteger('is_read');
+            $table->smallInteger('is_read')->default(0);
+            $table->timestamp('sent_at')->nullable();
             $table->timestamps();
         });
     }

@@ -45,7 +45,7 @@
                 </x-jet-nav-link> -->
             </div>
             <div class="bg-white overflow-hidden shadow-xl sm:rounded-sm col-span-7 bg-blend-darken ">
-                    @livewire('chat-box', ['client_id' => $client_id], key($client_id))
+                @livewire('chat-box', ['client_id' => $client_id], key($client_id))
             </div>
             @if($client)
             <div class="bg-white overflow-hidden shadow-xl sm:rounded-sm col-span-2">
@@ -63,19 +63,19 @@
                     </div>
                 </div>
                 <div>
-                    <input class="border-gray-300 focus:border-indigo-300 w-52 m-2 text-sm" type="text"  placeholder="{{ __('Customer Phone') }}"
+                    <input class="border-gray-300 focus:border-indigo-300 w-100 m-1 p-2 text-sm" type="text"  placeholder="{{ __('Customer Phone') }}"
                         x-ref="phone"
                         wire:model.defer="client_phone"
                         readonly disabled>
-                    <input class="border-gray-300 focus:border-indigo-300 w-52 m-2 text-sm" type="text" placeholder="{{ __('Customer Name') }}"
+                    <input class="border-gray-300 focus:border-indigo-300 w-100 m-1 p-2 text-sm" type="text" placeholder="{{ __('Customer Name') }}"
                         x-ref="client_name"
                         wire:model.defer="client_name">
-                    <textarea class="border-gray-300 focus:border-indigo-300 w-52 m-2 text-sm" id="note"
+                    <textarea class="border-gray-300 focus:border-indigo-300 w-100 m-1 p-2 text-sm" id="note"
                         class="mt-1 block w-full mb-4"
                         placeholder="{{ __('note') }}"
                         wire:model.defer="note"
                         wire:model="note"></textarea>
-                    <input class="border-gray-300 focus:border-indigo-300 w-52 m-2 text-sm" type="text" placeholder="{{ __('Tag') }}"
+                    <input class="border-gray-300 focus:border-indigo-300 w-100 m-1 p-2 text-sm" type="text" placeholder="{{ __('Tag') }}"
                         x-ref="tag"
                         wire:model.defer="tag">
                     <div class="px-3 text-right">
@@ -183,6 +183,52 @@
                    window.location.reload();
                 });
             });
+        </script>
+        <script>
+            // Instaniate a connection
+            var connection = clientSocket();
+
+            /**
+             * The event listener that will be dispatched
+             * to the websocket server.
+             */
+
+            window.addEventListener('event-notification', event => {
+                // alert('Event '+ event.detail.eventName);
+                connection.send(JSON.stringify({
+                    eventName: event.detail.eventName,
+                    eventMessage: event.detail.eventMessage
+                }));
+            })
+
+            /**
+             * When the connection is open
+             */
+            connection.onopen = function (){
+                console.log("Connection is open");
+            }
+
+            /**
+             * When the connection is open
+             */
+            connection.onclose = function (){
+                console.log("Connection was closed!");
+                console.log("Reconnecting after 60 seconds...");
+                setTimeout(() => {
+                    window.location.reload();
+                }, 5000)
+            }
+
+            connection.onmessage = function (message){
+                var result = JSON.parse(message.data);
+                console.log(result);
+
+                var notificationMessage = `
+                    <div class="sm:max-w-sm sm:flex-none md:w-auto md:flex-auto flex flex-col items-start relative z-10 p-3 xl:p-3">${result.eventMessage}</div>
+                `;
+
+                document.getElementById('chat-event').innerHTML = notificationMessage;
+            }
         </script>
     @endpush
 </div>

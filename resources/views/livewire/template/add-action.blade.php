@@ -96,7 +96,9 @@
                 @livewire('template.add-data-action', ['actionId' => $actionId], key($actionId))
             @endif
             <div class="col-span-6 sm:col-span-4 p-3">
-                <x-textarea wire:model="message"
+
+                <x-textarea role="textbox"
+                            contenteditable wire:model="message"
                             wire:model.defer="message"
                             value="message" class="mt-1 block w-full" :disabled="! Gate::check('update', $template)" placeholder="message"></x-textarea>
                 <x-jet-input-error for="name" class="mt-2" />

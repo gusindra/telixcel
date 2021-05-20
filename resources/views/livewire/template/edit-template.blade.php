@@ -32,6 +32,7 @@
             </div>
         </div>
     @endif
+
     {{-- Template Information --}}
     <x-jet-form-section submit="updateTemplate">
         <x-slot name="title">
@@ -123,8 +124,9 @@
             </x-slot>
         @endif
     </x-jet-form-section>
-
+    @if($template->type!=='welcome')
     @livewire('template.edit-trigger', ['template' => $template])
+    @endif
 
     @livewire('template.add-action', ['template' => $template])
 
@@ -137,7 +139,7 @@
     @livewire('template.edit-answer', ['template' => $template])
     @endif
 
-    @if($template->type!=='error' && $template->type!=='text')
+    @if($template->type!=='error' && $template->type!=='text' && $template->type!=='welcome')
     @livewire('template.add-error', ['template' => $template])
     @endif
 

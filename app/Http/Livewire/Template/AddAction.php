@@ -31,9 +31,31 @@ class AddAction extends Component
         ];
     }
 
+    public function modelData()
+    {
+        $template = Template::find($this->templateId);
+        if($template->question && $template->question->type == 'api'){
+            $data = [
+                'message'       => $this->message,
+                'order'         => $this->orderAction(),
+                'is_multidata'  => $this->is_multidata,
+                'array_data'    => $this->array_data,
+                'template_id'   => $this->templateId
+            ];
+        }else{
+            $data = [
+                'message'       => $this->message,
+                'order'         => $this->orderAction(),
+                'template_id'   => $this->templateId
+            ];
+        }
+        return $data;
+    }
+
     public function create()
     {
         $this->validate();
+
         $action = Action::create($this->modelData());
         $this->modalActionVisible = false;
         $this->resetForm();
@@ -81,26 +103,7 @@ class AddAction extends Component
         $this->message = null;
     }
 
-    public function modelData()
-    {
-        $template = Template::find($this->templateId);
-        if($template->question && $template->question->type == 'api'){
-            $data = [
-                'message'       => $this->message,
-                'order'         => $this->orderAction(),
-                'is_multidata'  => $this->is_multidata,
-                'array_data'    => $this->array_data,
-                'template_id'   => $this->templateId
-            ];
-        }else{
-            $data = [
-                'message'       => $this->message,
-                'order'         => $this->orderAction(),
-                'template_id'   => $this->templateId
-            ];
-        }
-        return $data;
-    }
+
 
     public function orderAction()
     {

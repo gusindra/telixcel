@@ -13,6 +13,16 @@ function getPreviousRequest($request)
     return Message::where('client_id', $request->client_id)->where('id', '<', $request->id)->orderBy('id','desc')->first();
 }
 
+ /**
+ * check is first request
+ *
+ * @return object
+ */
+function checkFirstRequest($request)
+{
+    return Message::where('client_id', $request->client_id)->where('user_id', $request->user_id)->count();
+}
+
 /**
  * bind to blade template
  * replacements is the data

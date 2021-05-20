@@ -12,6 +12,11 @@ class UsersTable extends LivewireDatatable
 {
     public $model = User::class;
 
+    public function builder()
+    {
+        return User::query()->where('user_id', auth()->user()->currentTeam->user_id);
+    }
+
     public function columns()
     {
         return [

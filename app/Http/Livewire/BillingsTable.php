@@ -12,6 +12,11 @@ class BillingsTable extends LivewireDatatable
 {
     public $model = Billing::class;
 
+    public function builder()
+    {
+        return Billing::query()->where('user_id', auth()->user()->currentTeam->user_id);
+    }
+
     public function columns()
     {
         return [

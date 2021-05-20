@@ -5,6 +5,7 @@ use App\Http\Controllers\DevhookController;
 use App\Http\Controllers\WebhookController;
 use App\Http\Livewire\ShowTemplate;
 use App\Http\Controllers\ApiWaController;
+use App\Http\Controllers\ChatController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -76,3 +77,9 @@ Route::get('/devhook', [DevhookController::class, 'index']);
 Route::get('/webhook/{slug}', [ApiWaController::class, 'index'])->name('webhook.client');
 
 Route::get('/endpoint', [ApiWaController::class, 'checkEndpoint'])->name('endpoint.check');
+
+Route::get('/test', [WebhookController::class, 'index']);
+
+Route::get('/chat/{slug}', function ($slug) {
+    return view('chat.show', ['slug'=> $slug]);
+})->name('chat.slug');

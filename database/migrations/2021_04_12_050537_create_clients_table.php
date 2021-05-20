@@ -19,9 +19,9 @@ class CreateClientsTable extends Migration
             $table->string('sender');
             $table->string('name');
             $table->string('phone');
-            $table->string('identity');
-            $table->string('note');
-            $table->string('tag');
+            $table->string('identity')->nullable();
+            $table->string('note')->nullable();
+            $table->string('tag')->nullable();
             $table->foreignId('user_id');
             $table->timestamps();
         });

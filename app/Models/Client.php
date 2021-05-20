@@ -74,6 +74,7 @@ class Client extends Model
      *
      * @return void
      */
+    
     public function getActiveAttribute()
     {
         if($this->notice){

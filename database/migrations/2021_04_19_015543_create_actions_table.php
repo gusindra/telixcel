@@ -16,7 +16,7 @@ class CreateActionsTable extends Migration
         Schema::create('actions', function (Blueprint $table) {
             $table->id();
             $table->smallInteger('order');
-            $table->string('message');
+            $table->text('message');
             $table->foreignId('template_id');
             $table->smallInteger('is_multidata')->default(0);
             $table->string('array_data')->nullable();

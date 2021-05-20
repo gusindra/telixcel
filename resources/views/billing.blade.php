@@ -4,15 +4,24 @@
             {{ __('Subscription') }}
         </h2>
     </x-slot>
-
-    <div class="py-12">
-        <div class="p-6 sm:px-20 bg-gray-200 bg-opacity-25 grid grid-cols-1 md:grid-cols-2">
-            <div class="max-w-7xl mx-auto sm:px-6 lg:px-6">
+    <div class="py-4">
+        <div class="p-6 sm:px-20 bg-gray-200 bg-opacity-25 grid grid-cols-12">
+            <div class="sm:px-6 lg:px-6">
+                <h3 class="font-semibold text-gray-800 leading-tight">
+                    {{ __('Billing Table') }}
+                </h3>
                 <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
                     <livewire:billings-table searchable="code, description, status, amount, created_at" exportable />
                 </div>
             </div>
-            <div class="max-w-7xl mx-auto sm:px-6 lg:px-6">
+        </div>
+    </div>
+    <div class="py-1">
+        <div class="p-6 sm:px-20 bg-gray-200 bg-opacity-25 grid grid-cols-12">
+            <div class="sm:px-6 lg:px-6">
+                <h3 class="font-semibold text-gray-800 leading-tight">
+                    {{ __('Request Table') }}
+                </h3>
                 <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
                     <livewire:requests-table searchable="user_id, type, created_at" exportable />
                 </div>

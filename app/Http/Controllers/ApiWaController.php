@@ -51,7 +51,6 @@ class ApiWaController extends Controller
             'type'      => $data['message']['type'],
             'client_id' => $client_uuid,
             'sent_at'   => date('Y-m-d H:i:s', $data['message']['timestamp']),
-
         ]);
 
         return $request;
@@ -100,7 +99,7 @@ class ApiWaController extends Controller
     /**
      * The checker for client
      *
-     * @return void
+     * @return object
      */
     public function checkClient($message)
     {
