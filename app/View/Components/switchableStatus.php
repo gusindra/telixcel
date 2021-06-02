@@ -2,10 +2,14 @@
 
 namespace App\View\Components;
 
+use App\Models\TeamUser;
 use Illuminate\View\Component;
 
 class switchableStatus extends Component
 {
+    public $selection = ['Online', 'Praying', 'Meeting', 'Eating', 'Toileting', 'Maintenance', 'Offline'];
+    public $status;
+
     /**
      * Create a new component instance.
      *
@@ -13,7 +17,23 @@ class switchableStatus extends Component
      */
     public function __construct()
     {
-        //
+        $team = TeamUser::find(auth()->user()->currentTeam->id);
+        $this->status = $team->status;
+    }
+
+    /**
+     * The update function.
+     *
+     * @return void
+     */
+    public function updateStatus()
+    {
+        dd(1);
+        // TeamUser::find(auth()->user()->currentTeam->id)->update([
+        //     'status' => $status
+        // ]);
+
+        // $this->status = $status;
     }
 
     /**

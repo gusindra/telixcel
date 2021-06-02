@@ -6,6 +6,7 @@ use App\Http\Controllers\WebhookController;
 use App\Http\Livewire\ShowTemplate;
 use App\Http\Controllers\ApiWaController;
 use App\Http\Controllers\ChatController;
+use App\Http\Controllers\AuthController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -69,6 +70,9 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         return view('billing');
     })->name('billing');
 
+    // Route::put('/agent', ShowTemplate::class)->name('current-agent.update');
+
+
 });
 
 
@@ -83,3 +87,5 @@ Route::get('/test', [WebhookController::class, 'index']);
 Route::get('/chat/{slug}', function ($slug) {
     return view('chat.show', ['slug'=> $slug]);
 })->name('chat.slug');
+
+Route::post('/logout', [AuthController::class, 'destroy'])->name('logout');
