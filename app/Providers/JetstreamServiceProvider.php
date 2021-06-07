@@ -11,6 +11,8 @@ use App\Actions\Jetstream\RemoveTeamMember;
 use App\Actions\Jetstream\UpdateTeamName;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Jetstream\Jetstream;
+use Laravel\Jetstream\Contracts\CurentTeamResponse;
+use App\Models\TeamUser;
 
 class JetstreamServiceProvider extends ServiceProvider
 {
@@ -21,7 +23,18 @@ class JetstreamServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        //
+        $this->app->instance(CurentTeamResponse::class, new class implements CurentTeamResponse {
+            public function toResponse($request)
+            {
+                TeamUser::where('team_id', auth()->user()->currentTeam->id)->where('user_id', auth()->user()->id)->update([
+                    'status' => 'Online'
+                ]);
+
+                $home = '/dashboard';
+
+                return redirect()->intended($home);
+            }
+        });
     }
 
     /**

@@ -19,6 +19,10 @@ class RequestObserver
      */
     public function created(Message $request)
     {
+        // add link to team
+        $team = auth()->user()->currentTeam;
+        $request->teams()->attach($team);
+
         //Check if request from customer
         if($request->source_id)
         {
@@ -27,7 +31,15 @@ class RequestObserver
             if($count == 1)
             {
                 //send welcome
-                $template = Template::where('type', 'welcome')->where('user_id', $request->user_id)->get();
+                $template = Template::where('type', 'welcome')->where('user_id', $request->user_id)->with('teams')
+                    ->whereHas('teams', function ($query) use($request) {
+                        $query->where([
+                            'teams.id' => $request->team->team_id
+                        ]);
+                    })->get();
+                // Log::debug('gelooo');
+                // Log::debug($template);
+
                 if($template){
                     foreach($template as $trigger){
                         if($trigger->actions->count()>0){
@@ -214,7 +226,12 @@ class RequestObserver
 
             if(!$this->replyed){
                 //check if trigger contain reply if not a question
-                $template = Template::where('is_enabled', 1)->whereNull('template_id')->where('user_id', $request->user_id)->where('trigger', $request->reply)->first();
+                $template = Template::where('is_enabled', 1)->whereNull('template_id')->where('trigger', $request->reply)->where('user_id', $request->user_id)->with('teams')
+                    ->whereHas('teams', function ($query) use($request) {
+                        $query->where([
+                            'teams.id' => $request->team->team_id
+                        ]);
+                    })->first();
                 if($template){
                     if($template->actions->count()>0)
                     {

@@ -13,7 +13,5 @@
                 </div>
             </x-dynamic-component>
         @endforeach
-
     </form>
-
 </div>

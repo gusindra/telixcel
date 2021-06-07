@@ -74,7 +74,7 @@ class Client extends Model
      *
      * @return void
      */
-    
+
     public function getActiveAttribute()
     {
         if($this->notice){
@@ -83,5 +83,21 @@ class Client extends Model
             }
         }
         return false;
+    }
+
+    /**
+     * Get all of the teams for the customer.
+     */
+    public function teams()
+    {
+        return $this->morphToMany('App\Models\Team', 'teamable');
+    }
+
+    /**
+     * Get the teams for the api.
+     */
+    public function team()
+    {
+        return $this->morphOne('App\Models\Teamable', 'teamable');
     }
 }

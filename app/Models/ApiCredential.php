@@ -50,4 +50,20 @@ class ApiCredential extends Model
     {
         return Hashids::encode($this->id);
     }
+
+    /**
+     * Get all of the teams for the api.
+     */
+    public function teams()
+    {
+        return $this->morphToMany('App\Models\Team', 'teamable');
+    }
+
+    /**
+     * Get the teams for the api.
+     */
+    public function team()
+    {
+        return $this->morphOne('App\Models\Teamable', 'teamable');
+    }
 }

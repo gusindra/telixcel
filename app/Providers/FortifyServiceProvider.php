@@ -26,7 +26,7 @@ class FortifyServiceProvider extends ServiceProvider
         $this->app->instance(LoginResponse::class, new class implements LoginResponse {
             public function toResponse($request)
             {
-                TeamUser::find(auth()->user()->currentTeam->id)->update([
+                TeamUser::where('team_id', auth()->user()->currentTeam->id)->where('user_id', auth()->user()->id)->update([
                     'status' => 'Online'
                 ]);
 

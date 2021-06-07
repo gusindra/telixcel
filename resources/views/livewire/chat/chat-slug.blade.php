@@ -1,7 +1,9 @@
 <div>
     <x-jet-authentication-card>
         <x-slot name="logo">
-            Online
+            <div class="hidden">
+                {{$team->agents->where('status', 'Online') ? "Online" : "Offline"}}
+            </div>
         </x-slot>
 
         <x-jet-validation-errors class="mb-4" />
@@ -13,7 +15,7 @@
         @endif
 
         @if(!$client)
-        <div>
+        <div class="p-6">
             <div>
                 <x-jet-label for="name" value="{{ __('Name') }}" />
                 <x-jet-input

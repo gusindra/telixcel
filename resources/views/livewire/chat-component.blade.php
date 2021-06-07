@@ -44,7 +44,7 @@
                     {{ __('Closed') }}
                 </x-jet-nav-link> -->
             </div>
-            <div class="bg-white overflow-hidden shadow-xl sm:rounded-sm col-span-7 bg-blend-darken ">
+            <div class="bg-gray-200 overflow-hidden shadow-xl sm:rounded-sm col-span-7 bg-blend-darken ">
                 @livewire('chat-box', ['client_id' => $client_id], key($client_id))
             </div>
             @if($client)
@@ -180,7 +180,7 @@
                  * Reload the page
                  */
                 window.addEventListener('reload-page', event => {
-                   window.location.reload();
+                //    window.location.reload();
                 });
             });
         </script>
@@ -215,7 +215,7 @@
                 console.log("Connection was closed!");
                 console.log("Reconnecting after 60 seconds...");
                 setTimeout(() => {
-                    window.location.reload();
+                    // window.location.reload();
                 }, 5000)
             }
 

@@ -14,7 +14,12 @@ class TemplatesTable extends LivewireDatatable
 
     public function builder()
     {
-        return Template::query()->where('user_id', auth()->user()->currentTeam->user_id);
+        return Template::query()->with('teams')
+            ->whereHas('teams', function ($query) {
+                $query->where([
+                    'teams.id' => auth()->user()->currentTeam->id
+                ]);
+            })->where('user_id', auth()->user()->currentTeam->user_id);
     }
 
     public function columns()

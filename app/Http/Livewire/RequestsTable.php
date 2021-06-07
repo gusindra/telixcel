@@ -14,7 +14,7 @@ class RequestsTable extends LivewireDatatable
 
     public function builder()
     {
-        return Request::query()->with('agent', 'client');
+        return Request::query()->where('requests.user_id', auth()->user()->currentTeam->user_id)->with('agent', 'client');
     }
 
     public function columns()

@@ -7,6 +7,9 @@ use App\Http\Livewire\ShowTemplate;
 use App\Http\Controllers\ApiWaController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\AuthController;
+use App\Models\Template;
+use App\Models\Request;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -86,6 +89,14 @@ Route::get('/test', [WebhookController::class, 'index']);
 
 Route::get('/chat/{slug}', function ($slug) {
     return view('chat.show', ['slug'=> $slug]);
-})->name('chat.slug');
+});
 
+Route::get('/chating/{slug}', [ChatController::class, 'show'])->name('chat.slug');
+
+Route::get('/logout', [AuthController::class, 'destroy'])->name('logout');
 Route::post('/logout', [AuthController::class, 'destroy'])->name('logout');
+
+Route::get('/testing', function(){
+    $request = Request::find(191);
+    return $request->team->id;
+});

@@ -1,12 +1,11 @@
 <x-app-layout>
     <div class="max-w-full mx-auto sm:px-6 lg:px-8">
         <!-- This example requires Tailwind CSS v2.0+ -->
-        <div class="bg-indigo-600 mb-4">
+        <!-- <div class="bg-indigo-600 mb-4">
             <div class="w-full mx-auto p-3 px-3">
                 <div class="flex items-center justify-between flex-wrap">
                     <div class="w-0 flex-1 flex items-center">
                         <span class="flex p-2 rounded-lg bg-indigo-800">
-                        <!-- Heroicon name: outline/speakerphone -->
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
                         </svg>
@@ -30,7 +29,7 @@
                     </button></div>
                 </div>
             </div>
-        </div>
+        </div> -->
     </div>
     <div class="">
         @livewire('chat-component')

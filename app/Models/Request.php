@@ -71,4 +71,42 @@ class Request extends Model
 		$date = Carbon::parse($this->updated_at); // now date is a carbon instance
 		return Carbon::make($date)->diffForHumans();
     }
+
+    /**
+     * Get all of the teams for the template.
+     */
+    public function teams()
+    {
+        return $this->morphToMany('App\Models\Team', 'teamable');
+    }
+
+    /**
+     * Get the teams for the api.
+     */
+    public function team()
+    {
+        return $this->morphOne('App\Models\Teamable', 'teamable');
+    }
+
+    /**
+     * Scope a query to only include inbounce requests.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeInbounce($query)
+    {
+        return $query->whereNotNull('source_id');
+    }
+
+    /**
+     * Scope a query to only include outbounce requests.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeOutbounce($query)
+    {
+        return $query->whereNull('source_id');
+    }
 }

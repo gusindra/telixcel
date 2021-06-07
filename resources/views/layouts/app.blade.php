@@ -12,7 +12,6 @@
 
         <!-- Styles -->
         <link rel="stylesheet" href="{{ url('css/app.css') }}">
-        <link rel="stylesheet" href="{{ url('css/custom.css') }}">
         @trixassets
         @livewireStyles
 
@@ -44,9 +43,10 @@
         @stack('modals')
 
         @livewireScripts
+        @livewireChartsScripts
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
         <script src="{{ url('js/socket.js')}}"></script>
         @stack('chat-websocket')
-
+        @stack('charts')
     </body>
 </html>

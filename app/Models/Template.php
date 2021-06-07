@@ -89,4 +89,12 @@ class Template extends Model
     public function questionError(){
     	return $this->hasMany('App\Models\Template', 'error_template_id');
     }
+
+    /**
+     * Get all of the teams for the template.
+     */
+    public function teams()
+    {
+        return $this->morphToMany('App\Models\Team', 'teamable');
+    }
 }

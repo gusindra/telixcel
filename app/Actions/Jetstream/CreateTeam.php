@@ -32,6 +32,12 @@ class CreateTeam implements CreatesTeams
             'personal_team' => false,
         ]));
 
+        $newTeamMember = Jetstream::findUserByEmailOrFail($user->email);
+
+        $team->users()->attach(
+            $newTeamMember, ['role' => 'admin']
+        );
+
         return $team;
     }
 }

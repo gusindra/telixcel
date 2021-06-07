@@ -18,10 +18,10 @@ class AgentStatus extends Component
      */
     public function mount()
     {
-        $team = TeamUser::find(auth()->user()->currentTeam->id);
-        $this->status = $team->status;
+        $team = TeamUser::where('team_id', auth()->user()->currentTeam->id)->where('user_id', auth()->user()->id)->first();
+        if($team)
+            $this->status = $team->status;
     }
-
     /**
      * The update function.
      *
@@ -29,9 +29,13 @@ class AgentStatus extends Component
      */
     public function updateStatus($status)
     {
-        TeamUser::find(auth()->user()->currentTeam->id)->update([
-            'status' => $status
-        ]);
+        $teamuser = TeamUser::find(auth()->user()->currentTeam->id);
+
+        if($teamuser){
+            $teamuser->update([
+                'status' => $status
+            ]);
+        }
 
         $this->status = $status;
         $this->emit('saved');

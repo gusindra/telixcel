@@ -20,6 +20,7 @@ class ChatBox extends Component
     public $owner;
     public $type;
     public $photo;
+    public $team;
     public $modalAttachment = false;
 
     public function mount($client_id)
@@ -27,6 +28,7 @@ class ChatBox extends Component
         $this->client = Client::find($client_id);
         $this->client_id = $client_id;
         $this->owner =  $this->client->user_id;
+        $this->team =  $this->client->team->detail;
     }
 
     public function sendMessage(){
@@ -47,7 +49,6 @@ class ChatBox extends Component
             'user_id'   => $this->owner,
             'reply'     => $this->message,
         ]);
-        // dd(1);
     }
 
     public function sendAttachment(){
@@ -64,7 +65,6 @@ class ChatBox extends Component
             'user_id'   => $this->owner,
             'reply'     => $this->message,
         ]);
-        // dd(1);
     }
 
     public function actionShowModal()
@@ -92,7 +92,7 @@ class ChatBox extends Component
 
     public function render()
     {
-        return view('livewire.chat-box', [
+        return view('livewire.chat.chat-box', [
             'data' => $this->read(),
             'cid' => $this->client_id,
         ]);

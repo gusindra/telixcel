@@ -14,6 +14,16 @@ class LivewireDatatables extends LivewireDatatable
 {
     public $model = Client::class;
 
+    public function builder()
+    {
+        return Client::query()->with('teams')
+            ->whereHas('teams', function ($query) {
+                $query->where([
+                    'teams.id' => auth()->user()->currentTeam->id
+                ]);
+            })->where('user_id', auth()->user()->currentTeam->user_id);
+    }
+
     function columns()
     {
     	return [

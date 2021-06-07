@@ -23,6 +23,7 @@ class CreateRequestsTable extends Migration
             $table->string('identity')->nullable();
             $table->foreignId('context_id')->nullable();
             $table->foreignId('template_id')->nullable();
+            $table->foreignId('team_id');
             $table->foreignId('user_id')->comment("owner");;
             $table->string('type');
             $table->smallInteger('is_read')->default(0);

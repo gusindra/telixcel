@@ -14,9 +14,9 @@ class ChatSlug extends Component
     public $client;
     public $team;
 
-    public function mount($slug)
+    public function mount($team)
     {
-        $this->team = Team::find($slug);
+        $this->team = $team;
     }
 
     public function checkClient()

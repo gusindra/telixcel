@@ -1,15 +1,15 @@
 <div>
-    <div class="bg-gray-400 h-14">
+    <div class="bg-gray-400 h-14 lg:static md:static sm:fixed sm:inset-x-0 sm:top-0 shadow-md">
         <div class="w-full mx-auto p-3 px-3">
             <div class="flex items-center justify-between flex-wrap">
                 <div class="w-0 flex-1 flex items-center">
                 @if($client)
                     <p class="ml-3 font-medium text-white truncate">
                         <div class="md:h-auto text-sm border-2 border-transparent rounded-full focus:outline-none focus:border-gray-300 transition pr-3">
-                            <img class="h-8 w-8 rounded-full object-cover" src="{{ $client->profile_photo_url }}" alt="{{ $client->name }}" />
+                            <img class="h-8 w-8 rounded-full object-cover" src="{{ $team->profile_photo_url }}" alt="{{ $team->name }}" />
                         </div>
                         <span class="hidden md:inline">
-                            {{$client->name}}
+                            {{$team->name}}
                         </span>
                     </p>
                 @endif
@@ -23,7 +23,7 @@
     <div id="messageArea" class="max-h-screen">
         <div id="messageBox" wire:poll class="overflow-auto h-96 bg-green-50 py-4" style="display: flex;flex-direction: column;">
             @foreach($data as $item)
-            <div class="px-12 buble-chat object-left {{$item->source_id?'':'text-right right-0'}}">
+            <div class="p-4 sm:p-4 sm:px-6 buble-chat object-left {{$item->source_id?'':'text-right right-0'}}">
                 <small class="text-gray-500 font-medium">{{$item->source_id?$client->name:($item->from=='bot'?'Bot':$item->agent->name)}}</small>
                 <div class="flex justify-between">
                     <div class="text-sm flex-auto z-10 p-2 xl:p-3 bg-gradient-to-br {{$item->source_id?'items-start':'order-last text-right'}} {{$item->source_id?'from-green-100 to-green-200 rounded-tr-lg rounded-b-lg':'from-indigo-100 to-indigo-200 rounded-b-lg rounded-tl-lg right-0'}}">
@@ -37,13 +37,15 @@
 
         </div>
         @if($client)
-        <div class="bg-gray-200 py-3">
-            <div class="md:flex px-4 py-2">
+        <div class="bg-gray-200 py-1 grid grid-cols-6 lg:static md:static sm:fixed sm:inset-x-0 sm:bottom-0">
+            <div class="flex items-center justify-center col-span-1 align-text-bottom">
                 <button class="cursor-pointer text-sm text-grey-500 p-2" wire:click="actionShowModal">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
                     </svg>
                 </button>
+            </div>
+            <div class="md:flex pl-2 py-2 col-span-4">
                 <x-textarea
                     id="message"
                     class="mt-1 block w-full"
@@ -51,10 +53,12 @@
                     wire:model="message"
                 />
             </div>
-            <div class="flex items-center justify-end px-4">
-                <x-jet-button wire:click="sendMessage">
-                    {{__('Send')}}
-                </x-jet-button>
+            <div class="flex items-center justify-center col-span-1 align-text-bottom">
+                <button class="p-2 sm:p-2 md:p-4 lg:p-4 bg-green-600 text-white rounded-full" wire:click="sendMessage">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 rotate-90" viewBox="0 0 20 20" fill="currentColor">
+                        <path style="transform: rotate(90deg);transform-origin: 50% 50%;" d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
+                    </svg>
+                </button>
             </div>
         </div>
         @endif
@@ -115,7 +119,10 @@
     </x-jet-dialog-modal>
 
     <script>
+
+
             jQuery(document).ready(checkContainer);
+
             function checkContainer () {
                 if($('#messageBox').is(':visible')){ //if the container is visible on the page
                     var d = $('#messageBox');

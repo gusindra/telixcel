@@ -24,9 +24,11 @@
                     <x-jet-nav-link href="{{ route('template') }}" :active="request()->routeIs('template')">
                         {{ __('Template') }}
                     </x-jet-nav-link>
+                    @if ( Auth::user()->currentTeam && Auth::user()->currentTeam->user_id == Auth::user()->id )
                     <x-jet-nav-link href="{{ route('billing') }}" :active="request()->routeIs('billing')">
                         {{ __('Subscription') }}
                     </x-jet-nav-link>
+                    @endif
                 </div>
             </div>
 
@@ -82,10 +84,12 @@
                                         {{ __('Manage Team') }}
                                     </div>
 
-                                    <!-- Team Settings -->
-                                    <x-jet-dropdown-link href="{{ route('teams.show', Auth::user()->currentTeam->id) }}">
-                                        {{ __('Team Settings') }}
-                                    </x-jet-dropdown-link>
+                                    @if (Auth::user()->currentTeam->id !== 1)
+                                        <!-- Team Settings -->
+                                        <x-jet-dropdown-link href="{{ route('teams.show', Auth::user()->currentTeam->id) }}">
+                                            {{ __('Team Settings') }}
+                                        </x-jet-dropdown-link>
+                                    @endif
 
                                     @can('create', Laravel\Jetstream\Jetstream::newTeamModel())
                                         <x-jet-dropdown-link href="{{ route('teams.create') }}">
@@ -95,14 +99,18 @@
 
                                     <div class="border-t border-gray-100"></div>
 
+                                    @if(Auth::user()->allTeams()->count() > 1)
                                     <!-- Team Switcher -->
                                     <div class="block px-4 py-2 text-xs text-gray-400">
                                         {{ __('Switch Teams') }}
                                     </div>
 
                                     @foreach (Auth::user()->allTeams() as $team)
-                                        <x-jet-switchable-team :team="$team" />
+                                        @if($team->id !== 1)
+                                            <x-jet-switchable-team :team="$team" />
+                                        @endif
                                     @endforeach
+                                    @endif
                                 </div>
                             </x-slot>
                         </x-jet-dropdown>

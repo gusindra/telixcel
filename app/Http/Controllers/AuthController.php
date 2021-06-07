@@ -35,7 +35,8 @@ class AuthController extends Controller
      */
     public function destroy(Request $request)
     {
-        TeamUser::find(auth()->user()->currentTeam->id)->update([
+        // ->where('team_id',auth()->user()->currentTeam->id)
+        TeamUser::where('user_id',auth()->user()->id)->update([
             'status' => NULL
         ]);
 

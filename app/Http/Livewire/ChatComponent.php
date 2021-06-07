@@ -73,7 +73,7 @@ class ChatComponent extends Component
      */
     public function read()
     {
-        $clients = Client::where('user_id', $this->owner)->get();
+        $clients = auth()->user()->currentTeam->client;
         $sorted  = $clients->sortByDesc(function($client){
             return $client->date;
         });
