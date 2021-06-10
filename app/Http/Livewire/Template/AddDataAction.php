@@ -94,7 +94,7 @@ class AddDataAction extends Component
     public function resetForm()
     {
         $this->name = null;
-        $this->velue = null;
+        $this->value = null;
     }
 
      /**

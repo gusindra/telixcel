@@ -7,6 +7,7 @@ use App\Http\Livewire\ShowTemplate;
 use App\Http\Controllers\ApiWaController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\AuthController;
+use App\Models\ApiCredential;
 use App\Models\Template;
 use App\Models\Request;
 
@@ -81,7 +82,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
 Route::get('/devhook', [DevhookController::class, 'index']);
 
-Route::get('/webhook/{slug}', [ApiWaController::class, 'index'])->name('webhook.client');
+Route::post('/webhook/{slug}', [ApiWaController::class, 'inbounceMessage'])->name('webhook.client');
 
 Route::get('/endpoint', [ApiWaController::class, 'checkEndpoint'])->name('endpoint.check');
 
@@ -97,6 +98,7 @@ Route::get('/logout', [AuthController::class, 'destroy'])->name('logout');
 Route::post('/logout', [AuthController::class, 'destroy'])->name('logout');
 
 Route::get('/testing', function(){
-    $request = Request::find(191);
-    return $request->team->id;
+    $request = Request::find(244);
+    return $request->client->team->detail;
+    return $userCredention->team->detail;
 });

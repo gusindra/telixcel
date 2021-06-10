@@ -6,8 +6,6 @@ use App\Models\Client;
 
 class ClientObserver
 {
-    public $replyed = false;
-
     /**
      * Handle the Request "created" event.
      *
@@ -16,8 +14,19 @@ class ClientObserver
      */
     public function created(Client $request)
     {
-        $team = auth()->user()->currentTeam;
-        $request->teams()->attach($team);
+        //
+    }
+
+    /**
+     * Handle the Client "deleted" event.
+     *
+     * @param  \App\Client  $request
+     * @return void
+     */
+    public function deleted(Client $request)
+    {
+        $team = $request->team;
+        $request->teams()->detach($team);
     }
 }
 

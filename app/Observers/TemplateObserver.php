@@ -6,8 +6,6 @@ use App\Models\Template;
 
 class TemplateObserver
 {
-    public $replyed = false;
-
     /**
      * Handle the Request "created" event.
      *
@@ -18,6 +16,18 @@ class TemplateObserver
     {
         $team = auth()->user()->currentTeam;
         $request->teams()->attach($team);
+    }
+
+    /**
+     * Handle the Template "deleted" event.
+     *
+     * @param  \App\Template  $request
+     * @return void
+     */
+    public function deleted(Template $request)
+    {
+        $team = auth()->user()->currentTeam;
+        $request->teams()->detach($team);
     }
 }
 

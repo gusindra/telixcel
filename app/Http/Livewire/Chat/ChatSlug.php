@@ -32,6 +32,8 @@ class ChatSlug extends Component
                 'phone'         => $this->number,
                 'user_id'       => $this->team->user_id,
             ]);
+            $team = auth()->user()->currentTeam;
+            $client->teams()->attach($team);
         }
         $this->client = $client;
     }

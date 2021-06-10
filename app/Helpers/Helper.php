@@ -44,3 +44,58 @@ function bind_to_template($replacements, $template)
 
     }, $template);
 }
+
+/**
+ * slugify make slug from text
+ *
+ * @param  mixed $text
+ * @param  mixed $divider
+ * @return void
+ */
+function slugify($text, string $divider = '-')
+{
+  // replace non letter or digits by divider
+  $text = preg_replace('~[^\pL\d]+~u', $divider, $text);
+
+  // transliterate
+  $text = iconv('utf-8', 'us-ascii//TRANSLIT', $text);
+
+  // remove unwanted characters
+  $text = preg_replace('~[^-\w]+~', '', $text);
+
+  // trim
+  $text = trim($text, $divider);
+
+  // remove duplicate divider
+  $text = preg_replace('~-+~', $divider, $text);
+
+  // lowercase
+  $text = strtolower($text);
+
+  if (empty($text)) {
+    return 'n-a';
+  }
+
+  return $text;
+}
+
+function agentStatus($teamuser)
+{
+    foreach($teamuser as $key => $user)
+    {
+        if($user->status == "Online")
+        {
+            return "Online";
+        }
+        else
+        {
+            if($teamuser->count()==$key+1)
+            {
+                if(!$user->status){
+                    return "Offline";
+                }
+                return "Away";
+            }
+        }
+    }
+}

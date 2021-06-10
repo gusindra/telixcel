@@ -20,6 +20,8 @@ class ApiCredential extends Model
         'server_key',
         'credential',
         'user_id',
+        'client',
+        'is_enabled',
     ];
 
     protected $guarded = [];
@@ -65,5 +67,16 @@ class ApiCredential extends Model
     public function team()
     {
         return $this->morphOne('App\Models\Teamable', 'teamable');
+    }
+
+    /**
+     * Scope a query to only include outbounce requests.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_enabled', 1);
     }
 }

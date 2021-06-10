@@ -29,8 +29,10 @@ class AgentStatus extends Component
      */
     public function updateStatus($status)
     {
-        $teamuser = TeamUser::find(auth()->user()->currentTeam->id);
-
+        $teamuser = TeamUser::where('team_id', auth()->user()->currentTeam->id)->where('user_id', auth()->user()->id)->first();
+        if($status == 'Offline'){
+            $status = null;
+        }
         if($teamuser){
             $teamuser->update([
                 'status' => $status

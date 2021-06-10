@@ -10,6 +10,8 @@ use App\Models\ApiCredential;
 use Illuminate\Support\Str;
 use Vinkla\Hashids\Facades\Hashids;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Twilio\TwiML\MessagingResponse;
 
 class ApiWaController extends Controller
 {
@@ -36,7 +38,7 @@ class ApiWaController extends Controller
 
         // First check from
         // if not exsist add client
-        $client = $this->checkClient($data['message']);
+        $client = $this->checkClient($data['message']['id'],$data['message']['name'],$data['message']['from']);
         // then add data to Request
         $client_uuid = $client->uuid;
         $client_id = $client->id;
@@ -101,9 +103,9 @@ class ApiWaController extends Controller
      *
      * @return object
      */
-    public function checkClient($message)
+    public function checkClient($id, $name, $from, $team)
     {
-        $last_request = Chat::with('client')->where('source_id', $message['id'])->first();
+        $last_request = Chat::with('client')->where('source_id', $id)->first();
         // Client::where('source_id', $message['id'])->where('from', $message['from'])->first();
 
         if($last_request){
@@ -114,11 +116,12 @@ class ApiWaController extends Controller
 
             $client = Client::create([
                 'uuid'      => Str::uuid(),
-                'sender'    => $message['name'],
-                'name'      => $message['name'],
-                'phone'     => $message['from'],
+                'sender'    => $name,
+                'name'      => $name,
+                'phone'     => $from,
                 'user_id'   => $user_id
             ]);
+            $client->teams()->attach($team);
         }
 
         return $client;
@@ -275,5 +278,51 @@ class ApiWaController extends Controller
         Dalian	--    --	Port Klang";
     }
 
+    public function inbounceMessage(Request $request, $slug)
+    {
+        $id = Hashids::decode($slug)[0];
+        $userCredention = ApiCredential::find($id);
+        $team = $userCredention->team->detail;
+        //twilio
+        // Get number of images in the request
+        // $response = new MessagingResponse();
+        $numMedia = (int) $request->input("NumMedia");
+        $body = $request->input("Body");
+        $id = $request->input("From");
+        $name = $request->input("ProfileName");
+        $phone = $request->input("WaId");
 
+        // $response->message("Thanks for the image! Here's one for you!");
+        $client = $this->checkClient($id,$name,$phone, $team);
+
+        $data = [
+            'client_uuid' => $client->uuid,
+            'client_id' => $client->id,
+            'user_id' => $client->user_id,
+            'reply' => $body,
+            'type' => 'text',
+            'source_id' => $id,
+        ];
+
+        $result = $this->storeRequest($data, $team);
+
+        return response()->json([
+            'status' => 'Success',
+            'request_id' => $result->id
+        ]);
+    }
+
+    public function storeRequest($data, $team){
+        $chat = Chat::create([
+            'source_id' => $data['source_id'],
+            'reply'     => $data['reply'],
+            'from'      => $data['client_id'],
+            'user_id'   => $data['user_id'],
+            'type'      => $data['type'],
+            'client_id' => $data['client_uuid'],
+            'sent_at'   => date('Y-m-d H:i:s'),
+        ]);
+
+        return $chat;
+    }
 }

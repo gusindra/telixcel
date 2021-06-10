@@ -1,8 +1,12 @@
 <div>
     <x-jet-authentication-card>
         <x-slot name="logo">
-            <div class="hidden">
-                {{$team->agents->where('status', 'Online') ? "Online" : "Offline"}}
+            <div class="hidden md:block round px-2 py-1 mb-3
+            {{agentStatus($team->agents)=='Online'?'bg-green-200':''}}
+            {{agentStatus($team->agents)=='Away'?'bg-yellow-200':''}}
+            {{agentStatus($team->agents)=='Offline'?'bg-gray-200':''}}
+            rounded">
+                {{agentStatus($team->agents)}}
             </div>
         </x-slot>
 

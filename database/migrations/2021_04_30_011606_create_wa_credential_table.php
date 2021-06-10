@@ -18,6 +18,8 @@ class CreateWaCredentialTable extends Migration
             $table->string('api_key')->nullable();
             $table->string('server_key')->nullable();
             $table->string('credential')->nullable();
+            $table->string('client');
+            $table->smallInteger('is_enabled')->default(0);
             $table->foreignId('user_id');
             $table->timestamps();
         });

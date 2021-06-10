@@ -39,7 +39,7 @@ class Request extends Model
      */
     public function client()
     {
-        return $this->belongsTo('App\Models\Client', 'client_id', 'uuid');
+        return $this->belongsTo(Client::class, 'client_id', 'uuid');
     }
 
     /**

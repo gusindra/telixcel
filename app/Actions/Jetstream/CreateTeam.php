@@ -29,6 +29,7 @@ class CreateTeam implements CreatesTeams
 
         $user->switchTeam($team = $user->ownedTeams()->create([
             'name' => $input['name'],
+            'slug' => slugify($input['name']),
             'personal_team' => false,
         ]));
 

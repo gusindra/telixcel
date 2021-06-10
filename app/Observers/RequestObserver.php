@@ -2,6 +2,7 @@
 
 namespace App\Observers;
 
+use App\Jobs\SendMessageViaApi;
 use App\Models\Request as Message;
 use App\Models\Template;
 use Illuminate\Support\Facades\Http;
@@ -19,8 +20,7 @@ class RequestObserver
      */
     public function created(Message $request)
     {
-        // add link to team
-        $team = auth()->user()->currentTeam;
+        $team = $request->client->team->detail;
         $request->teams()->attach($team);
 
         //Check if request from customer
@@ -120,9 +120,9 @@ class RequestObserver
                             $response = Http::asForm()->get($url);
                         }
                         // make logic to check template from api
-                        Log::debug($url);
-                        Log::debug($response);
-                        $trigger = Template::where('template_id', 1)->where('trigger', $response['code'])->first();
+                        //Log::debug($url);
+                        //Log::debug($response);
+                        $trigger = Template::where('template_id', $template->id)->where('trigger', $response['code'])->first();
                         if($trigger){
                             foreach ($trigger->actions as $action) {
                                 if(!$action->is_multidata){
@@ -303,7 +303,16 @@ class RequestObserver
      * @return void
      */
     private function sendToWhatsapp($request){
-        Log::debug("ready sent to WA: ". $request);
+        // check if has token apicredential
+        if(auth()->user()->currentTeam->apiCredential){
+            // Log::debug("1 client". auth()->user()->currentTeam->apiCredential);
+            foreach(auth()->user()->currentTeam->apiCredential as $api){
+                if($api->is_enabled == 1){
+                    Log::debug($request." ".$api);
+                    SendMessageViaApi::dispatch($request, $api);
+                }
+            }
+        }
     }
 
     /**
@@ -334,5 +343,17 @@ class RequestObserver
                 }
             }
         }
+    }
+
+    /**
+     * Handle the Message "deleted" event.
+     *
+     * @param  \App\Message  $request
+     * @return void
+     */
+    public function deleted(Message $request)
+    {
+        $team = auth()->user()->currentTeam;
+        $request->teams()->detach($team);
     }
 }

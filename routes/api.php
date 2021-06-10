@@ -21,4 +21,4 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::get('/wa/{messege}',  [ApiWaController::class, 'show']);
 Route::post('/wa',  [ApiWaController::class, 'retriveNewMessage']);
-Route::post('/webhook/{slug}',  [ApiWaController::class, 'inbounceMessage']);
+Route::post('/webhook/{slug}',  [ApiWaController::class, 'inbounceMessage'])->name('api.client.webhook');

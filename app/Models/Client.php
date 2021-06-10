@@ -35,7 +35,7 @@ class Client extends Model
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function requests(){
-    	return $this->hasMany('App\Models\Request', 'from')->whereNotNull('source_id');
+    	return $this->hasMany(Request::class, 'from')->whereNotNull('source_id');
     }
 
     /**

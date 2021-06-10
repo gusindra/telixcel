@@ -14,7 +14,7 @@
                 <div class="block px-4 py-2 text-xs text-gray-400">
                     {{ __('Status') }}
                 </div>
-                <x-switchable-status :selection="$selection" :data-status="$status"></x-switchable-status>
+                <x-switchable-status :selection="$selection" :status="$status"></x-switchable-status>
             </div>
         </x-slot>
     </x-jet-dropdown>

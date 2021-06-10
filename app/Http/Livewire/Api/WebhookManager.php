@@ -12,6 +12,8 @@ class WebhookManager extends Component
     public $api_key;
     public $server_key;
     public $credential;
+    public $client;
+    public $is_enabled;
     public $data_id;
     public $modalActionVisible = false;
     public $confirmingActionRemoval = false;
@@ -20,6 +22,9 @@ class WebhookManager extends Component
     {
         return [
             'api_key'       => 'required',
+            'server_key'    => 'required',
+            'credential'    => 'required',
+            'client'        => 'required',
         ];
     }
 
@@ -29,6 +34,8 @@ class WebhookManager extends Component
             'api_key'       => $this->api_key,
             'server_key'    => $this->server_key,
             'credential'    => $this->credential,
+            'client'        => $this->client,
+            'is_enabled'    => $this->is_enabled,
             'user_id'       => auth()->user()->id
         ];
     }
@@ -73,6 +80,8 @@ class WebhookManager extends Component
         $this->api_key = null;
         $this->server_key = null;
         $this->credential = null;
+        $this->client = null;
+        $this->is_enabled = 0;
     }
 
 
@@ -91,7 +100,12 @@ class WebhookManager extends Component
      */
     public function read()
     {
-        return ApiCredential::where('user_id', auth()->user()->id)->get();
+        return ApiCredential::where('user_id', auth()->user()->id)->with('teams')
+        ->whereHas('teams', function ($query) {
+            $query->where([
+                'teams.id' => auth()->user()->currentTeam->id
+            ]);
+        })->get();
     }
 
     public function updateShowModal($id)
@@ -122,6 +136,8 @@ class WebhookManager extends Component
         $this->api_key      = $data->api_key;
         $this->server_key   = $data->server_key;
         $this->credential   = $data->credential;
+        $this->client       = $data->client;
+        $this->is_enabled   = $data->is_enabled;
     }
 
     public function render()
