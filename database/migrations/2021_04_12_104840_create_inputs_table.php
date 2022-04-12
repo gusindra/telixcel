@@ -15,10 +15,10 @@ class CreateInputsTable extends Migration
     {
         Schema::create('inputs', function (Blueprint $table) {
             $table->id();
-            $table->integer('order');
+            $table->integer('order')->nullable();
             $table->string('name');
-            $table->string('message');
-            $table->foreignId('template_id');
+            $table->string('type')->nullable();
+            $table->foreignId('endpoint_id');
             $table->timestamps();
         });
     }

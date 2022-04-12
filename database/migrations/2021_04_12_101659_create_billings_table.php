@@ -15,6 +15,7 @@ class CreateBillingsTable extends Migration
     {
         Schema::create('billings', function (Blueprint $table) {
             $table->id();
+            $table->string('uuid')->unique();
             $table->string('code');
             $table->string('description');
             $table->string('amount');

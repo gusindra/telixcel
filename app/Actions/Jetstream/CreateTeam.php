@@ -29,8 +29,15 @@ class CreateTeam implements CreatesTeams
 
         $user->switchTeam($team = $user->ownedTeams()->create([
             'name' => $input['name'],
+            'slug' => slugify($input['name']),
             'personal_team' => false,
         ]));
+
+        $newTeamMember = Jetstream::findUserByEmailOrFail($user->email);
+
+        $team->users()->attach(
+            $newTeamMember, ['role' => 'admin']
+        );
 
         return $team;
     }

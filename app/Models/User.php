@@ -26,7 +26,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'name', 'email', 'password',
+        'name', 'email', 'password', 'handling'
     ];
 
     /**
@@ -58,4 +58,78 @@ class User extends Authenticatable
     protected $appends = [
         'profile_photo_url',
     ];
+
+
+    public function clients($m=null, $y=null){
+        if($m && $y){
+            return $this->hasMany('App\Models\Client', 'user_id')->whereMonth('created_at', '<=', $m)->whereYear('created_at', '<=', $y);
+        }
+    	return $this->hasMany('App\Models\Client', 'user_id');
+    }
+    public function inbounds($m=null, $y=null){
+        if($m && $y){
+            return $this->hasMany('App\Models\Request', 'user_id')->whereNotNull('sent_at')->whereMonth('created_at', $m)->whereYear('created_at', $y);
+        }
+    	return $this->hasMany('App\Models\Request', 'user_id')->whereNotNull('sent_at');
+    }
+    public function outbounds($m=null, $y=null){
+        if($m && $y){
+            return $this->hasMany('App\Models\Request', 'user_id')->whereNull('sent_at')->whereMonth('created_at', $m)->whereYear('created_at', $y);
+        }
+    	return $this->hasMany('App\Models\Request', 'user_id')->whereNull('sent_at');
+    }
+
+    /**
+     * User has one Chat Session
+     *
+     * @return void
+     */
+    public function chatsession(){
+    	return $this->hasOne('App\Models\HandlingSession', 'agent_id');
+    }
+
+    /**
+     * Template has one Error Template
+     *
+     * @return void
+     */
+    public function super(){
+    	return $this->hasMany('App\Models\TeamUser','user_id')->where('team_id', 1);
+    }
+
+    /**
+     * Template has one Error Template
+     *
+     * @return void
+     */
+    public function isSuper(){
+    	return $this->hasOne('App\Models\TeamUser','user_id')->where('team_id', 1);
+    }
+
+    /**
+     * teams
+     *
+     * @return void
+     */
+    public function teams(){
+    	return $this->hasMany('App\Models\Team', 'user_id');
+    }
+
+    /**
+     * list teams
+     *
+     * @return void
+     */
+    public function listTeams(){
+    	return $this->hasMany('App\Models\TeamUser', 'user_id');
+    }
+
+    /**
+     * billings
+     *
+     * @return void
+     */
+    public function billings(){
+    	return $this->hasMany('App\Models\Billing', 'user_id');
+    }
 }
