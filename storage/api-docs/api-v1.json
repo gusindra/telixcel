@@ -1,0 +1,464 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Telixcel Chat API",
+        "description": "This is a sample server Telixcel server.  You can find out more about Telixcel at [http://telixcel.com](http://telixcel.com).",
+        "version": "1.0.0",
+        "termsOfService": "http://telixcel.com/terms",
+        "contact": {
+            "email": "support@telixcel.com"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        }
+    },
+    "servers": {
+        "url":"telixcel.com/api",
+        "description":"telixcel api"
+    },
+    "basePath": "/api",
+    "tags": [
+        {
+            "name": "chat",
+            "description": "Operations get chat messages user",
+            "externalDocs": {
+                "description": "Get message request and send message"
+            }
+        },
+        {
+            "name": "sms",
+            "description": "Operations to SMS",
+            "externalDocs": {
+                "description": "Get SMS request and send blast SMS"
+            }
+        }
+    ],
+    "components":{
+        "schemes": {
+            "Chat":{
+                "title": "Chat.",
+                "description": "Chat messages.",
+                "properties":{
+                    "id":{
+                        "title": "ID",
+                        "description": "ID",
+                        "type": "integer",
+                        "format": "int64",
+                        "name":{
+                            "title": "Reply ID",
+                            "description": "Reply ID",
+                            "type": "string"
+                        }
+                    },
+                    "reply":{
+                        "title": "Reply",
+                        "description": "Reply msg",
+                        "type": "string",
+                        "name":{
+                            "title": "Reply name",
+                            "description": "Reply name",
+                            "type": "string"
+                        }
+                    }
+                },
+                "type": "object",
+                "xml":{
+                    "name": "Chat"
+                }
+            },
+            "Sms":{
+                "title": "SMS.",
+                "description": "SMS data.",
+                "properties":{
+                    "id":{
+                        "title": "ID",
+                        "description": "ID",
+                        "type": "integer",
+                        "format": "int64",
+                        "name":{
+                            "title": "Category name",
+                            "description": "Category name",
+                            "type": "string"
+                        }
+                    }
+                },
+                "type": "object",
+                "xml":{
+                    "name": "SMS"
+                }
+            }
+        },
+        "securitySchemes": {
+            "bearerAuth":{
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT"
+            },
+            "api_key": {
+                "type": "apiKey",
+                "name": "api_key",
+                "in": "header"
+            }
+        }
+    },
+    "paths": {
+        "/chat/{phone_number}": {
+            "get": {
+                "tags": [
+                    "chat"
+                ],
+                "summary": "Find chat conversation by phone number",
+                "description": "Returns data conversation user",
+                "operationId": "getChatByNumber",
+                "requestBody":{
+                    "$ref": "#/components/requestBodies/Pet"
+                },
+                "produces": [
+                    "application/json",
+                    "application/xml"
+                ],
+                "parameters": [
+                    {
+                        "name": "phone_number",
+                        "in": "path",
+                        "description": "Phone number of costumer that needs to see",
+                        "required": true,
+                        "type": "integer",
+                        "format": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "schema": {
+                            "$ref": "#/definitions/Chat"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid phone number supplied"
+                    },
+                    "404": {
+                        "description": "User not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "chat"
+                ],
+                "summary": "Send new message",
+                "description": "",
+                "operationId": "createMessageWithForm",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json",
+                    "application/xml"
+                ],
+                "parameters": [
+                    {
+                        "name": "phone_number",
+                        "in": "path",
+                        "description": "ID of pet that needs to be updated",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "reply",
+                        "in": "formData",
+                        "description": "Updated name of the pet",
+                        "required": false,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "405": {
+                        "description": "Invalid input"
+                    }
+                },
+                "security": [
+                    {
+                        "chat_auth": [
+                            "write:chat",
+                            "read:chat"
+                        ]
+                    }
+                ]
+            }
+        },
+        "/sms":{
+            "get": {
+                "tags": [
+                    "sms"
+                ],
+                "summary": "Logs user into the system",
+                "description": "",
+                "operationId": "loginUser",
+                "produces": [
+                    "application/json",
+                    "application/xml"
+                ],
+                "parameters": [
+                    {
+                        "name": "username",
+                        "in": "query",
+                        "description": "The user name for login",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "password",
+                        "in": "query",
+                        "description": "The password for login in clear text",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "headers": {
+                            "X-Expires-After": {
+                                "type": "string",
+                                "format": "date-time",
+                                "description": "date in UTC when token expires"
+                            },
+                            "X-Rate-Limit": {
+                                "type": "integer",
+                                "format": "int32",
+                                "description": "calls per hour allowed by the user"
+                            }
+                        },
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid username/password supplied"
+                    }
+                }
+            }
+        },
+        "/sms/bulk": {
+            "post": {
+                "tags": [
+                    "sms"
+                ],
+                "summary": "Send message with given input phone number array",
+                "description": "",
+                "operationId": "sendMessageWithArrayInput",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json",
+                    "application/xml"
+                ],
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "List of phone number",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/Sms"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "default": {
+                        "description": "successful operation"
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "ApiResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "Category": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "name": {
+                    "type": "string"
+                }
+            },
+            "xml": {
+                "name": "Category"
+            }
+        },
+        "Pet": {
+            "type": "object",
+            "required": [
+                "name",
+                "photoUrls"
+            ],
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "category": {
+                    "$ref": "#/definitions/Category"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "doggie"
+                },
+                "photoUrls": {
+                    "type": "array",
+                    "xml": {
+                        "wrapped": true
+                    },
+                    "items": {
+                        "type": "string",
+                        "xml": {
+                            "name": "photoUrl"
+                        }
+                    }
+                },
+                "tags": {
+                    "type": "array",
+                    "xml": {
+                        "wrapped": true
+                    },
+                    "items": {
+                        "xml": {
+                            "name": "tag"
+                        },
+                        "$ref": "#/definitions/Tag"
+                    }
+                },
+                "status": {
+                    "type": "string",
+                    "description": "pet status in the store",
+                    "enum": [
+                        "available",
+                        "pending",
+                        "sold"
+                    ]
+                }
+            },
+            "xml": {
+                "name": "Pet"
+            }
+        },
+        "Tag": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "name": {
+                    "type": "string"
+                }
+            },
+            "xml": {
+                "name": "Tag"
+            }
+        },
+        "Chat": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "petId": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "quantity": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "shipDate": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "status": {
+                    "type": "string",
+                    "description": "Order Status",
+                    "enum": [
+                        "placed",
+                        "approved",
+                        "delivered"
+                    ]
+                },
+                "complete": {
+                    "type": "boolean"
+                }
+            },
+            "xml": {
+                "name": "Chat"
+            }
+        },
+        "User": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "username": {
+                    "type": "string"
+                },
+                "firstName": {
+                    "type": "string"
+                },
+                "lastName": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "userStatus": {
+                    "type": "integer",
+                    "format": "int32",
+                    "description": "User Status"
+                }
+            },
+            "xml": {
+                "name": "User"
+            }
+        }
+    },
+    "externalDocs": {
+        "description": "Find out more about Telixcel",
+        "url": "http://telixcel.com"
+    }
+}

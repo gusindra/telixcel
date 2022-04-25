@@ -6,6 +6,8 @@ use App\Http\Controllers\ApiWaController;
 use App\Http\Controllers\TestApiController;
 use App\Http\Controllers\ApiTeamWaController;
 use App\Http\Controllers\ApiBulkSmsController;
+use App\Http\Controllers\ApiChatController;
+use App\Http\Controllers\ApiSmsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -25,11 +27,29 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::get('/wa/{messege}',  [ApiWaController::class, 'show']);
 Route::post('/wa',  [ApiWaController::class, 'retriveNewMessage']);
 Route::post('/webhook/{slug}',  [ApiWaController::class, 'inbounceMessage'])->name('api.client.webhook');
+// Route::get('/chat/{phone}',  [TestApiController::class, 'get']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
+    // sample key : kHy717zKGKN9Xwt1GdD14JryEBsLFApJSEiG1Gmy = telixcel
+    // sample 1 : QxYBf46DyeSSsuXKf6tWWpd0rZBVT1a8dFeFSOyM = gusin
     Route::get('/test',  [TestApiController::class, 'get']);
     Route::post('/test',  [TestApiController::class, 'post']);
     Route::post('/bulksms',  [ApiBulkSmsController::class, 'post']);
+
+    // API for chat
+    Route::get('/getmsg/{id}',  [TestApiController::class, 'get']);
+    Route::post('/sendmsg/{id}',  [TestApiController::class, 'post']);
+
+    // API for chat
+    Route::get('/chat/{phone}',  [ApiChatController::class, 'show']);
+    Route::post('/chat',  [ApiChatController::class, 'post']);
+    Route::post('/chat/bulk',  [ApiChatController::class, 'post']);
+    // API for sms
+    Route::get('/sms',  [ApiSmsController::class, 'index']);
+    Route::get('/sms/{phone}',  [ApiSmsController::class, 'show']);
+    Route::post('/sms',  [ApiSmsController::class, 'post']);
+    Route::post('/sms/bulk',  [ApiSmsController::class, 'post']);
+
 });
 
 Route::get('/test/{id}',  [TestApiController::class, 'show']);
@@ -40,3 +60,4 @@ Route::get('/team-auth',  [ApiTeamWaController::class, 'getAuth']);
 Route::post('/post-team-auth',  [ApiTeamWaController::class, 'postTeamAuth'])->name('wa.session');
 Route::get('/test/{id}',  [ApiTeamWaController::class, 'getTeam']);
 Route::put('/team-auth/{id}',  [ApiTeamWaController::class, 'put']);
+

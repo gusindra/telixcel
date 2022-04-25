@@ -28,7 +28,7 @@ class SmsBlastTable extends LivewireDatatable
     		Column::name('message_content')->label('Message Content'),
     		Column::name('status')->label('Status'),
     		Column::name('msisdn')->label('Phone No'),
-    		DateColumn::name('created_at')->label('Creation Date')
+    		DateColumn::name('created_at')->label('Creation Date')->sortBy('created_at', 'desc')
     	];
     }
 }

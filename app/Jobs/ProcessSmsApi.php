@@ -46,6 +46,11 @@ class ProcessSmsApi implements ShouldQueue
         //check user pass Mk
         $user   = $this->service->api_key;
         $pass   = $this->service->server_key;
+        $serve  = 'MGI003';
+
+        if(array_key_exists('servid', $this->request)){
+            $serve  = $this->request['servid'];
+        }
 
         // $url = 'http://www.etracker.cc/bulksms/mesapi.aspx';
         $url = 'http://telixnet.test/api/send/smsbulk';
@@ -80,7 +85,7 @@ class ProcessSmsApi implements ShouldQueue
                 'to' => $this->request['to'],
                 'from' => $this->request['from'],
                 'text' => $this->request['text'],
-                'servid' => $this->request['servid'],
+                'servid' => $serve,
                 'title' => $this->request['title'],
                 'detail' => 1,
             ]);

@@ -38,21 +38,9 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-// Route::middleware(['auth:sanctum', 'verified'])->get('/dashboard', function () {
-//     return view('dashboard');
-// })->name('dashboard');
-// Route::middleware(['auth:sanctum', 'verified'])->get('/client', function () {
-//     return view('client');
-// })->name('client');
-// Route::middleware(['auth:sanctum', 'verified'])->get('/message', function () {
-//     return view('message');
-// })->name('message');
-// Route::middleware(['auth:sanctum', 'verified'])->get('/template', function () {
-//     return view('template');
-// })->name('template');
-// Route::middleware(['auth:sanctum', 'verified'])->get('/billing', function () {
-//     return view('billing');
-// })->name('billing');
+Route::group(['middleware' => 'web'], function () {
+    // Route::get('api/documentation', '\L5Swagger\Http\Controllers\SwaggerController@api')->name('l5swagger.api');
+});
 
 Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
@@ -255,3 +243,19 @@ Route::get('/email', function (){
         $message->to('gusin44@yahoo.com')->cc('web@sbimanning.co.id');
     });
 });
+
+// Route::middleware(['auth:sanctum', 'verified'])->get('/dashboard', function () {
+//     return view('dashboard');
+// })->name('dashboard');
+// Route::middleware(['auth:sanctum', 'verified'])->get('/client', function () {
+//     return view('client');
+// })->name('client');
+// Route::middleware(['auth:sanctum', 'verified'])->get('/message', function () {
+//     return view('message');
+// })->name('message');
+// Route::middleware(['auth:sanctum', 'verified'])->get('/template', function () {
+//     return view('template');
+// })->name('template');
+// Route::middleware(['auth:sanctum', 'verified'])->get('/billing', function () {
+//     return view('billing');
+// })->name('billing');

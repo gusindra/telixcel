@@ -1,0 +1,385 @@
+openapi: 3.0.0
+info:
+  title: 'Telixcel API'
+  description: "This is a documentation Telixcel API server."
+  contact:
+    email: support@telixcel.com
+  license:
+    name: 'Apache 2.0'
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+  version: 1.0.0
+servers:
+  -
+    url: 'http://telixnet.test/api'
+    description: 'Telixcel API Mocking'
+paths:
+  /chat:
+    post:
+      tags:
+        - chat
+      summary: 'Send a message with form data'
+      operationId: sendChat
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              properties:
+                phone:
+                  description: 'From no phone'
+                  required: true
+                  type: string
+                  format: msisdn
+                text:
+                  description: 'Reply of the chat'
+                  required: true
+                  type: string
+              type: object
+      responses:
+        '200':
+          description: 'successful operation'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Chat'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Chat'
+        '422':
+          description: 'Invalid input'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvalidInputChat'
+      security:
+        - bearerAuth: []
+  '/chat/{phone_number}':
+    get:
+      tags:
+        - chat
+      summary: 'Returns chat message by number'
+      description: 'Returns a chat conversation message per phone number'
+      operationId: getChat
+      parameters:
+        -
+          name: phone_number
+          in: path
+          required: true
+          schema:
+            type: string
+            format: msisdn
+      responses:
+        '200':
+          description: 'successful operation'
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Chat'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Chat'
+        '400':
+          description: 'Invalid phone number provided'
+        '404':
+          description: 'User not found'
+      security:
+        - bearerAuth: []
+  /sms:
+    get:
+      tags:
+        - sms
+      summary: 'Return all sms record'
+      operationId: getSms
+      responses:
+        '200':
+          description: 'successful operation'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SingleSms'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/SingleSms'
+        '400':
+          description: 'Invalid supplied'
+        '404':
+          description: 'Record not found'
+      security:
+        - bearerAuth: []
+    post:
+      tags:
+        - sms
+      summary: 'Send sms to Recipient mobile number'
+      operationId: sendSms
+      requestBody:
+        description: 'Send sms object'
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendSms'
+      responses:
+        default:
+          description: 'successful operation'
+      security:
+        - bearerAuth: []
+  '/sms/{phone_number}':
+    get:
+      tags:
+        - sms
+      summary: 'Return all sms record'
+      operationId: getSmsByPhone
+      parameters:
+        -
+          name: phone_number
+          in: path
+          required: true
+          schema:
+            type: string
+            format: msisdn
+      responses:
+        '200':
+          description: 'successful operation'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SingleSms'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/SingleSms'
+        '400':
+          description: 'Invalid supplied'
+        '404':
+          description: 'Record not found'
+      security:
+        - bearerAuth: []
+  /sms/sendbulk:
+    post:
+      tags:
+        - sms
+      summary: 'Send sms to list of Recipients mobile number with given input array'
+      operationId: sendBulkSms
+      requestBody:
+        $ref: '#/components/requestBodies/SmsArray'
+      responses:
+        default:
+          description: 'successful operation'
+      security:
+        - bearerAuth: []
+components:
+  schemas:
+    ApiResponse:
+      title: 'Api response'
+      description: 'Api response'
+      properties:
+        code:
+          title: Code
+          description: Code
+          type: integer
+          format: int32
+        message:
+          title: Message
+          description: Message
+          type: string
+        response:
+          title: Response
+          description: Response
+          type: array
+          items:
+            type: string
+      type: object
+    SingleSms:
+      title: 'Single SMS Response'
+      description: 'Single SMS model'
+      required:
+        - type
+        - to
+        - from
+        - text
+      properties:
+        id:
+          title: ID
+          description: ID
+          type: integer
+          format: int64
+        type:
+          title: 'Type'
+          description: 'Character type for text'
+          type: integer
+          format: int64
+        title:
+          title: 'Title'
+          description: 'Broadcast Title'
+          type: string
+        text:
+          title: 'Text'
+          description: 'Message Content'
+          type: string
+        to:
+          title: 'To'
+          description: 'Recipients mobile number'
+          type: string
+        status:
+          title: 'Status'
+          description: 'Broadcast status'
+          type: string
+        date:
+          title: 'Date'
+          description: 'Broadcast date'
+          type: string
+          format: date-time
+      type: object
+      xml:
+        name: SingleSms
+    BulkSms:
+      title: 'Bulk SMS model'
+      description: 'Bulk SMS model'
+      required:
+        - type
+        - to
+        - from
+        - text
+      properties:
+        type:
+          title: 'Type'
+          description: 'Character type for text'
+          type: integer
+          format: int64
+        title:
+          title: 'Title'
+          description: 'Broadcast Title'
+          type: string
+        text:
+          title: 'Text'
+          description: 'Message Content'
+          type: string
+        to:
+          title: 'To'
+          description: 'Recipients mobile number'
+          type: array
+          items:
+            type: string
+            format: msisdn
+          xml:
+            name: To
+            wrapped: true
+      type: object
+      xml:
+        name: BulkSms
+    SendSms:
+      title: 'Send SMS model'
+      description: 'Send SMS model'
+      required:
+        - type
+        - to
+        - from
+        - text
+      properties:
+        type:
+          title: 'Type'
+          description: 'Character type for text: 0 - ASCII 5 - Unicode'
+          type: integer
+          format: int64
+        to:
+          title: 'To'
+          description: 'Recipients mobile number'
+          type: string
+          format: msisdn
+        from:
+          title: 'from'
+          description: 'Sender’s name, Sender’s ID or Sender’s number'
+          type: string
+        title:
+          title: 'Title'
+          description: 'Broadcast Title'
+          type: string
+        text:
+          title: 'Text'
+          description: 'Message Content'
+          type: string
+      type: object
+      xml:
+        name: SingleSms
+    Chat:
+      title: 'Chat model'
+      description: 'Chat model'
+      required:
+        - text
+        - phone
+      properties:
+        phone:
+          title: 'Phone'
+          description: 'Phone User from'
+          type: string
+        reply:
+          title: 'Reply'
+          description: 'User Message Reply'
+          type: string
+        date:
+          title: 'Date'
+          description: 'Broadcast date'
+          type: string
+          format: date-time
+      type: object
+      xml:
+        name: Chat
+    InvalidInputChat:
+      title: 'Chat model'
+      description: 'Chat model'
+      required:
+        - text
+        - phone
+      properties:
+        message:
+          title: 'Phone'
+          description: 'Phone User from'
+          type: string
+        errors:
+          title: 'Errors'
+          description: 'Errors'
+          type: array
+          items:
+            type: string
+      type: object
+      xml:
+        name: InvalidInputChat
+  requestBodies:
+    Pet:
+      description: 'Pet object that needs to be added to the store'
+      required: true
+      content:
+        application/xml:
+          schema:
+            $ref: '#/components/schemas/Pet'
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Pet'
+    UserArray:
+      description: 'List of user object'
+      required: true
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/User'
+    SmsArray:
+      description: 'List of sms object'
+      required: true
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/BulkSms'
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+tags:
+  -
+    name: chat
+    description: 'Everything about chat'
+  -
+    name: sms
+    description: 'Everything about sms'
