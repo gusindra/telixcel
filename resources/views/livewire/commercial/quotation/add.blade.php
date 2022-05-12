@@ -1,0 +1,69 @@
+<div>
+    <div class="flex items-center p-4 text-right">
+        <a wire:click="actionShowModal" class="inline-flex items-center px-4 py-2 bg-green-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 active:bg-green-900 focus:outline-none focus:border-gray-900 focus:shadow-outline-gray disabled:opacity-25 transition" wire:click="actionShowModal">
+            {{__('New Quotation')}}
+        </a>
+    </div>
+
+    <!-- Form Action Modal -->
+    <x-jet-dialog-modal wire:model="modalActionVisible">
+        <x-slot name="title">
+            {{ __('New Quotation') }}
+        </x-slot>
+
+        <x-slot name="content">
+        <div class="col-span-6 sm:col-span-4 p-3">
+                <x-jet-label for="price" value="{{ __('Type') }}" />
+                <select
+                    name="type"
+                    id="type"
+                    class="border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full"
+                    wire:model.debunce.800ms="type"
+                    >
+                    <option selected>-- Select --</option>
+                    <option value="project">Project base</option>
+                    <option value="product">Products</option>
+                    <option value="price">Price & Discount</option>
+                    <option value="term">Annexed Commercial Terms</option>
+                </select>
+                <x-jet-input-error for="price" class="mt-2" />
+            </div>
+            <div class="col-span-6 sm:col-span-4 p-3">
+                <x-jet-label for="name" value="{{ __('Title') }}" />
+                <x-jet-input id="name" type="text" class="mt-1 block w-full" wire:model.debunce.800ms="name" autofocus />
+                <x-jet-input-error for="name" class="mt-2" />
+            </div>
+            <div class="col-span-6 sm:col-span-4 p-3">
+                <x-jet-label for="date" value="{{ __('Quotation Date') }}" />
+                <x-input.date-picker wire:model="date" :error="$errors->first('date')"/>
+                <x-jet-input-error for="date" class="mt-2" />
+            </div>
+            <div class="col-span-6 sm:col-span-4 p-3">
+                <x-jet-label for="price" value="{{ __('Duration') }}" />
+                <select
+                    name="valid_day"
+                    id="valid_day"
+                    class="border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full"
+                    wire:model.debunce.800ms="valid_day"
+                    >
+                    <option selected>-- Select --</option>
+                    <option value="3">3 days</option>
+                    <option value="7">7 days</option>
+                    <option value="30">30 days</option>
+                    <option value="60">60 days</option>
+                </select>
+                <x-jet-input-error for="price" class="mt-2" />
+            </div>
+        </x-slot>
+
+        <x-slot name="footer">
+            <x-jet-secondary-button wire:click="$toggle('modalActionVisible')" wire:loading.attr="disabled">
+                {{ __('Cancel') }}
+            </x-jet-secondary-button>
+
+            <x-jet-button class="ml-2" wire:click="create" wire:loading.attr="disabled">
+                {{ __('Save') }}
+            </x-jet-button>
+        </x-slot>
+    </x-jet-dialog-modal>
+</div>

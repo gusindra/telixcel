@@ -24,6 +24,8 @@ return new class extends Migration
             $table->float('discount');
             $table->float('price');
             $table->string('status', 100)->default('active')->comment('active, disabled');
+            $table->foreignId('user_id');
+            $table->timestamp('valid_until')->nullable();
             $table->timestamps();
         });
     }

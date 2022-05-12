@@ -103,4 +103,6 @@
     </x-jet-form-section>
 
     @livewire('role.permissions', ['id' => $role->id])
+
+    @livewire('role.member', ['id' => $role->id])
 </div>

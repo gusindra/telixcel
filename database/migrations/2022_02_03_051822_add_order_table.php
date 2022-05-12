@@ -22,6 +22,7 @@ class AddOrderTable extends Migration
             $table->string('referrer_id');
             $table->string('commision_ratio');
             $table->string('total');
+            $table->string('status');
             $table->string('customer_id');
             $table->foreignId('user_id');
             $table->timestamps();

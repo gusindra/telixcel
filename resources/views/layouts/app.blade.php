@@ -11,7 +11,9 @@
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap">
 
         <!-- Styles -->
-        <link rel="stylesheet" href="{{ url('backend/css/app.css') }}">
+        <!-- <link rel="stylesheet" href="{{ url('backend/css/app.css') }}"> -->
+        <link rel="stylesheet" href="https://telixcel.s3.ap-southeast-1.amazonaws.com/assets/app.min.css">
+        <link rel="stylesheet" media="print" href="{{ url('backend/css/print.css') }}">
         @trixassets
         @livewireStyles
 

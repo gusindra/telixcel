@@ -36,6 +36,12 @@ class AddCustomer extends Component
             'customer_address'  => $this->customer_address
         ];
     }
+
+    public function updated($propertyName)
+    {
+        $this->validateOnly($propertyName);
+    }
+
     /**
      * Update Template
      *
@@ -43,8 +49,8 @@ class AddCustomer extends Component
      */
     public function save()
     {
-        $this->validate();
-        Project::find($this->project_id)->update($this->modelData());
+        $validatedData = $this->validate();
+        Project::find($this->project_id)->update($validatedData);
         $this->emit('saved');
     }
 

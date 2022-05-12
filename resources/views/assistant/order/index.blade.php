@@ -8,9 +8,24 @@
             <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
 
                 <div class="container mx-auto">
-                    @livewire('project.add')
+                    <div class="flex justify-between">
+                        @livewire('order.add')
+                        <div class="justify-end flex p-4">
+
+                            <div class="flex items-center justify-end px-2 text-right">
+                                <a href="{{ route('commercial.show', ['quotation']) }}" class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:shadow-outline-gray disabled:opacity-25 transition" wire:click="actionShowModal">
+                                    {{__('Order')}}
+                                </a>
+                            </div>
+                            <div class="flex items-center justify-end px-2 text-right">
+                                <a href="{{ route('commercial.show', ['contract']) }}" class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:shadow-outline-gray disabled:opacity-25 transition" wire:click="actionShowModal">
+                                    {{__('Invoice')}}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                     <div class="px-4 py-2">
-                        <livewire:table.project-table searchable="name" />
+                        <livewire:table.order searchable="name" />
                     </div>
                 </div>
             </div>

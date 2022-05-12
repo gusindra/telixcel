@@ -5,17 +5,6 @@
             <div class="flex">
                 <!-- Logo -->
                 <div class="flex-shrink-0 flex items-center">
-                    <!--<a href="{{ route('dashboard') }}" style="-->
-                    <!--        font-family: &quot;Raleway&quot;, sans-serif;-->
-                    <!--        border: #ddd solid 1px;-->
-                    <!--        padding: 10px 15px;-->
-                    <!--        border-radius: 20px 20px 20px 1px;-->
-                    <!--        background: #f3f4f6;-->
-                    <!--        font-size: 20px;-->
-                    <!--    ">-->
-                    <!--        TELIXCEL-->
-                        <!--<x-jet-application-mark class="block h-9 w-auto" />-->
-                    <!--</a>-->
                     <a class="navbar-brand" href="/"><img src="https://telixcel.s3.ap-southeast-1.amazonaws.com/imgs/logo-150.png" title="{{ env('APP_NAME')}}" style="width: 150px;"/></a>
                 </div>
 
@@ -24,7 +13,8 @@
                     <x-jet-nav-link href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-jet-nav-link>
-                    @if (Auth::user()->super->first() && @Auth::user()->super->first()->role == 'superadmin')
+                    @if (@Auth::user()->role || Auth::user()->super->first())
+                        @if(@Auth::user()->super->first()->role == 'superadmin')
                         <x-jet-nav-link href="{{ route('user.index') }}" :active="request()->routeIs('user.index')">
                             {{ __('Users') }}
                         </x-jet-nav-link>
@@ -34,12 +24,15 @@
                         <x-jet-nav-link href="{{ route('billing') }}" :active="request()->routeIs('billing')">
                             {{ __('Billing') }}
                         </x-jet-nav-link>
+                        @endif
                         <x-jet-nav-link href="{{ route('assistant') }}" :active="request()->routeIs('assistant')">
                             {{ __('Assistant') }}
                         </x-jet-nav-link>
+                        @if(@Auth::user()->super->first()->role == 'superadmin')
                         <x-jet-nav-link href="{{ route('settings') }}" :active="request()->routeIs('settings')">
                             {{ __('Settings') }}
                         </x-jet-nav-link>
+                        @endif
                     @else
                         <x-jet-nav-link href="{{ route('message') }}" :active="request()->routeIs('message')">
                             {{ __('Chat Area') }}
@@ -65,9 +58,8 @@
                 <!-- Notification Dropdown -->
                 @livewire('notification-app', ['client_id' => Auth::user()->id], key(Auth::user()->id))
 
-
                 <!-- Teams Dropdown -->
-                @if (Laravel\Jetstream\Jetstream::hasTeamFeatures())
+                @if (Auth::user()->currentTeam && Laravel\Jetstream\Jetstream::hasTeamFeatures())
                     <div class="ml-3 relative">
                         <x-jet-dropdown align="right" width="60">
                             <x-slot name="trigger">
@@ -131,6 +123,9 @@
                             @if (Laravel\Jetstream\Jetstream::managesProfilePhotos())
                                 <button class="flex text-sm border-2 border-transparent rounded-full focus:outline-none focus:border-gray-300 transition">
                                     <img class="h-8 w-8 rounded-full object-cover" src="{{ Auth::user()->profile_photo_url }}" alt="{{ Auth::user()->name }}" />
+                                    @if(count(Auth::user()->role)>0)
+                                    <span class="m-2 text-xs">{{Auth::user()->role->first()->role->name}}</span>
+                                    @endif
                                 </button>
                             @else
                                 <span class="inline-flex rounded-md">
@@ -155,7 +150,7 @@
                                 {{ __('Profile') }}
                             </x-jet-dropdown-link>
                             @if (Auth::user()->hasTeamRole(Auth::user()->currentTeam, 'admin'))
-                                @if (Laravel\Jetstream\Jetstream::hasApiFeatures() && auth()->user()->currentTeam->id != 1)
+                                @if (auth()->user()->currentTeam && Laravel\Jetstream\Jetstream::hasApiFeatures() && auth()->user()->currentTeam->id != 1)
                                     <x-jet-dropdown-link href="{{ route('api-tokens.index') }}">
                                         {{ __('API Tokens') }}
                                     </x-jet-dropdown-link>
@@ -240,7 +235,7 @@
                     {{ __('Profile') }}
                 </x-jet-responsive-nav-link>
 
-                @if (Laravel\Jetstream\Jetstream::hasApiFeatures() && auth()->user()->currentTeam->id != 1)
+                @if (auth()->user()->currentTeam && Laravel\Jetstream\Jetstream::hasApiFeatures() && auth()->user()->currentTeam->id != 1)
                     <x-jet-responsive-nav-link href="{{ route('api-tokens.index') }}" :active="request()->routeIs('api-tokens.index')">
                         {{ __('API Tokens') }}
                     </x-jet-responsive-nav-link>
@@ -258,7 +253,7 @@
                 </form>
 
                 <!-- Team Management -->
-                @if (Laravel\Jetstream\Jetstream::hasTeamFeatures())
+                @if (Auth::user()->currentTeam && Laravel\Jetstream\Jetstream::hasTeamFeatures() )
                     <div class="border-t border-gray-200"></div>
 
                     <div class="block px-4 py-2 text-xs text-gray-400">

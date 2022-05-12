@@ -17,7 +17,7 @@ class SmsBlastTable extends LivewireDatatable
 
     public function builder()
     {
-        return BlastMessage::query(); //->where('user_id', $this->userId);
+        return BlastMessage::query()->where('user_id', auth()->user()->currentTeam->user_id);
     }
 
     public function columns()

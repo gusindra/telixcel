@@ -1,5 +1,5 @@
 <div>
-    <div class="w-full mt-12">
+    <div class="w-full">
         <div class="container max-w-2xl mx-auto">
             @if (session()->has('message'))
             <div class="flex items-center px-4 py-3 mb-6 text-sm font-bold text-white bg-green-500 rounded" role="alert">
@@ -10,7 +10,16 @@
             </div>
             @endif
 
-            <div class="p-6 mb-12 bg-white border rounded-md shadow-xl">
+            <div class="flex flex-wrap1 -mx-2">
+                @foreach($photos as $photo)
+                <div class="w-1/2 p-2">
+                    <div class="w-full h-full border">
+                        <img src="https://telixcel.s3.ap-southeast-1.amazonaws.com/{{ $photo->file }}">
+                    </div>
+                </div>
+                @endforeach
+            </div>
+            <div class="mb-6 pb-6">
                 <form wire:submit.prevent="save">
                     <div class="mb-3">
                         <input type="file" wire:model="photo" class="">
@@ -20,19 +29,10 @@
                         <div wire:loading wire:target="photo" class="text-sm italic text-gray-500">Uploading...</div>
                     </div>
 
-                    <button type="submit" class="px-4 py-2 font-bold text-white bg-blue-500 rounded hover:bg-blue-700">Save Photo</button>
+                    <button type="submit" class="px-4 py-2 font-bold text-white bg-blue-500 rounded hover:bg-blue-700">Upload</button>
                 </form>
             </div>
 
-            <div class="flex flex-wrap -mx-2">
-                @foreach($photos as $photo)
-                <div class="w-1/2 p-2">
-                    <div class="w-full h-full border">
-                        <img src="{{ asset('storage/photos/' . $photo->file_name) }}">
-                    </div>
-                </div>
-                @endforeach
-            </div>
         </div>
     </div>
 </div>

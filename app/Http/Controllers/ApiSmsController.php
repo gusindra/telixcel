@@ -101,23 +101,11 @@ class ApiSmsController extends Controller
     public function sendBulk(Request $request)
     {
         //get the request & validate parameters
-        $fields = $request->validate([
-            'type' => 'required|numeric',
-            'to' => 'required|string',
-            'from' => 'required|alpha_num',
-            'text' => 'required|string',
-            'servid' => 'required|string',
-            'title' => 'required|string',
-            'detail' => 'string',
-        ]);
-        // call request to MacroKiosk check by type
-        // text / multi
-        //check user pass Mk
-        // $ada = $request->all();
-        // return $ada['type'];
         try{
             $userCredention = ApiCredential::where("user_id", auth()->user()->id)->where("client", "api_sms_mk")->where("is_enabled", 1)->first();
-            ProcessSmsApi::dispatch($request->all(), $userCredention);
+            foreach($request->all() as $arr){
+                ProcessSmsApi::dispatch($arr, $userCredention);
+            }
         }catch(\Exception $e){
             return response()->json([
                 'message' => "Failed",

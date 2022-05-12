@@ -26,7 +26,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'name', 'email', 'password', 'handling'
+        'name', 'email', 'password', 'handling', 'phone_no', 'nick'
     ];
 
     /**
@@ -89,7 +89,7 @@ class User extends Authenticatable
     }
 
     /**
-     * Template has one Error Template
+     * User Has many Team
      *
      * @return void
      */
@@ -98,7 +98,7 @@ class User extends Authenticatable
     }
 
     /**
-     * Template has one Error Template
+     * User is Superuser
      *
      * @return void
      */
@@ -131,5 +131,14 @@ class User extends Authenticatable
      */
     public function billings(){
     	return $this->hasMany('App\Models\Billing', 'user_id');
+    }
+
+    /**
+     * User Has many Role
+     *
+     * @return void
+     */
+    public function role(){
+    	return $this->hasMany('App\Models\RoleUser','user_id');
     }
 }

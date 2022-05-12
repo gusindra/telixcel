@@ -22,28 +22,30 @@ class NotificationApp extends Component
 
     public function waiting()
     {
-        $clients = auth()->user()->currentTeam->client;
+        if(auth()->user()->currentTeam){
+            $clients = auth()->user()->currentTeam->client;
 
-        $sorted  = $clients->sortByDesc(function($client){
-            return $client->date;
-        });
+            $sorted  = $clients->sortByDesc(function($client){
+                return $client->date;
+            });
 
-        $template = auth()->user()->currentTeam->template;
-        $wait = $template->filter(function($template){
-            if($template->is_wait_for_chat==1){
-                return $template;
-            }
-        })->pluck(['id'])->toArray();
+            $template = auth()->user()->currentTeam->template;
+            $wait = $template->filter(function($template){
+                if($template->is_wait_for_chat==1){
+                    return $template;
+                }
+            })->pluck(['id'])->toArray();
 
-        $sorted  = $sorted->filter(function($client) use ($wait){
-            //template waiting || forward ticket
-            if(in_array($client->newestRequest->template_id, $wait)){
-                return $client;
-            }
-        });
+            $sorted  = $sorted->filter(function($client) use ($wait){
+                //template waiting || forward ticket
+                if(in_array($client->newestRequest->template_id, $wait)){
+                    return $client;
+                }
+            });
 
-        return $sorted->values()->all();
-
+            return $sorted->values()->all();
+        }
+        return [];
     }
 
     /**
@@ -62,7 +64,7 @@ class NotificationApp extends Component
     }
 
     public function render()
-    {   
+    {
         return view('livewire.notification-app', [
             'data' => $this->read(),
         ]);

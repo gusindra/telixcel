@@ -16,6 +16,7 @@ use App\Http\Controllers\UserBillingController;
 use App\Http\Controllers\UploadController;
 use App\Http\Controllers\CommercialController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\RoleInvitationController;
 use App\Models\ApiCredential;
 use App\Models\Client;
 use App\Models\Template;
@@ -118,13 +119,22 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         return view('assistant.order.index');
     })->name('order');
 
+    Route::get('/order/{uuid}', function ($uuid) {
+        return view('assistant.order.show', ['uuid'=> $uuid]);
+    })->name('show.order');
+
     Route::get('/commercial', [CommercialController::class, 'index'])->name('commercial');
     Route::get('commercial/{key}', [CommercialController::class, 'show'])->name('commercial.show');
 
     Route::get('report', [ReportController::class, 'index'])->name('report.index');
     Route::get('report/{key}', [ReportController::class, 'show'])->name('report.show');
 
+    Route::get('commercial/{key}/{id}', [CommercialController::class, 'edit'])->name('commercial.edit.show');
+    Route::get('commercial/{key}/{quotation}/print', [CommercialController::class, 'template'])->name('commercial.quotation.print');
+
 });
+
+Route::get('/role-invitations/{invitation}', [RoleInvitationController::class, 'accept'])->middleware(['signed'])->name('role-invitations.accept');
 
 
 Route::get('/devhook', [DevhookController::class, 'index']);

@@ -24,6 +24,7 @@
                                         wire:model.defer="customer_name"
                                         wire:model.debunce.800ms="customer_name" />
                             <x-jet-input-error for="name" class="mt-2" />
+                            @error('name') <span class="error">{{ $message }}</span> @enderror
                         </div>
                     </div>
 
@@ -45,7 +46,7 @@
 
         <x-slot name="actions">
             <x-jet-action-message class="mr-3" on="saved">
-                {{ __('Contact Customer saved.') }}
+                {{ __('Customer Details (Party A) saved.') }}
             </x-jet-action-message>
 
             <x-jet-button>

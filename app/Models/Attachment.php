@@ -17,6 +17,8 @@ class Attachment extends Model
      * @var array
      */
     protected $fillable = [
+        'model',
+        'model_id',
         'request_id',
         'file'
     ];

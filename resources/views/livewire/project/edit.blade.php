@@ -103,9 +103,9 @@
         </x-slot>
     </x-jet-form-section>
 
+    @livewire('project.add-customer', ['id' => $project->id])
     @livewire('project.edit-type', ['id' => $project->id])
 
-    @livewire('project.add-customer', ['id' => $project->id])
 
 
 </div>

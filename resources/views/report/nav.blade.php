@@ -11,10 +11,10 @@
                         {{ __('Billing') }}
                     </x-jet-nav-link>
                     <x-jet-nav-link href="{{ route('report.show', ['request']) }}" :active="request()->routeIs('commercial')">
-                        {{ __('Request Talkbot') }}
+                        {{ __('Log Chat') }}
                     </x-jet-nav-link>
                     <x-jet-nav-link href="{{ route('report.show', ['sms']) }}" :active="request()->routeIs('order')">
-                        {{ __('Blast SMS') }}
+                        {{ __('Log SMS') }}
                     </x-jet-nav-link>
                 </div>
             </div>

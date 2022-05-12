@@ -22,7 +22,9 @@ class Project extends Model
         'customer_name',
         'customer_address',
         'contact_id',
+        'referrer_name',
         'team_id',
+        'product_line'
     ];
 
     protected $guarded = [];
@@ -36,5 +38,15 @@ class Project extends Model
 
     public function team(){
     	return $this->belongsTo('App\Models\Team');
+    }
+
+    /**
+     * Get the action that belongs to product line.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function productLine()
+    {
+        return $this->belongsTo('App\Models\ProductLine');
     }
 }

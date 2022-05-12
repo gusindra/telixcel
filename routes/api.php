@@ -48,7 +48,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/sms',  [ApiSmsController::class, 'index']);
     Route::get('/sms/{phone}',  [ApiSmsController::class, 'show']);
     Route::post('/sms',  [ApiSmsController::class, 'post']);
-    Route::post('/sms/bulk',  [ApiSmsController::class, 'post']);
+    Route::post('/sms/bulk',  [ApiSmsController::class, 'sendBulk']);
 
 });
 

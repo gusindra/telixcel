@@ -25,6 +25,7 @@ return new class extends Migration
             $table->float('general_discount');
             $table->float('fs_price');
             $table->float('unit_price');
+            $table->foreignId('user_id');
             $table->string('way_import', 20)->nullable()->comment('fob, ddp');
             $table->string('status', 100)->default('active')->comment('active, disabled');
             $table->timestamps();

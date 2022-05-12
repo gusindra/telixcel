@@ -53,17 +53,26 @@
         @endif
 
         <!-- Name -->
-        <div class="col-span-6 sm:col-span-4">
+        <div class="col-span-6 sm:col-span-3">
             <x-jet-label for="name" value="{{ __('Name') }}" />
             <x-jet-input id="name" type="text" class="mt-1 block w-full" wire:model.defer="state.name" autocomplete="name" />
             <x-jet-input-error for="name" class="mt-2" />
         </div>
-
+        <div class="col-span-6 sm:col-span-3">
+            <x-jet-label for="nick" value="{{ __('Nick') }}" />
+            <x-jet-input id="nick" type="text" class="mt-1 block w-full" wire:model.defer="state.nick" autocomplete="nick" />
+            <x-jet-input-error for="nick" class="mt-2" />
+        </div>
         <!-- Email -->
-        <div class="col-span-6 sm:col-span-4">
+        <div class="col-span-6 sm:col-span-3">
             <x-jet-label for="email" value="{{ __('Email') }}" />
             <x-jet-input id="email" type="email" class="mt-1 block w-full" wire:model.defer="state.email" />
             <x-jet-input-error for="email" class="mt-2" />
+        </div>
+        <div class="col-span-6 sm:col-span-3">
+            <x-jet-label for="phone_no" value="{{ __('Phone') }}" />
+            <x-jet-input id="phone_no" type="text" class="mt-1 block w-full" wire:model.defer="state.phone_no" autocomplete="phone_no" />
+            <x-jet-input-error for="phone_no" class="mt-2" />
         </div>
     </x-slot>
 

@@ -152,7 +152,7 @@ paths:
           description: 'Record not found'
       security:
         - bearerAuth: []
-  /sms/sendbulk:
+  /sms/bulk:
     post:
       tags:
         - sms
@@ -247,6 +247,10 @@ components:
         title:
           title: 'Title'
           description: 'Broadcast Title'
+          type: string
+        from:
+          title: 'From'
+          description: 'Sender Name / Phone Number'
           type: string
         text:
           title: 'Text'

@@ -1,0 +1,17 @@
+/* main.css */
+body {
+    margin: 2em;
+    color: #fff;
+    background-color: #000;
+  }
+
+  /* override styles when printing */
+  @media print {
+
+    body {
+      margin: 0;
+      color: rgb(255, 255, 255);
+      background-color: rgb(0, 0, 0);
+    }
+
+  }

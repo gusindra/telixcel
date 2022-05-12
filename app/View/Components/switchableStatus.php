@@ -17,9 +17,12 @@ class switchableStatus extends Component
      */
     public function __construct()
     {
-        $team = TeamUser::find(auth()->user()->currentTeam->id);
-        if($team)
-            $this->status = $team->status;
+        if(auth()->user()->currentTeam){
+            $team = TeamUser::find(auth()->user()->currentTeam->id);
+            if($team)
+                $this->status = $team->status;
+
+        }
     }
 
     /**
