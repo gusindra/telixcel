@@ -1,7 +1,7 @@
 <div>
-    <div class="flex items-center p-4 text-right">
-        <a wire:click="actionShowModal" class="inline-flex items-center px-4 py-2 bg-green-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 active:bg-green-900 focus:outline-none focus:border-gray-900 focus:shadow-outline-gray disabled:opacity-25 transition" wire:click="actionShowModal">
-            {{__('New Quotation')}}
+    <div class="flex items-center text-right">
+        <a wire:click="actionShowModal" class="inline-flex items-center px-2 py-1 bg-green-800 border border-transparent rounded-sm font-normal text-xs text-white 1g-widest hover:bg-green-700 active:bg-green-900 focus:outline-none focus:border-gray-900 focus:shadow-outline-gray disabled:opacity-25 transition" wire:click="actionShowModal">
+            {{__('+ Quotation')}}
         </a>
     </div>
 
@@ -29,9 +29,9 @@
                 <x-jet-input-error for="price" class="mt-2" />
             </div>
             <div class="col-span-6 sm:col-span-4 p-3">
-                <x-jet-label for="name" value="{{ __('Title') }}" />
-                <x-jet-input id="name" type="text" class="mt-1 block w-full" wire:model.debunce.800ms="name" autofocus />
-                <x-jet-input-error for="name" class="mt-2" />
+                <x-jet-label for="title" value="{{ __('Title') }}" />
+                <x-jet-input id="title" type="text" class="mt-1 block w-full" wire:model.debunce.800ms="title" autofocus />
+                <x-jet-input-error for="title" class="mt-2" />
             </div>
             <div class="col-span-6 sm:col-span-4 p-3">
                 <x-jet-label for="date" value="{{ __('Quotation Date') }}" />

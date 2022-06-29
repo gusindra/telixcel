@@ -11,6 +11,8 @@ class Add extends Component
     public $modalActionVisible = false;
     public $type;
     public $entity;
+    public $model;
+    public $source;
 
     public function rules()
     {
@@ -31,11 +33,17 @@ class Add extends Component
 
     public function modelData()
     {
-        return [
+        $data = [
             'type'          => $this->type,
             'entity_party'  => $this->entity,
+            'status'        => 'draft',
             'user_id'       => Auth::user()->id,
         ];
+        if($this->model && $this->source){
+            $data['source']      = $this->model;
+            $data['source_id']   = $this->source;
+        }
+        return $data;
     }
 
     public function resetForm()

@@ -77,7 +77,7 @@
 
         <x-slot name="actions">
             <x-jet-action-message class="mr-3" on="saved">
-                {{ __('Project saved.') }}
+                {{ __('Product saved.') }}
             </x-jet-action-message>
 
             <x-jet-button>
@@ -131,7 +131,7 @@
 
         <x-slot name="actions">
             <x-jet-action-message class="mr-3" on="saved">
-                {{ __('Project saved.') }}
+                {{ __('Product saved.') }}
             </x-jet-action-message>
 
             <x-jet-button>
@@ -192,7 +192,7 @@
 
         <x-slot name="actions">
             <x-jet-action-message class="mr-3" on="saved">
-                {{ __('Project saved.') }}
+                {{ __('Product saved.') }}
             </x-jet-action-message>
 
             <x-jet-button>

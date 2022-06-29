@@ -9,7 +9,9 @@
 
                 <div class="container mx-auto">
                     <div class="flex justify-between">
-                        @livewire('order.add')
+                        <div class="p-4">
+                            @livewire('order.add')
+                        </div>
                         <div class="justify-end flex p-4">
 
                             <div class="flex items-center justify-end px-2 text-right">

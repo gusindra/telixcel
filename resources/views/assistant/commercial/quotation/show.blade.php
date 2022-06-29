@@ -39,6 +39,8 @@
                     </div>
                 </div>
             </div>
+
+            @if($quote->status=='approved')
             <div class="justify-end flex">
                 <div class="items-center justify-end px-2 text-right">
                     <x-jet-dropdown align="right" width="60">
@@ -68,11 +70,21 @@
                     </x-jet-dropdown>
                 </div>
             </div>
+            @endif
         </div>
     </header>
     <div>
         <div class="max-w-7xl mx-auto pt-4 pb-10 sm:px-6 lg:px-8">
-            @livewire('commercial.quotation.edit', ['code'=>$code])
+            <div class="md:grid md:grid-cols-5 md:gap-6 mt-8 sm:mt-0">
+                <div class="md:col-span-4">
+                    @livewire('commercial.quotation.edit', ['code'=>$code])
+                </div>
+                <div class="col-span-1">
+                    <div class="justify-between lg:visible md:invisible">
+                        @livewire('commercial.progress', ['model'=>'quotation','id'=>$code])
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </x-app-layout>

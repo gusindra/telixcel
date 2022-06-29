@@ -2,10 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Notification;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Auth;
 use Illuminate\Support\Facades\Auth as FacadesAuth;
 use Vinkla\Hashids\Facades\Hashids;
 
@@ -16,7 +14,7 @@ class UserController extends Controller
     {
         $this->middleware(function ($request, $next) {
             // Your auth here
-            $this->user_info=Auth::user()->super->first();
+            $this->user_info=auth()->user()->super->first();
             if($this->user_info && $this->user_info->role=='superadmin'){
                 return $next($request);
             }
@@ -31,6 +29,17 @@ class UserController extends Controller
 
     public function show(User $user)
     {
-        return view('user.user-detail', ['user'=>$user]);
+        if($user->name != 'Admin'){
+            return view('user.user-detail', ['user'=>$user]);
+        }
+        return redirect('user');
+    }
+
+    public function balance(User $user, Request $request)
+    {
+        if($user->name != 'Admin'){
+            return view('user.user-balance', ['user'=>$user, 'team'=>$request->has('team')?$request->team:0]);
+        }
+        return redirect('user');
     }
 }

@@ -49,8 +49,11 @@ class Notification extends Model
      */
     public function ticket()
     {
-        if($this->model=='Ticket')
+        if($this->model=='Ticket'){
             return $this->belongsTo('App\Models\Ticket', 'model_id');
+        }elseif($this->model=='Order'){
+            return $this->belongsTo('App\Models\Order', 'model_id');
+        }
         return false;
     }
 

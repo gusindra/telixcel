@@ -16,6 +16,7 @@
                 <div class="col-span-12 sm:col-span-1">
                     <x-jet-label for="name" value="{{ __('Title') }}" />
                     <x-jet-input id="name"
+                        disabled="{{disableInput($quote->status)}}"
                                 type="text"
                                 class="mt-1 block w-full"
                                 wire:model="name"
@@ -29,6 +30,7 @@
                 <div class="col-span-12 sm:col-span-1">
                     <x-jet-label for="quoteNo" value="{{ __('Quote No') }}" />
                     <x-jet-input id="quoteNo"
+                        disabled="{{disableInput($quote->status)}}"
                                 type="text"
                                 class="mt-1 block w-full"
                                 wire:model="quoteNo"
@@ -41,12 +43,13 @@
             <div class="col-span-6 grid grid-cols-2">
                 <div class="col-span-12 sm:col-span-1">
                     <x-jet-label for="date" value="{{ __('Quotation Date') }}" />
-                    <x-input.date-picker wire:model="date" :error="$errors->first('date')"/>
+                    <x-input.date-picker disabled="{{disableInput($quote->status)}}" wire:model="date" :error="$errors->first('date')"/>
                     <x-jet-input-error for="date" class="mt-2" />
                 </div>
                 <div class="col-span-12 sm:col-span-1 mx-4">
                     <x-jet-label for="price" value="{{ __('Duration') }}" />
                     <select
+                        {{disableInput($quote->status)?'disabled':''}}
                         name="valid_day"
                         id="valid_day"
                         class="border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full"
@@ -68,7 +71,7 @@
                 {{ __('Quotation saved.') }}
             </x-jet-action-message>
 
-            <x-jet-button>
+            <x-save-button show="{{$quote->status=='draft'?'true':'false'}}">
                 {{ __('Save') }}
             </x-jet-button>
         </x-slot>
@@ -94,6 +97,7 @@
                     <span class="border rounded-md shadow-sm mt-1 block w-full p-2">{{$client->name}}</span>
                     @else
                     <x-jet-input id="addressed_company"
+                        disabled="{{disableInput($quote->status)}}"
                                 type="text"
                                 class="mt-1 block w-full"
                                 wire:model="addressed_company"
@@ -110,6 +114,7 @@
                     <x-jet-label for="type" value="{{ __('Client') }}" />
                     @endif
                     <select
+                        {{disableInput($quote->status)?'disabled':''}}
                         wire:change="onChangeModelId"
                         name="model_id"
                         id="model_id"
@@ -120,6 +125,7 @@
                         @foreach($model_list as $key => $item)
                         <option value="{{$key}}">{{$item}}</option>
                         @endforeach
+
                         @if($quote->type!="project")
                         <option value="0">New Client</option>
                         @endif
@@ -135,7 +141,7 @@
                 {{ __('Quotation saved.') }}
             </x-jet-action-message>
 
-            <x-jet-button>
+            <x-save-button show="{{$quote->status=='draft'?'true':'false'}}">
                 {{ __('Save') }}
             </x-jet-button>
         </x-slot>
@@ -155,9 +161,11 @@
             <div class="col-span-6 sm:col-span-6">
                 <x-jet-label for="description" value="{{ __('Service Description') }}" />
 
-                <x-textarea wire:model="description"
-                            wire:model.defer="description"
-                            value="description" class="mt-1 block w-full h-32 text-sm"></x-textarea>
+                <x-textarea
+                    disabled="{{disableInput($quote->status)}}"
+                    wire:model="description"
+                    wire:model.defer="description"
+                    value="description" class="mt-1 block w-full h-32 text-sm"></x-textarea>
                 <x-jet-input-error for="description" class="mt-2" />
             </div>
         </x-slot>
@@ -167,7 +175,7 @@
                 {{ __('Quotation saved.') }}
             </x-jet-action-message>
 
-            <x-jet-button>
+            <x-save-button show="{{$quote->status=='draft'?'true':'false'}}">
                 {{ __('Save') }}
             </x-jet-button>
         </x-slot>
@@ -190,6 +198,7 @@
             <!-- Description -->
             <div class="col-span-6 sm:col-span-6">
                 <x-textarea wire:model="terms"
+                    disabled="{{disableInput($quote->status)}}"
                             wire:model.defer="terms"
                             value="terms" class="mt-1 block w-full h-32 text-sm" placeholder="ex: * Price exclude PPn 10%"></x-textarea>
                 <x-jet-input-error for="terms" class="mt-2" />
@@ -201,7 +210,7 @@
                 {{ __('Quotation saved.') }}
             </x-jet-action-message>
 
-            <x-jet-button>
+            <x-save-button show="{{$quote->status=='draft'?'true':'false'}}">
                 {{ __('Save') }}
             </x-jet-button>
         </x-slot>
@@ -222,12 +231,14 @@
                 <div class="col-span-12 sm:col-span-1 mx-4">
                     <x-jet-label for="created_by" value="{{ __('Prepare By') }}" />
                     <x-jet-input id="created_by"
+                        disabled="{{disableInput($quote->status)}}"
                                 type="text"
                                 class="mt-1 block w-full"
                                 wire:model="created_by"
                                 wire:model.defer="created_by"
                                 wire:model.debunce.800ms="created_by" placeholder="Name" />
                     <x-jet-input id="created_role"
+                        disabled="{{disableInput($quote->status)}}"
                                 type="text"
                                 class="mt-1 block w-full"
                                 wire:model="created_role"
@@ -239,12 +250,14 @@
                 <div class="col-span-12 sm:col-span-1 mx-4">
                     <x-jet-label for="addressed_name" value="{{ __('Addressed To') }}" />
                     <x-jet-input id="addressed_name"
+                        disabled="{{disableInput($quote->status)}}"
                                 type="text"
                                 class="mt-1 block w-full"
                                 wire:model="addressed_name"
                                 wire:model.defer="addressed_name"
                                 wire:model.debunce.800ms="addressed_name" placeholder="Customer Name" />
                     <x-jet-input id="addressed_role"
+                        disabled="{{disableInput($quote->status)}}"
                                 type="text"
                                 class="mt-1 block w-full placeholder-gray-500"
                                 wire:model="addressed_role"
@@ -260,7 +273,7 @@
                 {{ __('Quotation saved.') }}
             </x-jet-action-message>
 
-            <x-jet-button>
+            <x-save-button show="{{$quote->status=='draft'?'true':'false'}}">
                 {{ __('Save') }}
             </x-jet-button>
         </x-slot>

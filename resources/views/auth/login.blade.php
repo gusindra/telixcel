@@ -4,7 +4,7 @@
             <x-jet-authentication-card-logo />
         </x-slot>
 
-        <x-jet-validation-errors class="mb-4" />
+        <x-jet-validation-errors class="p-6 mb-4 bg-red-100" />
 
         @if (session('status'))
             <div class="mb-4 font-medium text-sm text-green-600">

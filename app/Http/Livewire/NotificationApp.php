@@ -22,7 +22,7 @@ class NotificationApp extends Component
 
     public function waiting()
     {
-        if(auth()->user()->currentTeam){
+        if(auth()->user()->currentTeam && auth()->user()->currentTeam->client){
             $clients = auth()->user()->currentTeam->client;
 
             $sorted  = $clients->sortByDesc(function($client){
@@ -38,14 +38,19 @@ class NotificationApp extends Component
 
             $sorted  = $sorted->filter(function($client) use ($wait){
                 //template waiting || forward ticket
-                if(in_array($client->newestRequest->template_id, $wait)){
-                    return $client;
+                //dd($client->newestRequest);
+                if($client->newestRequest && @$client->newestRequest->template_id){
+                    if(in_array($client->newestRequest->template_id, $wait)){
+                        return $client;
+                    }
                 }
             });
 
             return $sorted->values()->all();
+        }else{
+            return [];
         }
-        return [];
+
     }
 
     /**
@@ -58,7 +63,7 @@ class NotificationApp extends Component
         //$data = [];
         $data['waiting'] = $this->waiting();
         $data['notif'] = Notification::where('user_id', $this->client_id)->orderBy('id', 'desc')->take(8)->get();
-        $data['count'] = Notification::where('user_id', $this->client_id)->where('status', 'new')->count() + count($data['waiting']);
+        $data['count'] = Notification::where('user_id', $this->client_id)->whereIn('status', ['new','unread'])->count() + count($data['waiting']);
 
         return $data;
     }

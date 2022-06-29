@@ -10,6 +10,7 @@ use App\Jobs\ProcessSmsApi;
 use App\Models\ApiCredential;
 use App\Models\Client;
 use App\Models\Request as ModelsRequest;
+use App\Models\Team;
 use Vinkla\Hashids\Facades\Hashids;
 
 class ApiChatController extends Controller
@@ -49,21 +50,36 @@ class ApiChatController extends Controller
     {
         //get the request & validate parameters
         $fields = $request->validate([
+            'slug' => 'required|string',
             'phone' => 'required|alpha_num',
             'text' => 'required|string',
         ]);
 
         try{
+            $team = Team::where('user_id', auth()->user()->id)->where('slug', $request->slug)->first();
             $customer = Client::where('phone', $request->phone)->where('user_id', auth()->user()->id)->first();
-            $request = ModelsRequest::create([
-                'source_id' => 'web_'.Hashids::encode($customer->id),
-                'reply'     => $request->text,
-                'from'      => $customer->id,
-                'user_id'   => auth()->user()->id,
-                'type'      => 'text',
-                'client_id' => $customer->uuid,
-                'sent_at'   => date('Y-m-d H:i:s'),
-            ]);
+            if($team && $customer){
+                $request = ModelsRequest::create([
+                    'source_id' => 'web_'.Hashids::encode($customer->id),
+                    'reply'     => $request->text,
+                    'from'      => $customer->id,
+                    'user_id'   => auth()->user()->id,
+                    'type'      => 'text',
+                    'client_id' => $customer->uuid,
+                    'team_id'   => $team->id,
+                    'sent_at'   => date('Y-m-d H:i:s'),
+                ]);
+            }elseif(!$customer){
+                return response()->json([
+                    'message' => "Phone Number Not Found",
+                    'code' => 400
+                ]);
+            }else{
+                return response()->json([
+                    'message' => "Team Chat Not Found",
+                    'code' => 400
+                ]);
+            }
         }catch(\Exception $e){
             return response()->json([
                 'message' => "Invalid input",

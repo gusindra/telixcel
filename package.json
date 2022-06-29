@@ -21,6 +21,7 @@
         "tailwindcss": "^2.0.1"
     },
     "dependencies": {
+        "@ryangjchandler/alpine-clipboard": "^2.2.0",
         "pikaday": "^1.8.2"
     }
 }

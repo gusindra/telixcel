@@ -8,6 +8,7 @@ use App\Models\Project;
 use App\Models\Quotation;
 use Auth;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth as FacadesAuth;
 
 class CommercialController extends Controller
 {
@@ -16,8 +17,10 @@ class CommercialController extends Controller
     {
         $this->middleware(function ($request, $next) {
             // Your auth here
-            $this->user_info=Auth::user()->super->first();
-            if($this->user_info && $this->user_info->role=='superadmin'){
+            $id = array("PRODUCT", "QUOTATION", "CONTRACT");
+            $permission = checkPermisissions($id);
+
+            if($permission){
                 return $next($request);
             }
             abort(404);
@@ -53,7 +56,10 @@ class CommercialController extends Controller
     public function edit($key, $id)
     {
         if($key=='quotation'){
-            return view('assistant.commercial.quotation.show', ['code'=>$id]);
+            $data = Quotation::find($id);
+            if($data){
+                return view('assistant.commercial.quotation.show', ['code'=>$id, 'quote' => $data]);
+            }
         }elseif($key=='contract'){
             return view('assistant.commercial.contract.show', ['code'=>$id]);
         }

@@ -11,6 +11,7 @@ class AddCustomer extends Component
     public $customer_address;
     public $contact_id;
     public $project_id;
+    public $project;
 
     public function mount($id)
     {

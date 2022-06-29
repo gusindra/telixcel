@@ -20,8 +20,8 @@ class UsersTable extends LivewireDatatable
     public function columns()
     {
         return [
-    		NumberColumn::name('id')->label('ID')->sortBy('id'),
-    		Column::name('name')->label('Name'),
+    		NumberColumn::name('uuid')->label('ID'),
+    		Column::name('name')->label('Name')->sortBy('name'),
     		Column::name('phone')->label('Phone Number'),
     		DateColumn::name('created_at')->label('Creation Date')
     	];

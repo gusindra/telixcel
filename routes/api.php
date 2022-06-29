@@ -32,7 +32,7 @@ Route::post('/webhook/{slug}',  [ApiWaController::class, 'inbounceMessage'])->na
 Route::middleware(['auth:sanctum'])->group(function () {
     // sample key : kHy717zKGKN9Xwt1GdD14JryEBsLFApJSEiG1Gmy = telixcel
     // sample 1 : QxYBf46DyeSSsuXKf6tWWpd0rZBVT1a8dFeFSOyM = gusin
-    Route::get('/test',  [TestApiController::class, 'get']);
+    // Route::get('/test',  [TestApiController::class, 'get']);
     Route::post('/test',  [TestApiController::class, 'post']);
     Route::post('/bulksms',  [ApiBulkSmsController::class, 'post']);
 
@@ -52,6 +52,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
 });
 
+Route::get('/test',  [TestApiController::class, 'get']);
 Route::get('/test/{id}',  [TestApiController::class, 'show']);
 Route::get('/send/smsbulk',  [TestApiController::class, 'smsbulk']);
 Route::put('/test/{id}',  [TestApiController::class, 'put']);
@@ -61,3 +62,4 @@ Route::post('/post-team-auth',  [ApiTeamWaController::class, 'postTeamAuth'])->n
 Route::get('/test/{id}',  [ApiTeamWaController::class, 'getTeam']);
 Route::put('/team-auth/{id}',  [ApiTeamWaController::class, 'put']);
 
+Route::get('/receive-sms-status',  [ApiBulkSmsController::class, 'status']);

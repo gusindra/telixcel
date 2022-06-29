@@ -25,6 +25,9 @@
                     <x-jet-nav-link href="{{ route('role.index') }}" :active="request()->routeIs('role.index')">
                         {{ __('Role') }}
                     </x-jet-nav-link>
+                    <x-jet-nav-link href="{{ route('permission.index') }}" :active="request()->routeIs('permission.index')">
+                        {{ __('Menu') }}
+                    </x-jet-nav-link>
                 </div>
             </div>
         </div>

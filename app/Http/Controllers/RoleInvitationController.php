@@ -23,6 +23,12 @@ class RoleInvitationController extends Controller
     {
         $newTeamMember = User::where('email', $invitation->email)->first();
 
+        if(RoleUser::where('user_id', $newTeamMember->id)->get()){
+            return redirect('login')->banner(
+                __('Sorry! You already have role in Telixmart team.'),
+            );
+        }
+
         RoleUser::create([
             'user_id' => $newTeamMember->id,
             'role_id' => $invitation->role_id
@@ -30,7 +36,7 @@ class RoleInvitationController extends Controller
 
         $invitation->delete();
 
-        return redirect(config('fortify.home'))->banner(
+        return redirect('login')->banner(
             __('Great! You have accepted the invitation to join Telixmart team.'),
         );
     }

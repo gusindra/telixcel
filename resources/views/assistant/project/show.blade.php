@@ -19,8 +19,12 @@
                     </div>
                 </div>
             </div>
-            <div class="justify-end flex">
-                <div class="items-center justify-end px-2 text-right">
+            @if ($project->status=='approved')
+            <div class="justify-end flex gap-2 mb-2">
+                @livewire('commercial.contract.add', ['source' => $project->id, 'model' => 'PROJECT'])
+                @livewire('commercial.quotation.add', ['source' => $project->id, 'model' => 'PROJECT'])
+                @livewire('order.add', ['source' => $project->id, 'model' => 'PROJECT'])
+                <div class="hidden items-center justify-end px-2 text-right">
                     <x-jet-dropdown align="right" width="60">
                         <x-slot name="trigger">
                             <span class="inline-flex rounded-md mb-2">
@@ -34,60 +38,48 @@
 
                         <x-slot name="content">
                             <div class="w-60">
-                                <div>
-                                    <form>
-                                        <a class="block px-4 py-2 text-sm leading-5 text-gray-700 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 transition" href="#" wire:click="updateStatus('Online')">
-                                            <div class="flex items-center justify-between">
-                                                <div class="truncate">Quotation</div>
-                                            </div>
-                                        </a>
-                                        <a class="block px-4 py-2 text-sm leading-5 text-gray-700 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 transition" href="#" wire:click="updateStatus('Online')">
-                                            <div class="flex items-center justify-between">
-                                                <div class="truncate">Contract</div>
-                                            </div>
-                                        </a>
-                                        <a class="block px-4 py-2 text-sm leading-5 text-gray-700 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 transition" href="#" wire:click="updateStatus('Online')">
-                                            <div class="flex items-center justify-between">
-                                                <div class="truncate">Invoice</div>
-                                            </div>
-                                        </a>
-                                        <a class="block px-4 py-2 text-sm leading-5 text-gray-700 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 transition" href="#" wire:click="updateStatus('Online')">
-                                            <div class="flex items-center justify-between">
-                                                <div class="truncate">Commissioning Agent</div>
-                                            </div>
-                                        </a>
-                                    </form>
-                                </div>
+                                <a class="block px-4 py-2 text-sm leading-5 text-gray-700 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 transition" href="#" wire:click="actionShowModal">
+                                    <div class="flex items-center justify-between">
+                                        <div class="truncate">Quotation</div>
+                                    </div>
+                                </a>
+                                <a class="block px-4 py-2 text-sm leading-5 text-gray-700 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 transition" href="#" wire:click="updateStatus('Online')">
+                                    <div class="flex items-center justify-between">
+                                        <div class="truncate">Contract</div>
+                                    </div>
+                                </a>
+                                <a class="block px-4 py-2 text-sm leading-5 text-gray-700 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 transition" href="#" wire:click="updateStatus('Online')">
+                                    <div class="flex items-center justify-between">
+                                        <div class="truncate">Invoice</div>
+                                    </div>
+                                </a>
+                                <a class="block px-4 py-2 text-sm leading-5 text-gray-700 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 transition" href="#" wire:click="updateStatus('Online')">
+                                    <div class="flex items-center justify-between">
+                                        <div class="truncate">Commissioning Agent</div>
+                                    </div>
+                                </a>
                             </div>
                         </x-slot>
                     </x-jet-dropdown>
                 </div>
             </div>
+            @endif
+
         </div>
     </header>
 
     <div>
         <div class="max-w-7xl mx-auto pt-4 pb-10 sm:px-6 lg:px-8">
-            <div class="bg-blue-100 border sm:rounded border-blue-500 text-blue-700 px-4 py-3 mb-4" role="alert">
+            <div class="{{$project->status=='approved'?'bg-green-100':'bg-blue-100'}} border sm:rounded {{$project->status=='approved'?'border-green-500':'border-blue-500'}} {{$project->status=='approved'?'text-green-700':'text-blue-700'}} px-4 py-3 mb-4" role="alert">
                 <p class="font-bold capitalize">{{$project->status}}</p>
-                <p class="text-sm">Some additional text to explain said message.</p>
+                <!-- <p class="text-sm">Some additional text to explain said message.</p> -->
             </div>
             <div class="md:grid md:grid-cols-5 md:gap-6">
-                <div class="md:col-span-4">
+                <div class="md:col-span-12 lg:col-span-4">
                     @livewire('project.edit', ['uuid'=>$project->id])
                 </div>
-                <div class="md:col-span-1 flex justify-between">
-                    <div class="px-4 sm:px-0">
-                        <h3 class="text-lg font-medium text-gray-900">Process</h3>
-
-                        <ul class="mt-1 text-sm text-gray-600">
-                            <li>The Project information.</li>
-                        </ul>
-                    </div>
-
-                    <div class="px-4 sm:px-0">
-
-                    </div>
+                <div class="justify-between lg:visible md:invisible">
+                    @livewire('project.progress', ['uuid'=>$project->id])
                 </div>
             </div>
         </div>

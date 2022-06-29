@@ -15,9 +15,9 @@
                 <x-jet-action-message class="mr-3" on="saved">
                     {{ __('Action saved.') }}
                 </x-jet-action-message>
-                <x-jet-button wire:click="showCreateModal">
+                <x-save-button show="{{$data->status=='draft'?'true':'false'}}" wire:click="showCreateModal">
                     {{__('Add Item')}}
-                </x-jet-button>
+                </x-save-button>
             </div>
 
             <div class="space-y-6">
@@ -51,7 +51,7 @@
                                                 <td class="px-6 py-4 text-xs whitespace-no-wrap w-100">
                                                     {{ $item->note }}
                                                 </td>
-                                                <td class="items-center justify-end py-3 text-right">
+                                                <td class="items-center justify-end py-3 text-right {{$data->status=='draft'?'':'hidden'}}">
                                                     <div class="items-center flex">
                                                         <button title="{{ __('Edit') }}" class="cursor-pointer m-2 w-auto text-xs p-1 bg-yellow-200 text-gray-800 rounded" wire:click="updateShowModal('{{ $item->id }}')">
                                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">

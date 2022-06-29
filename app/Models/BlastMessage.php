@@ -18,12 +18,27 @@ class BlastMessage extends Model
         'msg_id',
         'user_id',
         'client_id',
+        'sender_id',
+        'type',
         'status',
         'message_content',
         'balance',
         'msisdn',
+        'title',
+        'price',
+        'code',
+        'currency',
     ];
 
     protected $guarded = [];
 
+    /**
+     * Get the action that belongs to client.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function client()
+    {
+        return $this->belongsTo(Client::class, 'client_id', 'uuid');
+    }
 }

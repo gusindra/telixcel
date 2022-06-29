@@ -20,6 +20,7 @@ class Request extends Model
         'reply',
         'from',
         'user_id',
+        'team_id',
         'type',
         'template_id',
         'context_id',

@@ -21,7 +21,7 @@ class NotificationTable extends LivewireDatatable
     {
         return [
     		Column::name('type')->label('Name'),
-    		Column::name('notification')->label('Description'),
+    		Column::name('notification')->truncate(8)->label('Description'),
     		DateColumn::name('created_at')->label('Date'),
             Column::callback(['status'], function ($type) {
                 return view('template.label', ['type' => $type]);

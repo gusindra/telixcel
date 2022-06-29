@@ -24,10 +24,10 @@
                         <x-jet-nav-link href="{{ route('billing') }}" :active="request()->routeIs('billing')">
                             {{ __('Billing') }}
                         </x-jet-nav-link>
-                        @endif
                         <x-jet-nav-link href="{{ route('assistant') }}" :active="request()->routeIs('assistant')">
                             {{ __('Assistant') }}
                         </x-jet-nav-link>
+                        @endif
                         @if(@Auth::user()->super->first()->role == 'superadmin')
                         <x-jet-nav-link href="{{ route('settings') }}" :active="request()->routeIs('settings')">
                             {{ __('Settings') }}
@@ -88,13 +88,13 @@
                                         </x-jet-dropdown-link>
                                     @endif
 
-                                    @if (Auth::user()->hasTeamRole(Auth::user()->currentTeam, 'admin') || @Auth::user()->isSuper->role=='superadmin')
+                                    <!-- @if (Auth::user()->hasTeamRole(Auth::user()->currentTeam, 'admin') || @Auth::user()->isSuper->role=='superadmin') -->
                                         @can('create', Laravel\Jetstream\Jetstream::newTeamModel())
                                             <x-jet-dropdown-link href="{{ route('teams.create') }}">
                                                 {{ __('Create New Team') }}
                                             </x-jet-dropdown-link>
                                         @endcan
-                                    @endif
+                                    <!-- @endif -->
 
                                     <div class="border-t border-gray-100"></div>
 
@@ -149,6 +149,11 @@
                             <x-jet-dropdown-link href="{{ route('profile.show') }}">
                                 {{ __('Profile') }}
                             </x-jet-dropdown-link>
+                            @if(balance(auth()->user())>0)
+                            <x-jet-dropdown-link href="{{ route('payment.deposit') }}" class="flex justify-between">
+                                <span>{{ __('Balance') }}</span> <small>Rp {{number_format(balance(auth()->user()))}}</small>
+                            </x-jet-dropdown-link>
+                            @endif
                             @if (Auth::user()->hasTeamRole(Auth::user()->currentTeam, 'admin'))
                                 @if (auth()->user()->currentTeam && Laravel\Jetstream\Jetstream::hasApiFeatures() && auth()->user()->currentTeam->id != 1)
                                     <x-jet-dropdown-link href="{{ route('api-tokens.index') }}">

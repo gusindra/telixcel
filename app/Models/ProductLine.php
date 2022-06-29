@@ -21,4 +21,11 @@ class ProductLine extends Model
     ];
 
     protected $guarded = [];
+
+    /**
+     * Get all item commerce of lines.
+     */
+    public function items(){
+        return $this->hasMany('App\Models\CommerceItem', 'product_line');
+    }
 }

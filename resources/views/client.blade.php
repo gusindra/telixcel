@@ -10,7 +10,7 @@
             <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
                 <div class="container mx-auto">
                     <div>
-                        <livewire:livewire-datatables searchable="name, email, gender" exportable />
+                        <livewire:client-datatables searchable="name, email, gender" exportable />
                     </div>
                 </div>
             </div>

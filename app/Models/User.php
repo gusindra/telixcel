@@ -59,7 +59,11 @@ class User extends Authenticatable
         'profile_photo_url',
     ];
 
-
+    /**
+     * The user own this data.
+     *
+     * @var array
+     */
     public function clients($m=null, $y=null){
         if($m && $y){
             return $this->hasMany('App\Models\Client', 'user_id')->whereMonth('created_at', '<=', $m)->whereYear('created_at', '<=', $y);
@@ -77,6 +81,12 @@ class User extends Authenticatable
             return $this->hasMany('App\Models\Request', 'user_id')->whereNull('sent_at')->whereMonth('created_at', $m)->whereYear('created_at', $y);
         }
     	return $this->hasMany('App\Models\Request', 'user_id')->whereNull('sent_at');
+    }
+    public function sentsms($m=null, $y=null){
+        if($m && $y){
+            return $this->hasMany('App\Models\BlastMessage', 'user_id')->whereMonth('created_at', $m)->whereYear('created_at', $y);
+        }
+    	return $this->hasMany('App\Models\BlastMessage', 'user_id');
     }
 
     /**
@@ -140,5 +150,26 @@ class User extends Authenticatable
      */
     public function role(){
     	return $this->hasMany('App\Models\RoleUser','user_id');
+    }
+
+    /**
+     * User Has many Balance
+     *
+     * @return void
+     */
+    public function balance($team_id=0){
+        if($team_id>0){
+    	    return $this->hasMany('App\Models\SaldoUser','user_id')->where('team_id', $team_id)->orderBy('id', 'desc');
+        }
+    	return $this->hasMany('App\Models\SaldoUser','user_id')->orderBy('id', 'desc');
+    }
+
+    /**
+     * User is client
+     *
+     * @return void
+     */
+    public function isClient(){
+    	return $this->hasOne('App\Models\Client','email','email')->where('user_id', 0);
     }
 }

@@ -61,4 +61,11 @@ class Quotation extends Model
     public function items(){
         return $this->hasMany('App\Models\OrderProduct', 'model_id')->where('model', 'Quotation');
     }
+
+    /**
+     * Get all of team.
+     */
+    public function approval(){
+    	return $this->hasOne('App\Models\FlowProcess', 'model_id')->where('model', 'quotation')->whereNull('status');
+    }
 }

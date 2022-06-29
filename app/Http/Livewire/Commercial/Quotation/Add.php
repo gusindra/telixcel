@@ -11,15 +11,17 @@ class Add extends Component
 {
     public $modalActionVisible = false;
     public $type;
-    public $name;
+    public $title;
     public $date;
     public $valid_day;
+    public $model;
+    public $source;
 
     public function rules()
     {
         return [
             'type' => 'required',
-            'name' => 'required',
+            'title' => 'required',
             'date' => 'required',
             'valid_day' => 'required',
         ];
@@ -36,19 +38,24 @@ class Add extends Component
 
     public function modelData()
     {
-        return [
+        $data = [
             'type'          => $this->type,
-            'name'          => $this->name,
+            'title'          => $this->title,
             'valid_day'     => $this->valid_day,
             'date'          => $this->date,
             'user_id'       => Auth::user()->id,
         ];
+        if($this->model && $this->source){
+            $data['model']      = $this->model;
+            $data['model_id']   = $this->source;
+        }
+        return $data;
     }
 
     public function resetForm()
     {
         $this->type = null;
-        $this->name = null;
+        $this->title = null;
         $this->date = null;
         $this->valid_day = null;
     }

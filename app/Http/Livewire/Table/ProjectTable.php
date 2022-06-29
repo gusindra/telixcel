@@ -12,18 +12,23 @@ class ProjectTable extends LivewireDatatable
 {
     public $model = Project::class;
 
+    public function builder()
+    {
+        return Project::query()->orderBy('updated_at', 'desc');
+    }
+
     public function columns()
     {
         return [
     		Column::name('name')->label('Name'),
-    		Column::name('customer_name')->label('Customer'),
-    		Column::name('type')->label('Type'),
+    		Column::name('customer_name')->label('Customer')->filterable(),
+    		Column::name('type')->label('Type')->filterable(['Selling', 'SAAS', 'Referral']),
             Column::callback(['status'], function ($type) {
                 return view('assistant.project.label', ['type' => $type]);
-            })->label('Status'),
-            NumberColumn::name('id')->label('Detail')->sortBy('id')->callback('id', function ($value) {
-                return view('datatables::link', [
-                    'href' => "/project/" . $value . '?month='.date('m').'&year='.date('Y'),
+            })->label('Status')->filterable(['DRAFT', 'APPROVED', 'SUBMIT']),
+            NumberColumn::name('link')->label('Link')->callback('id', function ($value) {
+                return view('tables.link', [
+                    'href' => "/project/" . $value,
                     'slot' => 'View'
                 ]);
             }),

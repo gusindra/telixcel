@@ -17,7 +17,7 @@ class Client extends Model
      * @var array
      */
     protected $fillable = [
-        'uuid', 'sender', 'name', 'phone', 'identity', 'user_id', 'note', 'tag'
+        'uuid', 'sender', 'name', 'phone', 'identity', 'user_id', 'note', 'tag', 'email'
     ];
 
     /**
@@ -108,5 +108,13 @@ class Client extends Model
     public function team()
     {
         return $this->morphOne('App\Models\Teamable', 'teamable');
+    }
+
+    /**
+     * Get the teams for the api.
+     */
+    public function user()
+    {
+        return $this->hasOne('App\Models\User', 'email', 'email');
     }
 }

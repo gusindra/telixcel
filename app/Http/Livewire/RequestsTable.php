@@ -14,12 +14,17 @@ class RequestsTable extends LivewireDatatable
 
     public function builder()
     {
+        if(auth()->user()->super && auth()->user()->super->first() && auth()->user()->super->first()->role == 'superadmin'){
+            return Request::query()->with('agent', 'client');
+        }
         return Request::query()->where('requests.user_id', auth()->user()->currentTeam->user_id)->with('agent', 'client');
     }
 
     public function columns()
     {
         return [
+            Column::name('user_id')->label('User ID')->filterable(),
+            Column::name('created_at')->label('Creation Date')->filterable(),
     		NumberColumn::name('id')->label('ID')->sortBy('id'),
     		Column::callback(['agent.name', 'from'], function ($agent, $from) {
                 if($from == 'bot'){
@@ -33,7 +38,6 @@ class RequestsTable extends LivewireDatatable
     		Column::name('client.name')->label('Client'),
     		Column::name('reply')->label('Message'),
     		Column::name('type')->label('Type'),
-    		DateColumn::name('created_at')->label('Creation Date')
     	];
     }
 }

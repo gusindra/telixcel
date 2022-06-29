@@ -14,7 +14,7 @@
                     {{ __('SMS Blast Table') }}
                 </h3>
                 <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
-                    <livewire:sms-blast-table searchable="user_id, type, created_at" exportable />
+                    <livewire:sms-blast-table searchable="{{auth()->user()->super->first()->role == 'superadmin' ? 'user_id, status, created_at':'status, msisdn, created_at, message_content'" exportable />
                 </div>
             </div>
         </div>

@@ -14,6 +14,13 @@
         <x-slot name="form">
             <div class="col-span-6 sm:col-span-4">
                 <div class="col-span-12 sm:col-span-1">
+                    <x-jet-label for="name" value="{{ __('Contract ID') }}" />
+                    <p>{{$contract->id}}</p>
+                </div>
+            </div>
+
+            <div class="col-span-6 sm:col-span-4">
+                <div class="col-span-12 sm:col-span-1">
                     <x-jet-label for="name" value="{{ __('Title') }}" />
                     <x-jet-input id="name"
                                 type="text"

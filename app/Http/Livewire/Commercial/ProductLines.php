@@ -12,8 +12,9 @@ class ProductLines extends Component
     public $master;
     public $product_line;
     public $selected_product_line;
+    public $disabled;
 
-    public function mount($model, $data)
+    public function mount($model, $data, $disabled=false)
     {
         $this->selected_product_line = '';
         if($model=='product'){
@@ -25,7 +26,7 @@ class ProductLines extends Component
             $line = ProductLine::find($this->master->product_line);
             $this->selected_product_line = $line ? $line->name : '';
         }
-
+        $this->disabled = $disabled;
     }
 
     public function update()

@@ -30,12 +30,15 @@ class Project extends Model
     protected $guarded = [];
 
     /**
-     * Get all of the permission that are assigned this role.
+     * Get all of customer.
      */
     public function customer(){
     	return $this->belongsTo('App\Models\Client');
     }
 
+    /**
+     * Get all of team.
+     */
     public function team(){
     	return $this->belongsTo('App\Models\Team');
     }
@@ -47,6 +50,34 @@ class Project extends Model
      */
     public function productLine()
     {
-        return $this->belongsTo('App\Models\ProductLine');
+        return $this->belongsTo('App\Models\ProductLine', 'product_line');
+    }
+
+    /**
+     * Get all of team.
+     */
+    public function approval(){
+    	return $this->hasOne('App\Models\FlowProcess', 'model_id')->where('model', 'PROJECT')->whereNull('status');
+    }
+
+    /**
+     * Get all contract of project.
+     */
+    public function contracts(){
+        return $this->hasMany('App\Models\Contract', 'model_id')->where('model', 'PROJECT')->orderBy('updated_at', 'DESC');
+    }
+
+    /**
+     * Get all contract of project.
+     */
+    public function orders(){
+        return $this->hasMany('App\Models\Order', 'source_id')->where('source', 'PROJECT')->orderBy('updated_at', 'DESC');
+    }
+
+    /**
+     * Get all contract of project.
+     */
+    public function quotations(){
+        return $this->hasMany('App\Models\Quotation', 'model_id')->where('model', 'PROJECT')->orderBy('updated_at', 'DESC');
     }
 }

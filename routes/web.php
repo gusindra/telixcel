@@ -15,15 +15,20 @@ use App\Http\Controllers\SettingController;
 use App\Http\Controllers\UserBillingController;
 use App\Http\Controllers\UploadController;
 use App\Http\Controllers\CommercialController;
+use App\Http\Controllers\OrderController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\RoleInvitationController;
 use App\Models\ApiCredential;
+use App\Models\BlastMessage;
 use App\Models\Client;
 use App\Models\Template;
 use App\Models\Request;
+use Carbon\Carbon;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
-
+use Illuminate\Http\Request as HttpRequest;
+use Illuminate\Support\Facades\Http;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -37,7 +42,7 @@ use Illuminate\Support\Facades\Mail;
 
 Route::get('/', function () {
     return view('welcome');
-});
+})->name('welcome');
 
 Route::group(['middleware' => 'web'], function () {
     // Route::get('api/documentation', '\L5Swagger\Http\Controllers\SwaggerController@api')->name('l5swagger.api');
@@ -86,6 +91,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     Route::get('/user', [UserController::class, 'index'])->name('user.index');
     Route::get('/user/{user}', [UserController::class, 'show'])->name('user.show');
+    Route::get('/user/{user}/balance', [UserController::class, 'balance'])->name('user.show.balance');
     Route::get('/user-billing', [UserBillingController::class, 'index'])->name('user.billing.index');
     Route::get('/user-billing/generate', [UserBillingController::class, 'generate'])->name('user.billing.generate');
     // Route::get('/user-billing/create', [UserBillingController::class, 'create'])->name('user.billing.create');
@@ -97,6 +103,10 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     Route::get('/roles', [RoleController::class, 'index'])->name('role.index');
     Route::get('/roles/{role}', [RoleController::class, 'show'])->name('role.show');
+
+    Route::get('/permission', function () {
+        return view('permission.index');
+    })->name('permission.index');
 
     Route::get('/settings', [SettingController::class, 'index'])->name('settings');
     Route::get('/settings/{page}', [SettingController::class, 'show'])->name('settings.show');
@@ -115,13 +125,15 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/project', [ProjectController::class, 'index'])->name('project');
     Route::get('/project/{project}', [ProjectController::class, 'show'])->name('project.show');
 
-    Route::get('/order',  function () {
-        return view('assistant.order.index');
-    })->name('order');
+    Route::get('/order', [OrderController::class, 'index'])->name('order');
+    Route::get('/order/{order}', [OrderController::class, 'show'])->name('show.order');
+    // Route::get('/order',  function () {
+    //     return view('assistant.order.index');
+    // })->name('order');
 
-    Route::get('/order/{uuid}', function ($uuid) {
-        return view('assistant.order.show', ['uuid'=> $uuid]);
-    })->name('show.order');
+    // Route::get('/order/{uuid}', function ($uuid) {
+    //     return view('assistant.order.show', ['uuid'=> $uuid]);
+    // })->name('show.order');
 
     Route::get('/commercial', [CommercialController::class, 'index'])->name('commercial');
     Route::get('commercial/{key}', [CommercialController::class, 'show'])->name('commercial.show');
@@ -132,6 +144,9 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('commercial/{key}/{id}', [CommercialController::class, 'edit'])->name('commercial.edit.show');
     Route::get('commercial/{key}/{quotation}/print', [CommercialController::class, 'template'])->name('commercial.quotation.print');
 
+    Route::get('/payment/deposit', [PaymentController::class, 'index'])->name('payment.deposit');
+    Route::get('/payment/topup', [PaymentController::class, 'topup'])->name('payment.topup');
+    Route::get('/payment/invoice/{id}', [PaymentController::class, 'invoice'])->name('invoice.topup');
 });
 
 Route::get('/role-invitations/{invitation}', [RoleInvitationController::class, 'accept'])->middleware(['signed'])->name('role-invitations.accept');
@@ -156,6 +171,100 @@ Route::get('/upload', [UploadController::class, 'index']);
 Route::get('/logout', [AuthController::class, 'destroy'])->name('logout');
 Route::post('/logout', [AuthController::class, 'destroy'])->name('logout');
 
+Route::get('cache/{id}', function ($id){
+    if($id=="clear"){
+        \Artisan::call('cache:clear');
+    }
+    dd("Job is done");
+});
+
+Route::get('queue/{id}', function ($id) {
+    if($id=="work"){
+        \Artisan::call('queue:work --tries=3 --stop-when-empty --timeout=60');
+    }elseif($id=="restart"){
+        \Artisan::call('queue:restart');
+    }elseif($id=='json'){
+        $path = storage_path() . "/csvjson.json";
+        $path = public_path() . "/csvjson.json";
+        $content = json_decode(file_get_contents($path), true);
+        try {
+            foreach($content as $sms){
+                $msg_id = preg_replace('/\s+/', '', $sms['Message ID']);
+                $msisdn = preg_replace('/\s+/', '', $sms['Send to']);
+                $user_id = 16;
+                // return $sms['Date/Time'];
+                // return $sms['From'];
+                // return $sms['Send to'];
+                // return $sms['Message Title'];
+                // return $sms['Message Content'];
+                // return $sms['Message Status'];
+                $myDate = $sms['Date/Time'];
+                $smsDate = Carbon::createFromFormat('d/m/Y H:i', $myDate)->format('Y-m-d H:i');
+                $client = Client::where('phone', $msisdn)->where('user_id', $user_id)->firstOr(function () use ($msisdn, $user_id) {
+                    return Client::create([
+                        'phone' => $msisdn,
+                        'user_id' => $user_id,
+                        'uuid' => Str::uuid()
+                    ]);
+                });
+                $modelData = [
+                    'msg_id'    => $msg_id,
+                    'user_id'   => $user_id,
+                    'client_id' => $client->uuid,
+                    'sender_id' => $sms['From'],
+                    'type'      => '0',
+                    'status'    => $sms['Message Status'],
+                    'code'      => '200',
+                    'message_content'  => $sms['Message Content'],
+                    'currency'  => 'IDR',
+                    'price'     => 500,
+                    'balance'   => 0,
+                    'msisdn'    => $msisdn,
+                    'created_by'=> $date,
+                    'updated_by'=> $date,
+                ];
+                $blast = BlastMessage::create($modelData);
+
+                $blast->created_at = $smsDate;
+                $blast->updated_at = $smsDate;
+                $blast->save();
+            }
+        } catch (\Throwable $th) {
+            dd($th);
+        }
+
+    }
+    dd("Job is done");
+});
+
+Route::get('/restart-service', function(){
+
+
+    $curl = curl_init();
+    curl_setopt($curl, CURLOPT_SSL_VERIFYHOST,0);
+    curl_setopt($curl, CURLOPT_SSL_VERIFYPEER,0);
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER,1);
+
+    $header[0] = "Authorization: whm $user:$token";
+    curl_setopt($curl,CURLOPT_HTTPHEADER,$header);
+    curl_setopt($curl, CURLOPT_URL, $query);
+
+    $result = curl_exec($curl);
+
+    $http_status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+    if ($http_status != 200) {
+        echo "[!] Error: " . $http_status . " returned\n";
+    } else {
+        $json = json_decode($result);
+        echo "[+] Current cPanel users on the system:\n";
+            echo "\t" . $result . "\n";
+    }
+
+    curl_close($curl);
+    return 'success';
+});
+
+// TESTING
 Route::get('/testing', function(){
     return base64_encode('SITC01'.':'.'92f70cad-1fa4-40de-bbd8-39dbfd6a7242');
     // $request = Request::find(244);
@@ -227,15 +336,34 @@ Route::get('/testing', function(){
 
 });
 
-Route::get('/tester', function(){
+Route::get('/tester', function(HttpRequest $request){
+    // return $request;
+    $url = $request->url;
+    $key = $request->key;
+
+    $POSTFIELDS = array();
+    if($request->has('post')){
+        foreach(explode(",", $request->post) as $key => $posts){
+            $post = explode(":", $posts);
+            $POSTFIELDS[$post[0]] = is_numeric($post[1]) ? (int)$post[1] : $post[1];
+        }
+    }
+    $POSTFIELDS = json_encode($POSTFIELDS);
+
+    $sign_ginee = Http::get('http://jarvis1.pythonanywhere.com/welcome/default/signature_genie?url='.$url.'&key='.$key);
+    $signature = $sign_ginee['signature'];
+
+    $ginee_url = 'https://genie-sandbox.advai.net';
+    $method = $request->has('method') ? $request->method : 'GET';
+
     // echo $hash =  hash_hmac('sha256', 'abcde', 'abc');
-    return $user = Client::where('phone', 1234543)->where('user_id', 4)->firstOr(function () {
-        return Client::create([
-            'phone' => 1234543,
-            'user_id' => 4,
-            'uuid' => Str::uuid()
-        ]);
-    });
+    // return $user = Client::where('phone', 1234543)->where('user_id', 4)->firstOr(function () {
+    //     return Client::create([
+    //         'phone' => 1234543,
+    //         'user_id' => 4,
+    //         'uuid' => Str::uuid()
+    //     ]);
+    // });
 
     // $client = Client::firstOrNew(
     //     ['phone' =>  1234543],
@@ -243,6 +371,63 @@ Route::get('/tester', function(){
     // );
     // $client->save();
     // return $client;
+
+
+
+    $curl = curl_init();
+
+    curl_setopt_array($curl, array(
+        CURLOPT_URL => $ginee_url.$url,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => '',
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 0,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => $method,
+        CURLOPT_POSTFIELDS =>$POSTFIELDS,
+        CURLOPT_HTTPHEADER => array(
+            'X-Advai-Country: ID',
+            'Authorization: d20254aee13cc156:'.$signature,
+            'Content-Type: application/json'
+        ),
+    ));
+
+    $response = curl_exec($curl);
+
+    curl_close($curl);
+    echo $response;
+
+    // curl_setopt($ch, CURLOPT_URL, 'https://genie-sandbox.advai.net/openapi/shop/v1/list');
+    // curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    // curl_setopt($ch, CURLOPT_POST, 1);
+    // curl_setopt($ch, CURLOPT_POSTFIELDS, "{\n    \"page\":0,\n    \"size\":10,\n}");
+
+    // $headers = array();
+    // $headers[] = 'X-Advai-Country: ID';
+    // $headers[] = 'Authorization: b3436f168a4402b7:VHlSfqFIY3gCMKWO6BKkmn7VmBKPF+KUCk/9o+gbURE=';
+    // $headers[] = 'Content-Type: application/json';
+    // curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+
+    // Generated @ codebeautify.org
+
+    // curl_setopt($ch, CURLOPT_URL, 'https://genie-sandbox.advai.net/openapi/shop/v1/categories/list');
+    // curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    // curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
+
+
+    // $headers = array();
+    // $headers[] = 'X-Advai-Country: ID';
+    // $headers[] = 'Authorization: b3436f168a4402b7:zOuRJ7s/pbNPl8AjCe7R2Wm2+uBIHPKxEak1LrXQTHI=';
+    // curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+
+
+
+    // echo $result = curl_exec($ch);
+    // if (curl_errno($ch)) {
+    //     echo 'Error:' . curl_error($ch);
+    // }
+    // curl_close($ch);
 });
 
 Route::get('/email', function (){

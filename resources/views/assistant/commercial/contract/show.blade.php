@@ -18,25 +18,40 @@
                                 <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
                             </svg>
                         </span>
-                        <x-jet-nav-link href="{{ route('commercial') }}">
-                            {{ __('Commercial') }}
-                        </x-jet-nav-link>
-                        <span class="inline-flex items-center px-1 pt-1 text-xs font-medium leading-5 text-gray-900 ">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-                            </svg>
-                        </span>
-                        <x-jet-nav-link href="{{ route('commercial.show', 'contract ') }}">
-                            {{ __('Contract ') }}
-                        </x-jet-nav-link>
-                        <span class="inline-flex items-center px-1 pt-1 text-xs font-medium leading-5 text-gray-900 ">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-                            </svg>
-                        </span>
-                        <x-jet-nav-link href="#" :active="true">
-                            {{$code}}
-                        </x-jet-nav-link>
+
+                        @if(app('request')->input('source')=='project')
+                            <x-jet-nav-link href="{{ route('project.show', app('request')->input('id')) }}">
+                                {{ __('Project ') }}
+                            </x-jet-nav-link>
+                            <span class="inline-flex items-center px-1 pt-1 text-xs font-medium leading-5 text-gray-900 ">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                                </svg>
+                            </span>
+                            <x-jet-nav-link href="#" :active="true">
+                                Contract No {{$code}}
+                            </x-jet-nav-link>
+                        @else
+                            <x-jet-nav-link href="{{ route('commercial') }}">
+                                {{ __('Commercial') }}
+                            </x-jet-nav-link>
+                            <span class="inline-flex items-center px-1 pt-1 text-xs font-medium leading-5 text-gray-900 ">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                                </svg>
+                            </span>
+                            <x-jet-nav-link href="{{ route('commercial.show', 'contract ') }}">
+                                {{ __('Contract ') }}
+                            </x-jet-nav-link>
+                            <span class="inline-flex items-center px-1 pt-1 text-xs font-medium leading-5 text-gray-900 ">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                                </svg>
+                            </span>
+                            <x-jet-nav-link href="#" :active="true">
+                                {{$code}}
+                            </x-jet-nav-link>
+                        @endif
                     </div>
                 </div>
             </div>

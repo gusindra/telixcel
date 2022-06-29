@@ -6,6 +6,7 @@ use App\Models\Contract as ModelsContract;
 use Mediconesystems\LivewireDatatables\Column;
 use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
 use Mediconesystems\LivewireDatatables\NumberColumn;
+use Mediconesystems\LivewireDatatables\DateColumn;
 
 class Contract extends LivewireDatatable
 {
@@ -15,10 +16,10 @@ class Contract extends LivewireDatatable
     {
         return [
     		Column::name('title')->label('Title'),
-    		Column::name('status')->label('Status'),
+    		Column::name('status')->label('Status')->filterable(['DRAFT', 'APPROVED', 'SUBMIT']),
     		Column::name('model')->label('Source'),
-    		Column::name('created_at')->label('Created_at'),
-    		Column::name('expired_at')->label('Expired_at'),
+    		DateColumn::name('created_at')->label('Created_at')->filterable(),
+    		DateColumn::name('expired_at')->label('Expired_at')->filterable(),
             NumberColumn::name('id')->label('Detail')->sortBy('id')->callback('id', function ($value) {
                 return view('datatables::link', [
                     'href' => "/commercial/contract/" . $value,

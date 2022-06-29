@@ -3,19 +3,27 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class TestApiController extends Controller
 {
     public function get()
     {
-        return response()->json([
+        // return 1;
+        $data = response()->json([
             'team' => auth()->user(),
             'old' => 'this is get request'
         ]);
+
+        Log::debug($data);
+
+        return $data;
     }
 
     public function show($id)
     {
+        // return $id;
+        Log::debug('Job Failed : servid invalid');
         return response()->json([
             'old' => $id
         ]);
@@ -44,7 +52,7 @@ class TestApiController extends Controller
             $array = [];
             foreach($phones as $key => $phone){
                 $array[$key] = [
-                    'MsgID' => "11888800".$key,
+                    'MsgID' => date("YmdHis").rand(1,10),
                     'Msisdn' => $phone,
                     'Status' => "200",
                     'Currency' => "IDR",
@@ -62,7 +70,7 @@ class TestApiController extends Controller
             // return "400";
             $string = "";
             foreach($phones as $key => $phone){
-                $string = $string.$phone.",11888800".$key.",200,IDR,350|";
+                $string = $string.$phone.",".date("YmdHis").rand(1,10).",200,IDR,350|";
             }
             return $string = $string."=99.9500,".$key+1;
         }

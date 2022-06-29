@@ -38,7 +38,7 @@ class Add extends Component
             'type'          => $this->type,
             'name'          => $this->name,
             'entity_party'  => $this->entity,
-            'team_id'       => Auth::user()->currentTeam->id,
+            'team_id'       => !Auth::user()->currentTeam ? null : Auth::user()->currentTeam->id ,
         ];
     }
 

@@ -14,10 +14,10 @@ class CommerceItem extends LivewireDatatable
     public function columns()
     {
         return [
-    		Column::name('sku')->label('SKU'),
-    		Column::name('name')->label('Name'),
+    		Column::name('sku')->label('SKU')->searchable(),
+    		Column::name('name')->label('Name')->searchable(),
     		Column::name('description')->label('Description'),
-    		Column::name('type')->label('Type'),
+    		Column::name('type')->label('Type')->searchable(),
             NumberColumn::name('id')->label('Detail')->sortBy('id')->callback('id', function ($value) {
                 return view('datatables::link', [
                     'href' => "/commercial/item/" . $value,

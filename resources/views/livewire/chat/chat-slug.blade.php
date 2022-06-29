@@ -28,7 +28,7 @@
             </div>
 
             <div class="mt-4">
-                <x-jet-label for="phone" value="{{ __('Whatapps Number') }}" />
+                <x-jet-label for="phone" value="{{ __('Phone Number') }}" />
                 <x-jet-input
                 wire:model="number" wire:model.defer="number"
                 id="phone" class="block mt-1 w-full" type="text" name="phone" required autocomplete="current-phone" />
@@ -41,7 +41,7 @@
             </div>
         </div>
         @else
-            @livewire('chat.chat-box', ['client_id' => $client->id])
+            @livewire('chat.chat-box', ['client_id' => $client->id, 'team' => $team])
         @endif
     </x-jet-authentication-card>
 

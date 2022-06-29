@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Auth;
 
 class Add extends Component
 {
+    public $model;
+    public $source;
     public $modalActionVisible = false;
     public $title;
 
@@ -29,10 +31,16 @@ class Add extends Component
 
     public function modelData()
     {
-        return [
-            'title'          => $this->title,
-            'user_id'       => Auth::user()->id,
+        $data = [
+            'title'     => $this->title,
+            'user_id'   => Auth::user()->id,
         ];
+
+        if($this->model && $this->source){
+            $data['model']      = $this->model;
+            $data['model_id']   = $this->source;
+        }
+        return $data;
     }
 
     public function resetForm()

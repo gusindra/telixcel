@@ -1,3 +1,211 @@
 <div>
-    {{-- The Master doesn't talk, he acts. --}}
+    @if($order->attachments)
+        @foreach ($order->attachments as $file)
+            <div class="bg-blue-100 border sm:rounded border-blue-500 text-blue-700 px-4 py-3 mb-4" role="alert">
+                <div class="flex justify-between">
+                    <span class="text-sm">Attachment:</span> <a wire:click="actionShowModal('https://telixcel.s3.ap-southeast-1.amazonaws.com/{{$file->file}}')" href="#">Lihat</a>
+                </div>
+            </div>
+        @endforeach
+
+        <!-- Modal Detail -->
+        <x-jet-dialog-modal wire:model="modalAttach">
+            <x-slot name="title">
+                <div class="text-center font-bold text-2xl">{{ __('Detail Pembayaran') }}</div>
+            </x-slot>
+
+            <x-slot name="content">
+                <div class="p-4">
+                    <div class="flex justify-between py-2">
+                        <img src="{{ $url }}" />
+                    </div>
+                </div>
+            </x-slot>
+
+            <x-slot name="footer">
+                <x-jet-secondary-button wire:click="$toggle('modalAttach')" wire:loading.attr="disabled">
+                    {{ __('x') }}
+                </x-jet-secondary-button>
+            </x-slot>
+        </x-jet-dialog-modal>
+    @endif
+
+    <x-jet-form-section submit="updateStatus({{$order->id}})">
+        <x-slot name="title">
+            {{ __('Update') }}
+        </x-slot>
+
+        <x-slot name="description">
+            {{ __('Status information.') }}
+        </x-slot>
+
+        <x-slot name="form">
+
+            <div class="col-span-6 grid grid-cols-2">
+                <div class="col-span-12 sm:col-span-1 mx-4">
+                    <x-jet-label for="status" value="{{ __('Status') }}" />
+                    <select
+                        name="valid_day"
+                        id="valid_day"
+                        class="border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full"
+                        wire:model.debunce.800ms="input.status"
+                        >
+                        <option selected>-- Select --</option>
+                        <option value="draft">Draft</option>
+                        <option value="unpaid">Unpaid</option>
+                        <option value="paid">Paid</option>
+                        <option value="process">Process</option>
+                        <option value="refund">Refund</option>
+                        <option value="done">Done</option>
+                    </select>
+                    <x-jet-input-error for="status" class="mt-2" />
+                </div>
+            </div>
+        </x-slot>
+
+        <x-slot name="actions">
+            <x-jet-action-message class="mr-3" on="update_status">
+                {{ __('Status updated') }}
+            </x-jet-action-message>
+
+            <x-jet-button class="ml-2" type="submit" wire:loading.attr="disabled">
+                {{ __('Save') }}
+            </x-jet-button>
+        </x-slot>
+    </x-jet-form-section>
+
+    <x-jet-section-border />
+
+    <x-jet-form-section submit="update({{$order->id}})">
+        <x-slot name="title">
+            {{ __('1. Order Basic') }}
+        </x-slot>
+
+        <x-slot name="description">
+            {{ __('The basic information.') }}
+        </x-slot>
+
+        <x-slot name="form">
+            <div class="col-span-6 sm:col-span-4">
+                <div class="col-span-12 sm:col-span-1">
+                    <x-jet-label for="name" value="{{ __('Title') }}" />
+                    <x-jet-input id="name"
+                        disabled="{{disableInput($order->status)}}"
+                                type="text"
+                                class="mt-1 block w-full"
+                                wire:model="input.name"
+                                wire:model.defer="input.name"
+                                wire:model.debunce.800ms="input.name" />
+                    <x-jet-input-error for="name" class="mt-2" />
+                </div>
+            </div>
+
+            <div class="col-span-6 sm:col-span-4">
+                <div class="col-span-12 sm:col-span-1">
+                    <x-jet-label for="no" value="{{ __('Order No') }}" />
+                    <x-jet-input id="no"
+                        disabled="{{disableInput($order->status)}}"
+                                type="text"
+                                class="mt-1 block w-full"
+                                wire:model="input.no"
+                                wire:model.defer="input.no"
+                                wire:model.debunce.800ms="input.no" />
+                    <x-jet-input-error for="no" class="mt-2" />
+                </div>
+            </div>
+        </x-slot>
+
+        <x-slot name="actions">
+            <x-jet-action-message class="mr-3" on="saved">
+                {{ __('Order basic saved.') }}
+            </x-jet-action-message>
+
+            <x-save-button show="{{$order->status=='draft'?'true':'false'}}">
+                {{ __('Save') }}
+            </x-jet-button>
+        </x-slot>
+    </x-jet-form-section>
+
+    <x-jet-section-border />
+
+    <x-jet-form-section submit="update({{$order->id}})">
+        <x-slot name="title">
+            {{ __('2. Customer Information') }}
+        </x-slot>
+
+        <x-slot name="description">
+            {{ __('The Customer basic information.') }}
+        </x-slot>
+
+        <x-slot name="form">
+
+            <div class="col-span-6 grid grid-cols-2">
+                <div class="col-span-12 sm:col-span-1">
+                    <x-jet-label for="addressed_company" value="{{ __('Customer') }}" />
+
+                    @if($client)
+                        <span class="border rounded-md shadow-sm mt-1 block w-full p-2 capitalize">{{$client->name}}</span>
+                        @if($client->user && $client->user_id == 0)
+                            <p class="text-right">
+                                <a href="{{route('user.show', $client->user->id)}}" class="text-xs">view</a>
+                            </p>
+                        @endif
+                    @else
+                        <x-jet-input id="addressed_company"
+                            disabled="{{disableInput($order->status)}}"
+                                    type="text"
+                                    class="mt-1 block w-full"
+                                    wire:model="addressed_company"
+                                    wire:model.defer="addressed_company"
+                                    wire:model.debunce.800ms="addressed_company" />
+                        <x-jet-input-error for="addressed_company" class="mt-2" />
+                    @endif
+                </div>
+
+                <div class="col-span-12 sm:col-span-1 mx-4">
+                    @if($order->type=="project")
+                    <x-jet-label for="type" value="{{ __('Project') }}" />
+                    @else
+                    <x-jet-label for="type" value="{{ __('Client') }}" />
+                    @endif
+                    <select
+                        {{disableInput($order->status)?'disabled':''}}
+                        wire:change="onChangeModelId"
+                        name="model_id"
+                        id="model_id"
+                        class="border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full"
+                        wire:model.debunce.800ms="model_id"
+                        >
+                        <option selected>-- Select --</option>
+                        @foreach($model_list as $key => $item)
+                        <option value="{{$key}}">{{$item}}</option>
+                        @endforeach
+
+                        @if($order->type!="project")
+                        <option value="0">New Client</option>
+                        @endif
+
+                    </select>
+                    <x-jet-input-error for="status" class="mt-2" />
+                </div>
+            </div>
+        </x-slot>
+
+        <x-slot name="actions">
+            <x-jet-action-message class="mr-3" on="saved">
+                {{ __('Quotation saved.') }}
+            </x-jet-action-message>
+
+            <x-save-button show="{{$order->status=='draft'?'true':'false'}}">
+                {{ __('Save') }}
+            </x-jet-button>
+        </x-slot>
+    </x-jet-form-section>
+
+    <x-jet-section-border />
+
+
+    @livewire('order.item', ['data' => $order])
+
+
 </div>

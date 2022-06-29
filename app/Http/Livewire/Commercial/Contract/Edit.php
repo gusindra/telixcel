@@ -20,6 +20,7 @@ class Edit extends Component
         $this->contract = Contract::find($code);
         $this->input['title'] = $this->contract->title ?? '';
         $this->input['model'] = $this->contract->model ?? '';
+        $this->input['model_id'] = $this->contract->model_id ?? '';
         $this->input['signer_email'] = $this->contract->signer_email ?? '';
         $this->input['actived_at'] = $this->contract->actived_at ?? '';
         $this->input['expired_at'] = $this->contract->expired_at ?? '';
@@ -50,6 +51,7 @@ class Edit extends Component
     public function update($id)
     {
         $this->validate();
+        // dd($this->modelData());
         Contract::find($id)->update($this->modelData());
         $this->emit('saved');
     }

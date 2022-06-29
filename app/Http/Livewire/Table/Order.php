@@ -12,6 +12,11 @@ class Order extends LivewireDatatable
 {
     public $model = ModelsOrder::class;
 
+    public function builder()
+    {
+        return ModelsOrder::query()->orderBy('created_at', 'desc');
+    }
+
     public function columns()
     {
         return [
