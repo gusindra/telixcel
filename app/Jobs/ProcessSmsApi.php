@@ -40,21 +40,25 @@ class ProcessSmsApi implements ShouldQueue
     public function handle()
     {
         //Log::debug($this->service);
-        // call request to MacroKiosk check by type
-        // text / multi
-        //check user pass Mk
-        // $user   = $this->service->api_key; //TCI01
-        // $pass   = $this->service->server_key; //IFc21bL+
-        $user   = 'TCI01';
-        $pass   = 'IFc21bL+';
-        $serve  = 'mes01';
+        //filter OTP & Non OTP
+        if($this->request['otp']==false){
+            $user   = env('MK_NON_OTP_USER');
+            $pass   = env('MK_NON_OTP_PSW');
+            $serve  = env('MK_NON_OTP_SERVICE');
+        }else{
+            $user   = env('MK_OTP_USER');
+            $pass   = env('MK_OTP_PSW');
+            $serve  = env('MK_OTP_SERVICE');
+        }
         $msg    = '';
         // if(array_key_exists('servid', $this->request)){
         //     $serve  = $this->request['servid'];
         // }
-        if($serve==$this->request['servid']){
+
+        if($serve==strtolower($this->request['servid'])){
             // $url = 'http://www.etracker.cc/bulksms/mesapi.aspx';
-            $url = 'http://telixcel.com/api/send/smsbulk';
+            // $url = 'http://telixcel.com/api/send/smsbulk';
+            $url = 'http://telixnet.test/api/send/smsbulk';
             $response = '';
             if($this->request['type']=="0"){
                 // $response = Http::asForm()->accept('application/xml')->post($url, [
@@ -119,14 +123,23 @@ class ProcessSmsApi implements ShouldQueue
 
                 $array_res = [];
                 $res = explode ("|", $response);
-                $res_end = [];
-                foreach($res as $k1 => $data){
-                    $data_res = explode (",", $data);
-                    foreach($data_res as $k2 => $data){
-                        if(count($res)==$k1+1){
-                            $res_end[$k2] = $data;
-                        }else{
-                            $array_res[$k1][$k2] = $data;
+                $balance = 0;
+                if(count($res)>0 && strpos($response, '=') !== false){
+                    foreach($res as $k1 => $data){
+                        $data_res = explode (",", $data);
+                        foreach($data_res as $k2 => $data){
+                            if(count($res)==$k1+1){
+                                $balance = $data;
+                            }else{
+                                $array_res[$k1][$k2] = $data;
+                            }
+                        }
+                    }
+                }else{
+                    foreach($res as $k1 => $data){
+                        $data_res = explode(",", $data);
+                        foreach($data_res as $k2 => $singleData){
+                            $array_res[$k1][$k2] = $singleData;
                         }
                     }
                 }
@@ -139,12 +152,13 @@ class ProcessSmsApi implements ShouldQueue
                         'client_id' => $this->chechClient("200", $msg_msis[0]),
                         'sender_id' => $this->request['from'],
                         'type'      => $this->request['type'],
+                        'otp'       => $this->request['otp'],
                         'status'    => "PROCESSED",
                         'code'      => $msg_msis[2],
                         'message_content'  => $this->request['text'],
                         'currency'  => $msg_msis[3],
                         'price'     => $msg_msis[4],
-                        'balance'   => $res_end[0],
+                        'balance'   => $balance,
                         'msisdn'    => preg_replace('/\s+/', '', $msg_msis[0]),
                     ];
                     // Log::debug($modelData);
@@ -156,7 +170,7 @@ class ProcessSmsApi implements ShouldQueue
                 $this->saveResult($msg);
             }
         }else{
-            Log::debug('Job Failed : servid invalid');
+            $this->saveResult('invalid servid');
         }
 
     }
@@ -173,6 +187,7 @@ class ProcessSmsApi implements ShouldQueue
             'message_content'   => $this->request['text'],
             'price'             => 0,
             'balance'           => 0,
+            'otp'               => $this->request['otp'],
             'msisdn'            => 0,
         ];
         BlastMessage::create($modelData);

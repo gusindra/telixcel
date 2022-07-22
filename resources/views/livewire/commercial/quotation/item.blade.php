@@ -46,7 +46,7 @@
                                                     {{ $item->price }}
                                                 </td>
                                                 <td class="px-6 py-4 text-xs whitespace-no-wrap">
-                                                    {{ $item->unit }}
+                                                    {{ $item->qty }} {{ $item->unit }}
                                                 </td>
                                                 <td class="px-6 py-4 text-xs whitespace-no-wrap w-100">
                                                     {{ $item->note }}
@@ -93,15 +93,20 @@
                 <x-jet-input id="name" type="text" class="mt-1 block w-full" wire:model.debunce.800ms="name" autofocus />
                 <x-jet-input-error for="name" class="mt-2" />
             </div>
-            <div class="col-span-6 sm:col-span-4 p-3 grid grid-cols-2">
+            <div class="col-span-6 sm:col-span-4 p-3 grid grid-cols-3">
                 <div class=" ">
                     <x-jet-label for="price" value="{{ __('Price') }}" />
                     <x-jet-input id="price" type="text" class="mt-1 block w-full" wire:model.debunce.800ms="price" autofocus />
                     <x-jet-input-error for="price" class="mt-2" />
                 </div>
                 <div class="mx-3">
+                    <x-jet-label for="qty" value="{{ __('Qty') }}" />
+                    <x-jet-input id="qty" type="text" class="mt-1 block w-full" wire:model.debunce.800ms="qty" autofocus />
+                    <x-jet-input-error for="qty" class="mt-2" />
+                </div>
+                <div class="mx-3">
                     <x-jet-label for="unit" value="{{ __('Unit Measurement') }}" />
-                    <x-jet-input id="unit" type="text" class="mt-1 block w-full" wire:model.debunce.800ms="unit" autofocus />
+                    <x-jet-input id="unit" placeholder="item / meter / kg / etc" type="text" class="mt-1 block w-full" wire:model.debunce.800ms="unit" autofocus />
                     <x-jet-input-error for="unit" class="mt-2" />
                 </div>
             </div>
@@ -154,10 +159,17 @@
                         </select>
                         <x-jet-input-error for="selectedProduct" class="mt-2" />
                     </div>
-                    <div class="col-span-6 sm:col-span-4 p-3">
-                        <x-jet-label for="unit" value="{{ __('Unit Measurement') }}" />
-                        <x-jet-input id="unit" type="text" class="mt-1 block w-full" wire:model.debunce.800ms="unit" autofocus />
-                        <x-jet-input-error for="unit" class="mt-2" />
+                    <div class="col-span-6 sm:col-span-4 p-3 grid grid-cols-2">
+                        <div class="mx-3">
+                            <x-jet-label for="qty" value="{{ __('Qty') }}" />
+                            <x-jet-input id="qty" type="text" class="mt-1 block w-full" wire:model.debunce.800ms="qty" autofocus />
+                            <x-jet-input-error for="qty" class="mt-2" />
+                        </div>
+                        <div class="mx-3">
+                            <x-jet-label for="unit" value="{{ __('Unit Measurement') }}" />
+                            <x-jet-input id="unit" placeholder="item / meter / kg / etc" type="text" class="mt-1 block w-full" wire:model.debunce.800ms="unit" autofocus />
+                            <x-jet-input-error for="unit" class="mt-2" />
+                        </div>
                     </div>
                     <div class="col-span-6 sm:col-span-4 p-3">
                         <x-jet-label for="description" value="{{ __('Description') }}" />

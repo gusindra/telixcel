@@ -78,7 +78,7 @@
 
     <x-jet-form-section submit="update({{$order->id}})">
         <x-slot name="title">
-            {{ __('1. Order Basic') }}
+            {{ __('1. Order Information') }}
         </x-slot>
 
         <x-slot name="description">
@@ -113,6 +113,14 @@
                     <x-jet-input-error for="no" class="mt-2" />
                 </div>
             </div>
+
+            <div class="col-span-6 sm:col-span-4">
+                <div class="col-span-12 sm:col-span-1">
+                    <x-jet-label for="date" value="{{ __('Date') }}" />
+                    <x-input.date-picker wire:model="input.date" :error="$errors->first('input.date')"/>
+                    <x-jet-input-error for="date" class="mt-2" />
+                </div>
+            </div>
         </x-slot>
 
         <x-slot name="actions">
@@ -140,41 +148,15 @@
         <x-slot name="form">
 
             <div class="col-span-6 grid grid-cols-2">
-                <div class="col-span-12 sm:col-span-1">
-                    <x-jet-label for="addressed_company" value="{{ __('Customer') }}" />
-
-                    @if($client)
-                        <span class="border rounded-md shadow-sm mt-1 block w-full p-2 capitalize">{{$client->name}}</span>
-                        @if($client->user && $client->user_id == 0)
-                            <p class="text-right">
-                                <a href="{{route('user.show', $client->user->id)}}" class="text-xs">view</a>
-                            </p>
-                        @endif
-                    @else
-                        <x-jet-input id="addressed_company"
-                            disabled="{{disableInput($order->status)}}"
-                                    type="text"
-                                    class="mt-1 block w-full"
-                                    wire:model="addressed_company"
-                                    wire:model.defer="addressed_company"
-                                    wire:model.debunce.800ms="addressed_company" />
-                        <x-jet-input-error for="addressed_company" class="mt-2" />
-                    @endif
-                </div>
-
                 <div class="col-span-12 sm:col-span-1 mx-4">
-                    @if($order->type=="project")
-                    <x-jet-label for="type" value="{{ __('Project') }}" />
-                    @else
-                    <x-jet-label for="type" value="{{ __('Client') }}" />
-                    @endif
+                    <x-jet-label for="input.customer_id" value="{{ __('Client') }}" />
                     <select
                         {{disableInput($order->status)?'disabled':''}}
                         wire:change="onChangeModelId"
-                        name="model_id"
-                        id="model_id"
+                        name="input.customer_id"
+                        id="input.customer_id"
                         class="border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full"
-                        wire:model.debunce.800ms="model_id"
+                        wire:model.debunce.800ms="input.customer_id"
                         >
                         <option selected>-- Select --</option>
                         @foreach($model_list as $key => $item)
@@ -186,14 +168,27 @@
                         @endif
 
                     </select>
-                    <x-jet-input-error for="status" class="mt-2" />
+                    <x-jet-input-error for="input.customer_id" class="mt-2" />
+                </div>
+
+                <div class="col-span-12 sm:col-span-1">
+                    <x-jet-label for="addressed_company" value="{{ __('Customer') }}" />
+
+                    @if($client)
+                        <span class="border rounded-md shadow-sm mt-1 block w-full p-2 capitalize">{{$client->name}}</span>
+                        @if($client->user && $client->user_id == 0)
+                            <p class="text-right">
+                                <a href="{{route('user.show', $client->user->id)}}" class="text-xs">view</a>
+                            </p>
+                        @endif
+                    @endif
                 </div>
             </div>
         </x-slot>
 
         <x-slot name="actions">
             <x-jet-action-message class="mr-3" on="saved">
-                {{ __('Quotation saved.') }}
+                {{ __('Order saved.') }}
             </x-jet-action-message>
 
             <x-save-button show="{{$order->status=='draft'?'true':'false'}}">
@@ -204,8 +199,10 @@
 
     <x-jet-section-border />
 
-
     @livewire('order.item', ['data' => $order])
 
+    <x-jet-section-border />
+
+    @livewire('commission.edit', ['model' => 'order', 'data' => $order])
 
 </div>

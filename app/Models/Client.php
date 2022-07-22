@@ -17,7 +17,7 @@ class Client extends Model
      * @var array
      */
     protected $fillable = [
-        'uuid', 'sender', 'name', 'phone', 'identity', 'user_id', 'note', 'tag', 'email'
+        'uuid', 'sender', 'name', 'phone', 'identity', 'user_id', 'note', 'tag', 'email', 'address', 'title'
     ];
 
     /**

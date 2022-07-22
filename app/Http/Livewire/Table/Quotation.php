@@ -17,11 +17,19 @@ class Quotation extends LivewireDatatable
     {
         return [
     		Column::name('title')->label('Title'),
-    		Column::name('status')->label('Status')->filterable(['DRAFT', 'APPROVED', 'SUBMIT']),
-    		Column::name('type')->label('Source')->filterable(),
+    		Column::name('model')->callback('model, model_id, project.name, company.name, client.name', function ($m, $mi, $pn, $com, $cn) {
+                if($m=='PROJECT'){
+                    return $m.' : '.$pn;
+                }elseif($m=='COMPANY'){
+                    return $m.' : '.$com;
+                }elseif($m=='CLIENT'){
+                    return $m.' : '.$cn;
+                }
+                return $m;
+            })->label('Source')->filterable(),
     		DateColumn::name('date')->label('Date')->filterable(),
-    		Column::name('price')->label('Total'),
     		NumberColumn::name('valid_day')->label('Duration')->filterable(),
+    		Column::name('status')->label('Status')->filterable(['DRAFT', 'APPROVED', 'SUBMIT']),
             NumberColumn::name('id')->label('Detail')->sortBy('id')->callback('id', function ($value) {
                 return view('datatables::link', [
                     'href' => "/commercial/quotation/" . $value,

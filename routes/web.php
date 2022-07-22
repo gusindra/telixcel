@@ -15,15 +15,20 @@ use App\Http\Controllers\SettingController;
 use App\Http\Controllers\UserBillingController;
 use App\Http\Controllers\UploadController;
 use App\Http\Controllers\CommercialController;
+use App\Http\Controllers\CommissionController;
+use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\RoleInvitationController;
+use App\Jobs\ProcessEmail;
 use App\Models\ApiCredential;
 use App\Models\BlastMessage;
 use App\Models\Client;
+use App\Models\Notification;
 use App\Models\Template;
 use App\Models\Request;
+use App\Models\SaldoUser;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
@@ -92,6 +97,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/user', [UserController::class, 'index'])->name('user.index');
     Route::get('/user/{user}', [UserController::class, 'show'])->name('user.show');
     Route::get('/user/{user}/balance', [UserController::class, 'balance'])->name('user.show.balance');
+    Route::get('/user/{user}/profile', [UserController::class, 'profile'])->name('user.show.profile');
     Route::get('/user-billing', [UserBillingController::class, 'index'])->name('user.billing.index');
     Route::get('/user-billing/generate', [UserBillingController::class, 'generate'])->name('user.billing.generate');
     // Route::get('/user-billing/create', [UserBillingController::class, 'create'])->name('user.billing.create');
@@ -105,11 +111,13 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/roles/{role}', [RoleController::class, 'show'])->name('role.show');
 
     Route::get('/permission', function () {
-        return view('permission.index');
+        return view('permission.index', ['page'=>'permission']);
     })->name('permission.index');
 
     Route::get('/settings', [SettingController::class, 'index'])->name('settings');
     Route::get('/settings/{page}', [SettingController::class, 'show'])->name('settings.show');
+
+    Route::get('/company/{company}', [SettingController::class, 'company'])->name('settings.company.show');
 
     Route::get('/assistant',  function () {
         return view('assistant.index');
@@ -126,6 +134,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/project/{project}', [ProjectController::class, 'show'])->name('project.show');
 
     Route::get('/order', [OrderController::class, 'index'])->name('order');
+    Route::get('/invoice', [InvoiceController::class, 'index'])->name('invoice');
+    Route::get('/commission', [CommissionController::class, 'index'])->name('commission');
     Route::get('/order/{order}', [OrderController::class, 'show'])->name('show.order');
     // Route::get('/order',  function () {
     //     return view('assistant.order.index');
@@ -142,7 +152,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('report/{key}', [ReportController::class, 'show'])->name('report.show');
 
     Route::get('commercial/{key}/{id}', [CommercialController::class, 'edit'])->name('commercial.edit.show');
-    Route::get('commercial/{key}/{quotation}/print', [CommercialController::class, 'template'])->name('commercial.quotation.print');
+    Route::get('commercial/{id}/{type}/print', [CommercialController::class, 'template'])->name('commercial.print');
 
     Route::get('/payment/deposit', [PaymentController::class, 'index'])->name('payment.deposit');
     Route::get('/payment/topup', [PaymentController::class, 'topup'])->name('payment.topup');
@@ -339,19 +349,154 @@ Route::get('/testing', function(){
 Route::get('/tester', function(HttpRequest $request){
     // return $request;
     $url = $request->url;
-    $key = $request->key;
-
+    $secretkey = $request->key;
+    $accesskey = 'd20254aee13cc156';
     $POSTFIELDS = array();
-    if($request->has('post')){
-        foreach(explode(",", $request->post) as $key => $posts){
-            $post = explode(":", $posts);
-            $POSTFIELDS[$post[0]] = is_numeric($post[1]) ? (int)$post[1] : $post[1];
-        }
-    }
-    $POSTFIELDS = json_encode($POSTFIELDS);
 
-    $sign_ginee = Http::get('http://jarvis1.pythonanywhere.com/welcome/default/signature_genie?url='.$url.'&key='.$key);
+    $varian = array(
+        "averageCostPrice" => array(
+            "amount" => 0,
+            "currencyCode" => "IDR"
+        ),
+        "boundVariationCount" => 0,
+        "images" => [],
+        "optionValues" => ["-"],
+        "sellingPrice" => array(
+            "amount" => 10,
+            "currencyCode" => "IDR"
+        ),
+        "sku" => "0125001-001",
+        "status" => "ACTIVE",
+        "stock" => array(
+            "availableStock" => 10,
+            "safetyAlert" => false,
+            "safetyStock" => 0
+        ),
+        "bundleVariations" => array(
+            array(
+                "quantity" => 1,
+                "bundleVariationId" => "MV111100000222220"
+            )
+        ),
+        "type" => "BUNDLE"
+    );
+
+    if($request->format == 'add_product'){
+        $POSTFIELDS = array(
+            'id' => null,
+            'brand' => "",
+            'type' => "NORMAL",
+            'variantOptions' => [],
+            'name' => "Test Produk Lagi",
+            'saleStatus' => "FOR_SALE",
+            'condition' => "NEW",
+            'minPurchase' => 10,
+            'shortDescription' => "Test Produk Lagi",
+            'description' => "Test HTMl Produk Lagi",
+            "variations" => array(array(
+                "sellingPrice" => array(
+                    "amount" => 20000,
+                    "currencyCode" => "IDR"
+                ),
+                "sku" => "2022007-001",
+                "stock" => array(
+                    "availableStock" => 10,
+                    "safetyAlert" => false,
+                    "safetyStock" => 0
+                ),
+                "status" => "ACTIVE",
+                "type" => "NORMAL",
+                "purchasePrice" => array(
+                    "amount" => 20000,
+                    "currencyCode" => "IDR"
+                ),
+            )),
+            "images" => [],
+            "status" => "PENDING_REVIEW"
+
+        );
+        // $POSTFIELDS = '{
+        //     "id": null,
+        //     "brand": "",
+        //     "type": "BUNDLE",
+        //     "variantOptions": [],
+        //     "name": "Test 0125001",
+        //     "fullCategoryId": ["100534", "100577"],
+        //     "saleStatus": "FOR_SALE",
+        //     "condition": "NEW",
+        //     "minPurchase": 10,
+        //     "shortDescription": "Test",
+        //     "description": "<p>Test</p>",
+        //     "extraInfo": {
+        //         "preOrder": {
+        //             "settingType": "PRODUCT_OFF",
+        //             "timeUnit": "DAY"
+        //         }
+        //     },
+        //     "variations": [{
+        //         "averageCostPrice": {
+        //             "amount": 0,
+        //             "currencyCode": "IDR"
+        //         },
+        //         "boundVariationCount": 0,
+        //         "images": [],
+        //         "optionValues": ["-"],
+        //         "sellingPrice": {
+        //             "amount": 10,
+        //             "currencyCode": "IDR"
+        //         },
+        //         "sku": "0125001-001",
+        //         "status": "ACTIVE",
+        //         "stock": {
+        //             "availableStock": 10,
+        //             "safetyAlert": false,
+        //             "safetyStock": 0
+        //         },
+        //         "bundleVariations": [{
+        //                 "quantity": 1,
+        //                 "bundleVariationId": "MV111100000222220"
+        //         }],
+        //         "type": "BUNDLE"
+        //     }],
+        //     "images": [],
+        //     "delivery": {
+        //         "lengthUnit": "cm",
+        //         "weightUnit": "g"
+        //     },
+        //     "costInfo": {
+        //         "purchasingTimeUnit": "HOUR",
+        //         "salesTax": {
+        //             "currencyCode": "IDR"
+        //         }
+        //     },
+        //     "status": "PENDING_REVIEW"
+        // }';
+        $POSTFIELDS = json_encode($POSTFIELDS);
+    }elseif($request->format == 'show_variation'){
+        $POSTFIELDS = array(
+            'masterVariationIds' => array("MV62C51CC789701100017EA5A6"),
+            'page' => 0,
+            'size' => 5
+        );
+        $POSTFIELDS = json_encode($POSTFIELDS);
+    }else{
+        if($request->has('post')){
+            foreach(explode(",", $request->post) as $key => $posts){
+                $post = explode(":", $posts);
+                if(is_numeric($post[1])){
+                    $POSTFIELDS[$post[0]] = (int)$post[1] ;
+                }else{
+                    $POSTFIELDS[$post[0]] = $post[1];
+                }
+                $POSTFIELDS[$post[0]] = is_numeric($post[1]) ? (int)$post[1] : $post[1];
+            }
+        }
+        $POSTFIELDS = json_encode($POSTFIELDS);
+    }
+
+    $sign_ginee = Http::get('http://jarvis1.pythonanywhere.com/welcome/default/signature_genie?url='.$url.'&key='.$secretkey);
     $signature = $sign_ginee['signature'];
+    $signature = $accesskey.':'.$sign_ginee['signature'];
 
     $ginee_url = 'https://genie-sandbox.advai.net';
     $method = $request->has('method') ? $request->method : 'GET';
@@ -372,7 +517,11 @@ Route::get('/tester', function(HttpRequest $request){
     // $client->save();
     // return $client;
 
-
+    $headers = array(
+        'X-Advai-Country: ID',
+        'Authorization: '.$signature,
+        'Content-Type: application/json'
+    );
 
     $curl = curl_init();
 
@@ -386,16 +535,23 @@ Route::get('/tester', function(HttpRequest $request){
         CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
         CURLOPT_CUSTOMREQUEST => $method,
         CURLOPT_POSTFIELDS =>$POSTFIELDS,
-        CURLOPT_HTTPHEADER => array(
-            'X-Advai-Country: ID',
-            'Authorization: d20254aee13cc156:'.$signature,
-            'Content-Type: application/json'
-        ),
+        CURLOPT_HTTPHEADER => $headers,
     ));
 
     $response = curl_exec($curl);
 
     curl_close($curl);
+    //MAKE CURL
+    echo 'curl -X '.$method.' \<br>';
+    foreach($headers as $k => $head){
+        echo '-H '.$head.' \<br>';
+    }
+    echo '-d '.$POSTFIELDS.' \<br>';
+    echo '"'.$ginee_url.$url.'" <br>';
+    //END CURL
+    echo '<br><br>';
+    // echo $signature.'<br>';
+    // echo $url.'<br><br>';
     echo $response;
 
     // curl_setopt($ch, CURLOPT_URL, 'https://genie-sandbox.advai.net/openapi/shop/v1/list');
@@ -431,12 +587,45 @@ Route::get('/tester', function(HttpRequest $request){
 });
 
 Route::get('/email', function (){
-    Mail::raw('Text to e-mail', function($message)
-    {
-        $message->from('saritune@gmail.com', 'Laravel');
+    // $request = SaldoUser::create([
+    //     'currency'      => 'idr',
+    //     'amount'        => 100,
+    //     'mutation'      => 'credit',
+    //     'description'   => 'TEST Pemotongan sms / delete notif',
+    //     'user_id'       => '18'
+    // ]);
+    // $notif = 0;
+    // // if($request->mutation == 'debit'){
+    // //     $notif_count = Notification::where('model', 'Balance')->where('user_id', $request->user_id)->count();
+    // //     if(($notif_count==1 && $request->balance <= 50000) || ($notif_count==0 && $request->balance <= 100000)){
+    // //         $notif = Notification::create([
+    // //             'type'          => 'email',
+    // //             'model_id'      => $request->id,
+    // //             'model'         => 'Balance',
+    // //             'notification'  => 'Balance Alert. Your current balance remaining Rp'.number_format($request->balance) ,
+    // //             'user_id'       => $request->user_id,
+    // //             'status'        => 'unread',
+    // //         ]);
 
-        $message->to('gusin44@yahoo.com')->cc('web@sbimanning.co.id');
-    });
+    // //         if($notif){
+    // //             ProcessEmail::dispatch($request, 'alert_balance');
+    // //         }
+    // //     }
+    // // }
+
+    // if($request->mutation == 'credit'){
+    //     $notif = Notification::where('type', 'email')->where('model', 'Balance')->where('user_id', $request->user_id)->delete();
+    // }
+
+    dd($notif, $request);
+
+    // return $notif;
+    // Mail::raw('Text to e-mail', function($message)
+    // {
+    //     $message->from('saritune@gmail.com', 'Laravel');
+
+    //     $message->to('gusin44@yahoo.com')->cc('web@sbimanning.co.id');
+    // });
 });
 
 // Route::middleware(['auth:sanctum', 'verified'])->get('/dashboard', function () {

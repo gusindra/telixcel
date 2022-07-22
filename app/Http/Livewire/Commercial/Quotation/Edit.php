@@ -3,6 +3,7 @@
 namespace App\Http\Livewire\Commercial\Quotation;
 
 use App\Models\Client;
+use App\Models\Company;
 use App\Models\Project;
 use App\Models\Quotation;
 use Livewire\Component;
@@ -91,10 +92,10 @@ class Edit extends Component
         if($this->model_id!=0){
             if($this->type=='project'){
                 $this->addressed = Project::find($this->model_id);
-                $this->model = 'Project';
+                $this->model = 'PROJECT';
             }else{
                 $this->addressed = Client::find($this->model_id);
-                $this->model = 'Client';
+                $this->model = 'CLIENT';
             }
             $this->addressed_company = $this->addressed->name;
         }else{
@@ -120,6 +121,23 @@ class Edit extends Component
         return $data;
     }
 
+     /**
+     * The read function.
+     *
+     * @return void
+     */
+    public function readSourceSelection()
+    {
+        if($this->model=='PROJECT'){
+            $data = Project::where('team_id', auth()->user()->currentTeam->team_id)->pluck('name', 'id');
+        }elseif($this->model=='COMPANY'){
+            $data = Company::where('user_id', auth()->user()->id)->pluck('name', 'id');
+        }else{
+            $data = Client::where('user_id', auth()->user()->currentTeam->user_id)->pluck('name', 'id');
+        }
+        return $data;
+    }
+
     /**
      * The read function.
      *
@@ -133,6 +151,7 @@ class Edit extends Component
     public function render()
     {
         return view('livewire.commercial.quotation.edit', [
+            'source_list' => $this->readSourceSelection(),
             'model_list' => $this->readModelSelection(),
             'client' => $this->readClient(),
         ]);

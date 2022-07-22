@@ -3,6 +3,7 @@
 namespace App\Observers;
 
 use App\Jobs\ProcessEmail;
+use App\Models\Notification;
 use App\Models\SaldoUser;
 
 class SaldoUserObserver
@@ -27,8 +28,25 @@ class SaldoUserObserver
             $request->update(['balance' => $request->amount]);
         }
 
-        if($request->mutations == 'debit' && ($request->balance <= 10000 || $request->balance <= 100000)){
-            ProcessEmail::dispatch($request, 'alert_balance');
+        if($request->mutation == 'debit'){
+            $notif_count = Notification::where('model', 'Balance')->where('user_id', $request->user_id)->count();
+            if(($notif_count==1 && $request->balance <= 50000) || ($notif_count==0 && $request->balance <= 100000)){
+                $notif = Notification::create([
+                    'type'          => 'email',
+                    'model_id'      => $request->id,
+                    'model'         => 'Balance',
+                    'notification'  => 'Balance Alert. Your current balance remaining Rp'.number_format($request->balance) ,
+                    'user_id'       => $request->user_id,
+                    'status'        => 'unread',
+                ]);
+
+                if($notif){
+                    ProcessEmail::dispatch($request, 'alert_balance');
+                }
+            }
+        }
+        if($request->mutation == 'credit'){
+            Notification::where('type', 'email')->where('model', 'Balance')->where('user_id', $request->user_id)->delete();
         }
     }
 

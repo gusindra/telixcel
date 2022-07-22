@@ -15,9 +15,9 @@ class SmsBlastObserver
      * @param  \App\Models\Request  $request
      * @return void
      */
-    public function updated(BlastMessage $request)
+    public function created(BlastMessage $request)
     {
-        if($request->status=='DELIVERED'){
+        if($request->code=="200"){
             $master = ProductLine::where('name', 'Telixcel')->first();
 
             $items = $master->items;
@@ -27,22 +27,34 @@ class SmsBlastObserver
 
             if(count($items)>0){
                 foreach($items as $product){
-                    $b = explode(",",$product->spec);
-                    $p = $request->msisdn;
-                    if(count($b)>0){
-                        foreach($b as $bs){
-                            if (strpos($p, $bs) !== false) {
-                                // Log::debug($product);
-                                // Log::debug($bs);
-                                SaldoUser::create([
-                                    'team_id'       => NULL,
-                                    'currency'      => 'idr',
-                                    'amount'        => $product->unit_price,
-                                    'mutation'      => 'debit',
-                                    'description'   => 'Pemotongan sms - '.$request->id.' - '.$request->msg_id,
-                                    'user_id'       => $request->user_id,
-                                ]);
-                                $set_price = 1;
+                    if($product->sku=="SMS"){
+                        SaldoUser::create([
+                            'team_id'       => NULL,
+                            'currency'      => 'idr',
+                            'amount'        => $product->unit_price,
+                            'mutation'      => 'debit',
+                            'description'   => 'Pemotongan sms - '.$request->id.' - '.$request->msg_id,
+                            'user_id'       => $request->user_id,
+                        ]);
+                        $set_price = 1;
+                    }else{
+                        $b = explode(",",$product->spec);
+                        $p = $request->msisdn;
+                        if(count($b)>0){
+                            foreach($b as $bs){
+                                if (strpos($p, $bs) !== false) {
+                                    // Log::debug($product);
+                                    // Log::debug($bs);
+                                    SaldoUser::create([
+                                        'team_id'       => NULL,
+                                        'currency'      => 'idr',
+                                        'amount'        => $product->unit_price,
+                                        'mutation'      => 'debit',
+                                        'description'   => 'Pemotongan sms - '.$request->id.' - '.$request->msg_id,
+                                        'user_id'       => $request->user_id,
+                                    ]);
+                                    $set_price = 1;
+                                }
                             }
                         }
                     }
@@ -59,6 +71,18 @@ class SmsBlastObserver
                     'user_id'       => $request->user_id,
                 ]);
             }
+        }
+    }
+    /**
+     * Handle the SaldoUser "created" event.
+     *
+     * @param  \App\Models\Request  $request
+     * @return void
+     */
+    public function updated(BlastMessage $request)
+    {
+        if($request->status=='ACCEPTED' && $request->code=="200"){
+
         }
     }
 

@@ -82,11 +82,19 @@ class User extends Authenticatable
         }
     	return $this->hasMany('App\Models\Request', 'user_id')->whereNull('sent_at');
     }
-    public function sentsms($m=null, $y=null){
-        if($m && $y){
-            return $this->hasMany('App\Models\BlastMessage', 'user_id')->whereMonth('created_at', $m)->whereYear('created_at', $y);
+    public function sentsms($m=null, $y=null, $status=null){
+        if($status=='total'){
+            $result = $this->hasMany('App\Models\BlastMessage', 'user_id');
+        }elseif($status=='UNDELIVERED'){
+            $result = $this->hasMany('App\Models\BlastMessage', 'user_id')->whereIn('status', ['UNDELIVERED', 'PROCESSED']);
+        }else{
+    	    $result = $this->hasMany('App\Models\BlastMessage', 'user_id')->whereIn('status', ['DELIVERED', 'ACCEPTED']);
         }
-    	return $this->hasMany('App\Models\BlastMessage', 'user_id');
+
+        if($m && $y){
+            $result = $result->whereMonth('created_at', $m)->whereYear('created_at', $y);
+        }
+    	return $result;
     }
 
     /**
@@ -171,5 +179,14 @@ class User extends Authenticatable
      */
     public function isClient(){
     	return $this->hasOne('App\Models\Client','email','email')->where('user_id', 0);
+    }
+
+    /**
+     * User has one profile billing
+     *
+     * @return void
+     */
+    public function userBilling(){
+    	return $this->hasOne('App\Models\BillingUser', 'user_id');
     }
 }

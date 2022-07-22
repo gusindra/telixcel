@@ -16,7 +16,7 @@
                     </div>
 
                     <div class="px-4 py-2 bordered">
-                        <livewire:table.contract searchable="title, source" />
+                        <livewire:table.contract searchable="title, source" exportable/>
                     </div>
                 </div>
             </div>

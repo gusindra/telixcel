@@ -71,6 +71,7 @@ class ApiSmsController extends Controller
             'servid' => 'required|string',
             'title' => 'required|string',
             'detail' => 'string',
+            'otp' => 'boolean'
         ]);
         // return response()->json([
         //     'message' => "Successful",
@@ -81,6 +82,23 @@ class ApiSmsController extends Controller
             //$userCredention = ApiCredential::where("user_id", auth()->user()->id)->where("client", "api_sms_mk")->where("is_enabled", 1)->first();
             //Log::debug('call sms api');
             // ProcessSmsApi::dispatch($request->all(), auth()->user());
+            //auto check otp / non otp type base on text
+            $checkString = $request->text;
+            $otpWord = ['Angka Rahasia', 'Authorisation', 'Authorise', 'Authorization', 'Authorized', 'Code', 'Harap masukkan', 'Kata Sandi', 'Kode',' Kode aktivasi', 'konfirmasi', 'otentikasi', 'Otorisasi', 'Rahasia', 'Sandi', 'trx', 'unik', 'Venfikasi', 'KodeOTP', 'NewOtp', 'One-Time Password', 'Otorisasi', 'OTP', 'Pass', 'Passcode', 'PassKey', 'Password', 'PIN', 'verifikasi', 'insert current code', 'Security', 'This code is valid', 'Token', 'Passcode', 'Valid OTP', 'verification','Verification', 'login code', 'registration code', 'secunty code'];
+            if($request->otp){
+                $request->merge([
+                    'otp' => 1
+                ]);
+            }elseif(Str::contains($checkString, $otpWord)){
+                $request->merge([
+                    'otp' => 1
+                ]);
+            }else{
+                $request->merge([
+                    'otp' => 0
+                ]);
+            }
+
             $phones = explode(",", $request->to);
             $balance = (int)balance(auth()->user());
             if($balance>500 && count($phones)<$balance/500){

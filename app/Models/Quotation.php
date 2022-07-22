@@ -68,4 +68,18 @@ class Quotation extends Model
     public function approval(){
     	return $this->hasOne('App\Models\FlowProcess', 'model_id')->where('model', 'quotation')->whereNull('status');
     }
+
+    // source model
+    public function company()
+    {
+    	return $this->belongsTo('App\Models\Company', 'model_id');
+    }
+    public function project()
+    {
+        return $this->belongsTo('App\Models\Project', 'model_id');
+    }
+    public function client()
+    {
+        return $this->belongsTo('App\Models\Client', 'model_id');
+    }
 }

@@ -70,9 +70,15 @@ class TestApiController extends Controller
             // return "400";
             $string = "";
             foreach($phones as $key => $phone){
-                $string = $string.$phone.",".date("YmdHis").rand(1,10).",200,IDR,350|";
+                // $string = $string.$phone.",".date("YmdHis").rand(1,10).",200,IDR,450|";
+                if(count($phones)==1 || count($phones)==$key+1){
+                    $string = $string.$phone.",".date("YmdHis").rand(1,10).",200,IDR,450";
+                }else{
+                    $string = $string.$phone.",".date("YmdHis").rand(1,10).",200,IDR,450|";
+                }
             }
-            return $string = $string."=99.9500,".$key+1;
+            // return $string = $string; //."=99.9500,".$key+1;
+            return $string = $string;
         }
 
         return response()->json([

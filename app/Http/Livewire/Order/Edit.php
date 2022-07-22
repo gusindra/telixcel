@@ -51,12 +51,14 @@ class Edit extends Component
         $this->input['status'] = $this->order->status ?? '';
         $this->input['source'] = $this->order->source ?? '';
         $this->input['source_id'] = $this->order->source_id ?? '';
+        $this->input['date'] = $this->order->date ?? '';
+        $this->input['total'] = $this->order->total ?? '';
     }
 
     public function rules()
     {
         return [
-            'quoteNo' => 'required'
+            'input' => 'required'
         ];
     }
 
@@ -82,8 +84,10 @@ class Edit extends Component
 
     public function update($id)
     {
+        // dd($id);
         $this->validate();
-        Order::find($id)->update($this->modelData());
+        // dd($this->modelData());
+        $order = Order::find($id)->update($this->modelData());
         $this->emit('saved');
     }
 
@@ -121,22 +125,24 @@ class Edit extends Component
      */
     public function readModelSelection()
     {
-        if($this->type=='project'){
-            $data = Project::where('team_id', auth()->user()->currentTeam->team_id)->pluck('name', 'id');
-        }else{
-            $data = Client::where('user_id', auth()->user()->currentTeam->user_id)->pluck('name', 'id');
-        }
+
+        $data = Client::where('user_id', auth()->user()->currentTeam->user_id)->pluck('name', 'uuid');
+
         return $data;
     }
 
-    /**
-     * The read function.
-     *
-     * @return void
-     */
     public function readClient()
     {
         return $this->order->customer;
+    }
+
+    public function readItem()
+    {
+        $data = [];
+        $data[0] = $this->order->items->count();
+        $data[1] = $this->order->total;
+
+        return $data;
     }
 
     public function render()
@@ -144,6 +150,7 @@ class Edit extends Component
         return view('livewire.order.edit', [
             'model_list' => $this->readModelSelection(),
             'client' => $this->readClient(),
+            'data' => $this->readItem(),
         ]);
     }
 }

@@ -54,11 +54,9 @@
                         wire:model.debunce.800ms="entity"
                         >
                         <option selected>-- Select Party --</option>
-                        <option value="mgi">PT MGI</option>
-                        <option value="sti">PT STI</option>
-                        <option value="telixcel">PT TELIXCEL</option>
-                        <option value="mpk">PT MPK</option>
-                        <option value="goldenunion">Goldenunion Group</option>
+                        @foreach (get_my_companies() as $company)
+                            <option value="{{$company->id}}">{{$company->name}}</option>
+                        @endforeach
                     </select>
                     <x-jet-input-error for="entity" class="mt-2" />
                 </div>

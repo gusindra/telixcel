@@ -1,7 +1,4 @@
 <div>
-    <!-- <div class="text-right mb-4">
-        <a target="_blank" href="{{route('commercial.quotation.print', ['key'=>'quotation','quotation'=>$quote->id])}}" class="inline-flex items-center px-4 py-2 border rounded-md font-semibold text-xs   uppercase tracking-widest hover:bg-gray-300 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:shadow-outline-gray disabled:opacity-25 transition">Print</a>
-    </div> -->
     <x-jet-form-section submit="update({{$quote->id}})">
         <x-slot name="title">
             {{ __('1. Quotation Basic') }}
@@ -64,6 +61,41 @@
                     <x-jet-input-error for="price" class="mt-2" />
                 </div>
             </div>
+            <div class="col-span-6 grid grid-cols-2">
+                <div class="col-span-12 sm:col-span-1">
+                    <x-jet-label for="model" value="{{ __('Source') }}" />
+                    <select
+                        {{disableInput($quote->status)?'disabled':''}}
+                        name="model"
+                        id="model"
+                        class="border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full"
+                        wire:model.debunce.800ms="model"
+                        >
+                        <option selected>-- Select --</option>
+                        <option value="PROJECT">Project</option>
+                        <option value="COMPANY">Company</option>
+                        <option value="CLIENT">Client</option>
+                    </select>
+                    <x-jet-input-error for="model" class="mt-2" />
+                </div>
+                <div class="col-span-12 sm:col-span-1 mx-4">
+                    <x-jet-label for="model_id" value="{{ __('Source ID') }}" />
+                    <select
+                        {{disableInput($quote->status)?'disabled':''}}
+                        name="model_id"
+                        id="model_id"
+                        class="border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full"
+                        wire:model.debunce.800ms="model_id"
+                        >
+                        <option selected>-- Select --</option>
+                        @foreach($source_list as $key => $source)
+                        <option value="{{$key}}">{{$source}}</option>
+                        @endforeach
+                    </select>
+                    <x-jet-input-error for="model_id" class="mt-2" />
+                </div>
+            </div>
+
         </x-slot>
 
         <x-slot name="actions">
@@ -256,6 +288,7 @@
                                 wire:model="addressed_name"
                                 wire:model.defer="addressed_name"
                                 wire:model.debunce.800ms="addressed_name" placeholder="Customer Name" />
+                    <x-jet-input-error for="addressed_name" class="mt-2" />
                     <x-jet-input id="addressed_role"
                         disabled="{{disableInput($quote->status)}}"
                                 type="text"
@@ -264,6 +297,14 @@
                                 wire:model.defer="addressed_role"
                                 wire:model.debunce.800ms="addressed_role" placeholder="Role" />
                     <x-jet-input-error for="addressed_role" class="mt-2" />
+                    <x-jet-input id="addressed_company"
+                        disabled="{{disableInput($quote->status)}}"
+                                type="text"
+                                class="mt-1 block w-full placeholder-gray-500"
+                                wire:model="addressed_company"
+                                wire:model.defer="addressed_company"
+                                wire:model.debunce.800ms="addressed_company" placeholder="Company" />
+                    <x-jet-input-error for="addressed_company" class="mt-2" />
                 </div>
             </div>
         </x-slot>

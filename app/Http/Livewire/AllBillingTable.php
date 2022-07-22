@@ -22,9 +22,23 @@ class AllBillingTable extends LivewireDatatable
         return [
     		NumberColumn::name('code')->label('Transaction ID')->sortBy('code'),
     		Column::name('description')->label('Description'),
-    		Column::name('amount')->label('Amount'),
+    		NumberColumn::name('amount')->callback('amount', function ($value) {
+                if($value){
+                    return 'Rp'.number_format($value);
+                }
+                return 0;
+            })->label('Amount'),
     		Column::name('status')->label('Status'),
-    		DateColumn::name('created_at')->label('Creation Date')
+    		DateColumn::name('created_at')->label('Creation Date'),
+            NumberColumn::name('id')->label('Detail')->sortBy('id')->callback('id, order_id', function ($value, $order) {
+                if($order){
+                    return view('datatables::link', [
+                        'href' => "commercial/". $order."/invoice/print",
+                        'slot' => 'Invoice'
+                    ]);
+                }
+                return '';
+            }),
     	];
     }
 }

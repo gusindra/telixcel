@@ -15,7 +15,7 @@
                     </div>
 
                     <div class="px-4 py-1">
-                        <livewire:table.quotation searchable="title, status, source" />
+                        <livewire:table.quotation searchable="title, status, source" exportable/>
                     </div>
                 </div>
             </div>

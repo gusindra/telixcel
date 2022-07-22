@@ -20,6 +20,8 @@ class NotificationController extends Controller
             $value =  $notification->ticket->request->client->id;
         }elseif($notification->model=='Order'){
             return redirect()->to("/order/" . $notification->model_id);
+        }elseif($notification->model=='Balance'){
+            return redirect()->to("/payment/deposit/");
         }else{
             return redirect('dashboard');
         }

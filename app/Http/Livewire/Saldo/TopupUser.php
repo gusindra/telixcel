@@ -34,9 +34,10 @@ class TopupUser extends Component
     {
         $data = [
             'date'              => date("Y-m-d H:i:s"),
-            'no'                => 'MGI'.date("YmdHis"),
+            'name'              => 'Request Topup from '.Auth::user()->name,
+            'no'                => 'TCI'.date("YmdHis"),
             'type'              => 'selling',
-            'entity_party'      => 'telixcel',
+            'entity_party'      => '1',
             'total'             => $this->nominal+$this->nominal*(11/100),
             'status'            => 'unpaid',
             'customer_id'       => $this->chechClient(),

@@ -2,6 +2,7 @@
 
 namespace App\Http\Livewire\Project;
 
+use App\Models\Company;
 use Livewire\Component;
 use App\Models\Project;
 use Illuminate\Support\Facades\Auth;
@@ -59,8 +60,18 @@ class Add extends Component
         $this->modalActionVisible = true;
     }
 
+    private function readCompany()
+    {
+        if(Auth::user()->super->first()->role == 'superadmin'){
+            return Company::where('user_id', 0)->get();
+        }
+        return Company::where('user_id', Auth::user()->id)->get();
+    }
+
     public function render()
     {
-        return view('livewire.project.add');
+        return view('livewire.project.add', [
+            'companies' => $this->readCompany()
+        ]);
     }
 }

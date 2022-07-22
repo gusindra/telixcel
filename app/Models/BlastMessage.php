@@ -28,6 +28,7 @@ class BlastMessage extends Model
         'price',
         'code',
         'currency',
+        'otp',
     ];
 
     protected $guarded = [];

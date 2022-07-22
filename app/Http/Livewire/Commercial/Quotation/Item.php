@@ -16,6 +16,7 @@ class Item extends Component
     public $name;
     public $price;
     public $unit;
+    public $qty;
     public $description;
     public $selectedProduct;
     public $modalVisible = false;
@@ -41,6 +42,7 @@ class Item extends Component
             'model_id'      => $this->data->id,
             'model'         => 'Quotation',
             'name'          => $this->name,
+            'qty'           => $this->qty,
             'unit'          => $this->unit,
             'price'         => $this->price,
             'note'          => $this->description,
@@ -68,6 +70,7 @@ class Item extends Component
             'product_id'    => $product->id,
             'name'          => $product->name,
             'price'         => $product->unit_price,
+            'qty'          => $this->qty,
             'unit'          => $this->unit,
             'note'          => $this->description,
             'user_id'       => Auth::user()->id
@@ -87,6 +90,7 @@ class Item extends Component
         OrderProduct::find($this->item_id)->update([
             'name' => $this->name,
             'price' => $this->price,
+            'qty' => $this->qty,
             'unit' => $this->unit,
             'note' => $this->description
         ]);
@@ -122,6 +126,7 @@ class Item extends Component
         $data = OrderProduct::find($this->item_id);
         $this->name = $data->name;
         $this->price = $data->price;
+        $this->qty = $data->qty;
         $this->unit = $data->unit;
         $this->description = $data->note;
     }
@@ -163,6 +168,7 @@ class Item extends Component
     {
         $this->name = null;
         $this->price = null;
+        $this->qty = null;
         $this->unit = null;
         $this->description = null;
         $this->selectedProduct = null;

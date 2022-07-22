@@ -20,11 +20,17 @@ class Order extends LivewireDatatable
     public function columns()
     {
         return [
+    		Column::name('no')->label('No'),
     		Column::name('name')->label('Name'),
     		Column::name('type')->label('Type'),
     		Column::name('entity_party')->label('Party'),
     		Column::name('created_at')->label('Created_at'),
-    		Column::name('total')->label('Total'),
+    		Column::name('total')->callback('total', function ($value) {
+                if($value){
+                    return 'Rp'.number_format($value);
+                }
+                return 0;
+            })->label('Total'),
             NumberColumn::name('id')->label('Detail')->sortBy('id')->callback('id', function ($value) {
                 return view('datatables::link', [
                     'href' => "/order/" . $value,

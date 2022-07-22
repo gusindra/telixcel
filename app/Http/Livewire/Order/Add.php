@@ -2,6 +2,7 @@
 
 namespace App\Http\Livewire\Order;
 
+use App\Models\Company;
 use App\Models\Order;
 use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
@@ -62,8 +63,18 @@ class Add extends Component
         $this->modalActionVisible = true;
     }
 
+    private function readCompany()
+    {
+        if(Auth::user()->super->first()->role == 'superadmin'){
+            return Company::where('user_id', 0)->get();
+        }
+        return Company::where('user_id', Auth::user()->id)->get();
+    }
+
     public function render()
     {
-        return view('livewire.order.add');
+        return view('livewire.order.add', [
+            'companies' => $this->readCompany()
+        ]);
     }
 }

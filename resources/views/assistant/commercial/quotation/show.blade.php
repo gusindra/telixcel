@@ -4,11 +4,11 @@
             {{ __('Quotation Detail') }}
         </h2>
     </x-slot>
-    <header class="bg-white shadow ">
+    <header class="bg-white shadow">
         <div class="flex justify-between pt-2 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="justify-end flex">
                 <div class="items-center justify-end px-2">
-                    <div class="space-x-1 sm:-my-px">
+                    <div class="space-x-1 sm:-my-px pb-2">
                         <x-jet-nav-link href="{{ route('assistant') }}">
                             {{ __('Assistant') }}
                         </x-jet-nav-link>
@@ -25,7 +25,7 @@
                                 <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
                             </svg>
                         </span>
-                        <x-jet-nav-link href="{{ route('commercial.show', 'quotation ') }}">
+                        <x-jet-nav-link href="{{ route('commercial.show', 'quotation') }}">
                             {{ __('Quotation ') }}
                         </x-jet-nav-link>
                         <span class="inline-flex items-center px-1 pt-1 text-xs font-medium leading-5 text-gray-900 ">
@@ -58,7 +58,7 @@
                             <div class="w-60">
                                 <div>
                                     <form>
-                                        <a class="block px-4 py-2 text-sm leading-5 text-gray-700 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 transition" target="_blank" href="{{route('commercial.quotation.print', ['key'=>'quotation','quotation'=>$code])}}">
+                                        <a class="block px-4 py-2 text-sm leading-5 text-gray-700 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 transition" target="_blank" href="{{route('commercial.print', ['type'=>'quotation','id'=>$code])}}">
                                             <div class="flex items-center justify-between">
                                                 <div class="truncate">Print</div>
                                             </div>

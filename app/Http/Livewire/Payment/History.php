@@ -37,7 +37,7 @@ class History extends Component
     public function read()
     {
         if(auth()->user()->isClient){
-            return Order::whereIn('status', ['unpaid', 'paid'])->where('customer_id', auth()->user()->isClient->uuid)->get();
+            return Order::where('status', 'unpaid')->where('entity_party', '1')->where('customer_id', auth()->user()->isClient->uuid)->get();
         }
         return [];
     }

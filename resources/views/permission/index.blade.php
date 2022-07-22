@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header"></x-slot>
 
-    @include('settings.navigation')
+    @include('settings.navigation', ['page'=>$page])
 
     <div class="py-4">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-12">

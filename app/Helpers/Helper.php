@@ -1,8 +1,12 @@
 <?php
 
+use App\Models\BlastMessage;
+use App\Models\Company;
+use App\Models\Order;
 use App\Models\Permission;
 use App\Models\ProductLine;
 use App\Models\Request as Message;
+use App\Models\SaldoUser;
 use Illuminate\Support\Facades\Auth;
 
  /**
@@ -232,3 +236,31 @@ function estimationSaldo(){
     return $master->items;
 }
 
+function masterSaldo($type='otp'){
+    if($type=='otp'){
+        $saldo = SaldoUser::where('description', 'OTP')->orderBy('id', 'desc')->sum('amount');
+        $master = BlastMessage::orderBy('id', 'desc')->where('otp', 1)->where('balance', '!=', '0')->sum('price');
+    }else{
+        $saldo = SaldoUser::where('description', 'NONOTP')->orderBy('id', 'desc')->sum('amount');
+        $master = BlastMessage::where('otp', 0)->where('balance', '!=', '0')->orderBy('created_at', 'desc')->sum('price');
+    }
+    return $saldo-$master;
+}
+
+function masterOrder($status='draft'){
+    if($status=='draft'){
+        $master = Order::where('status', 'draft')->count();
+    }elseif($status=='unpaid'){
+        $master = Order::where('status', 'unpaid')->count();
+    }else{
+        $master = Order::where('status', 'paid')->count();
+    }
+    return $master;
+}
+
+function get_my_companies(){
+    if(Auth::user()->super->first()->role == 'superadmin'){
+        return Company::where('user_id', 0)->get();
+    }
+    return Company::where('user_id', Auth::user()->id)->get();
+}

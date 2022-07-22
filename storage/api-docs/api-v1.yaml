@@ -7,7 +7,7 @@ info:
   license:
     name: 'Apache 2.0'
     url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
-  version: 1.0.0
+  version: 1.1.0
 servers:
   -
     url: 'http://telixnet.test/api'
@@ -255,6 +255,10 @@ components:
           description: 'Broadcast date'
           type: string
           format: date-time
+        otp:
+          title: 'OTP'
+          description: 'SMS Type OTP or NON OTP'
+          type: boolean
       type: object
       xml:
         name: SingleSms
@@ -294,6 +298,10 @@ components:
           description: 'The recipient`s mobile number must have the country code (without the “+” sign).'
           type: string
           format: msisdn
+        otp:
+          title: 'OTP'
+          description: 'SMS Type OTP or NON OTP'
+          type: boolean
       type: object
       xml:
         name: BulkSms
@@ -337,6 +345,11 @@ components:
           description: 'Message Content'
           type: string
           example: "Hello World!"
+        otp:
+          title: 'OTP'
+          description: 'Is SMS Type OTP'
+          type: boolean
+          example: "true / false / 1 / 0"
       type: object
       xml:
         name: SingleSms

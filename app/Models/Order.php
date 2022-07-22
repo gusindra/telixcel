@@ -34,6 +34,15 @@ class Order extends Model
     protected $guarded = [];
 
     /**
+     * The attributes that should be cast to native types.
+     *
+     * @var array
+     */
+    protected $casts = [
+        'date' => 'datetime',
+    ];
+
+    /**
      * Get all of the permission that are assigned this role.
      */
     public function customer(){
@@ -42,6 +51,10 @@ class Order extends Model
 
     public function user(){
     	return $this->belongsTo('App\Models\User', 'user_id');
+    }
+
+    public function company(){
+    	return $this->belongsTo('App\Models\Company', 'entity_party');
     }
 
     /**
@@ -72,5 +85,12 @@ class Order extends Model
      */
     public function attachments(){
         return $this->hasMany('App\Models\Attachment', 'model_id')->where('model', 'order');
+    }
+
+    /**
+     * Get invoice data
+     */
+    public function bill(){
+    	return $this->hasOne('App\Models\Billing', 'order_id');
     }
 }

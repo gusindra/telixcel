@@ -29,8 +29,16 @@ class UserController extends Controller
 
     public function show(User $user)
     {
-        if($user->name != 'Admin'){
+        if($user->name != 'Admin1'){
             return view('user.user-detail', ['user'=>$user]);
+        }
+        return redirect('user');
+    }
+
+    public function profile(User $user)
+    {
+        if($user->name != 'Admin'){
+            return view('user.user-profile', ['user'=>$user]);
         }
         return redirect('user');
     }

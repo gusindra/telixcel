@@ -1,5 +1,5 @@
 <div wire:poll>
-    <div class="ml-3 relative">
+    <div class="relative">
         <x-jet-dropdown align="right" width="60">
             <x-slot name="trigger">
                 <span class="inline-flex rounded-md">
@@ -23,9 +23,9 @@
                     @foreach($data['waiting'] as $wait)
                         <a class="block px-4 py-2 text-sm font-bold leading-5 bg-pink-400 text-white hover:bg-pink-300 focus:outline-none focus:bg-pink-600 transition" href="{{route('message')}}?id={{Hashids::encode($wait->id)}}">
                             <div class="flex items-center">
-                                <div class="truncate">
+                                <div class="truncate1">
                                     <span class="uppercase">Waiting</span> <br>
-                                    <span class="capitalize">{{$wait->name}}</span>
+                                    <span class="capitalize text-xs" style="word-wrap: break-word;white-space: pre-wrap;word-break: break-all;">{{$wait->name}}</span>
                                 </div>
                             </div>
                         </a>
@@ -34,9 +34,9 @@
                         @foreach($data['notif'] as $item)
                             <a class="block px-4 py-2 text-sm leading-5 text-gray-700 {{$item->status=='unread' ?'bg-green-200':''}} {{$item->status=='new' ?'bg-gray-200':''}} hover:bg-gray-300 focus:outline-none focus:bg-gray-100 transition" href="{{route('notification.read', [$item->id])}}">
                                 <div class="flex items-center">
-                                    <div class="truncate">
+                                    <div class="truncate1">
                                         <span class="uppercase">{{$item->type}} : {{$item->ticket->request ? $item->ticket->request->client->name:''}}</span> <br>
-                                        <span class="capitalize">{{$item->notification}}</span>
+                                        <span class="capitalize text-xs" style="word-wrap: break-word;white-space: pre-wrap;word-break: break-all;">{{$item->notification}}</span>
                                     </div>
                                 </div>
                             </a>

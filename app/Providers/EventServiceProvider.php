@@ -6,6 +6,8 @@ use App\Models\ApiCredential;
 use App\Models\Attachment;
 use App\Models\BlastMessage;
 use App\Models\Client;
+use App\Models\Order;
+use App\Models\OrderProduct;
 use App\Models\Project;
 use App\Models\Quotation;
 use Illuminate\Auth\Events\Registered;
@@ -19,6 +21,8 @@ use App\Models\Ticket;
 use App\Observers\ApiCredentialObserver;
 use App\Observers\AttachmentObserver;
 use App\Observers\ClientObserver;
+use App\Observers\OrderObserver;
+use App\Observers\OrderProductObserver;
 use App\Observers\RequestObserver;
 use App\Observers\TemplateObserver;
 use App\Observers\TicketObserver;
@@ -57,6 +61,8 @@ class EventServiceProvider extends ServiceProvider
         SaldoUser::observe(SaldoUserObserver::class);
         BlastMessage::observe(SmsBlastObserver::class);
         Attachment::observe(AttachmentObserver::class);
+        Order::observe(OrderObserver::class);
+        OrderProduct::observe(OrderProductObserver::class);
 
     }
 }

@@ -18,12 +18,9 @@ class CommerceItem extends LivewireDatatable
     		Column::name('name')->label('Name')->searchable(),
     		Column::name('description')->label('Description'),
     		Column::name('type')->label('Type')->searchable(),
-            NumberColumn::name('id')->label('Detail')->sortBy('id')->callback('id', function ($value) {
-                return view('datatables::link', [
-                    'href' => "/commercial/item/" . $value,
-                    'slot' => 'View'
-                ]);
-            }),
+            Column::callback(['id', 'name'], function ($id, $name) {
+                return view('tables.product-actions', ['id' => $id, 'name' => $name, 'url' =>  "/commercial/item/" . $id ]);
+            })->unsortable()->label('Action')
 
     	];
     }

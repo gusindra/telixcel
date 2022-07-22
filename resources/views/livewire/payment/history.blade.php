@@ -23,9 +23,11 @@
                                     <a href="{{route('invoice.topup', $order->id)}}" class="w-auto text-center px-4 py-2 bg-green-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 active:bg-green-900 focus:outline-none focus:border-green-900 focus:shadow-outline-gray disabled:opacity-25 transition">
                                         Lihat Detail
                                     </a>
-                                    <a wire:click="actionShowModal({{$order->id}})"  class="w-auto cursor-pointer text-center px-4 py-2 bg-gray-100 border border-gray-600 rounded-md font-semibold text-xs text-gray-800 uppercase tracking-widest hover:bg-gray-200 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:shadow-outline-gray disabled:opacity-25 transition">
-                                        Batalkan
-                                    </a>
+                                    @if($order->status == 'unpaid')
+                                        <a wire:click="actionShowModal({{$order->id}})"  class="w-auto cursor-pointer text-center px-4 py-2 bg-gray-100 border border-gray-600 rounded-md font-semibold text-xs text-gray-800 uppercase tracking-widest hover:bg-gray-200 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:shadow-outline-gray disabled:opacity-25 transition">
+                                            Batalkan
+                                        </a>
+                                    @endif
                                 </div>
                             </div>
                         </div>

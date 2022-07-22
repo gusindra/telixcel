@@ -13,51 +13,62 @@
                     <x-jet-nav-link href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-jet-nav-link>
-                    @if (@Auth::user()->role || Auth::user()->super->first())
-                        @if(@Auth::user()->super->first()->role == 'superadmin')
-                        <x-jet-nav-link href="{{ route('user.index') }}" :active="request()->routeIs('user.index')">
-                            {{ __('Users') }}
+
+                    @if(request()->routeIs('assistant') || request()->routeIs('project') || request()->routeIs('commercial') || request()->routeIs('order') || request()->routeIs('commercial.show'))
+                        <x-jet-nav-link href="{{ route('project') }}" :active="request()->routeIs('project')">
+                            {{ __('Project') }}
                         </x-jet-nav-link>
-                        <x-jet-nav-link href="{{ route('user.billing.index') }}" :active="request()->routeIs('user.billing.index')">
-                            {{ __('Master Billing') }}
+                        <x-jet-nav-link href="{{ route('commercial') }}" :active="request()->routeIs('commercial')">
+                            {{ __('Commercial') }}
                         </x-jet-nav-link>
-                        <x-jet-nav-link href="{{ route('billing') }}" :active="request()->routeIs('billing')">
-                            {{ __('Billing') }}
+                        <x-jet-nav-link href="{{ route('order') }}" :active="request()->routeIs('order')">
+                            {{ __('Order') }}
                         </x-jet-nav-link>
-                        <x-jet-nav-link href="{{ route('assistant') }}" :active="request()->routeIs('assistant')">
-                            {{ __('Assistant') }}
-                        </x-jet-nav-link>
-                        @endif
-                        @if(@Auth::user()->super->first()->role == 'superadmin')
-                        <x-jet-nav-link href="{{ route('settings') }}" :active="request()->routeIs('settings')">
-                            {{ __('Settings') }}
-                        </x-jet-nav-link>
-                        @endif
                     @else
-                        <x-jet-nav-link href="{{ route('message') }}" :active="request()->routeIs('message')">
-                            {{ __('Chat Area') }}
-                        </x-jet-nav-link>
-                    @endif
-                    @if (Auth::user()->hasTeamRole(Auth::user()->currentTeam, 'admin') && @Auth::user()->super->first()->role != 'superadmin')
-                        <x-jet-nav-link href="{{ route('client') }}" :active="request()->routeIs('client')">
-                            {{ __('Customers') }}
-                        </x-jet-nav-link>
-                        <x-jet-nav-link href="{{ route('template') }}" :active="request()->routeIs('template')">
-                            {{ __('Templates') }}
-                        </x-jet-nav-link>
-                        @if ( Auth::user()->currentTeam && Auth::user()->currentTeam->user_id == Auth::user()->id )
-                        <x-jet-nav-link href="{{ route('billing') }}" :active="request()->routeIs('billing')">
-                            {{ __('Report') }}
-                        </x-jet-nav-link>
+                        @if (@Auth::user()->role || Auth::user()->super->first())
+                            @if(@Auth::user()->super->first()->role == 'superadmin')
+                                <x-jet-nav-link href="{{ route('user.index') }}" :active="request()->routeIs('user.index')">
+                                    {{ __('Users') }}
+                                </x-jet-nav-link>
+                                <!-- <x-jet-nav-link href="{{ route('user.billing.index') }}" :active="request()->routeIs('user.billing.index')">
+                                    {{ __('Master Billing') }}
+                                </x-jet-nav-link> -->
+                                <x-jet-nav-link href="{{ route('billing') }}" :active="request()->routeIs('billing')">
+                                    {{ __('Billing') }}
+                                </x-jet-nav-link>
+                                <x-jet-nav-link href="{{ route('assistant') }}" :active="request()->routeIs('assistant')">
+                                    {{ __('Assistant') }}
+                                </x-jet-nav-link>
+                            @endif
+                            @if(@Auth::user()->super->first()->role == 'superadmin')
+                                <x-jet-nav-link href="{{ route('settings') }}" :active="request()->routeIs('settings')">
+                                    {{ __('Settings') }}
+                                </x-jet-nav-link>
+                            @endif
+                        @else
+                            <x-jet-nav-link href="{{ route('message') }}" :active="request()->routeIs('message')">
+                                {{ __('Chat Area') }}
+                            </x-jet-nav-link>
+                        @endif
+
+                        @if (Auth::user()->hasTeamRole(Auth::user()->currentTeam, 'admin') && @Auth::user()->super->first()->role != 'superadmin')
+                            <x-jet-nav-link href="{{ route('client') }}" :active="request()->routeIs('client')">
+                                {{ __('Customers') }}
+                            </x-jet-nav-link>
+                            <x-jet-nav-link href="{{ route('template') }}" :active="request()->routeIs('template')">
+                                {{ __('Templates') }}
+                            </x-jet-nav-link>
+                            @if ( Auth::user()->currentTeam && Auth::user()->currentTeam->user_id == Auth::user()->id )
+                            <x-jet-nav-link href="{{ route('billing') }}" :active="request()->routeIs('billing')">
+                                {{ __('Report') }}
+                            </x-jet-nav-link>
+                            @endif
                         @endif
                     @endif
                 </div>
             </div>
 
             <div class="hidden sm:flex sm:items-center sm:ml-6 flex-auto justify-end space-x-1">
-                <!-- Notification Dropdown -->
-                @livewire('notification-app', ['client_id' => Auth::user()->id], key(Auth::user()->id))
-
                 <!-- Teams Dropdown -->
                 @if (Auth::user()->currentTeam && Laravel\Jetstream\Jetstream::hasTeamFeatures())
                     <div class="ml-3 relative">
@@ -161,6 +172,12 @@
                                     </x-jet-dropdown-link>
                                 @endif
                             @endif
+
+                            @can('create', Laravel\Jetstream\Jetstream::newTeamModel())
+                                <x-jet-dropdown-link href="{{ route('teams.create') }}">
+                                    {{ __('Create New Team') }}
+                                </x-jet-dropdown-link>
+                            @endcan
                             <div class="border-t border-gray-100"></div>
 
                             <!-- Authentication -->
@@ -181,6 +198,9 @@
                 <div class="ml-3 relative">
                     @livewire('agent-status')
                 </div>
+
+                <!-- Notification Dropdown -->
+                @livewire('notification-app', ['client_id' => Auth::user()->id], key(Auth::user()->id))
             </div>
 
             <!-- Hamburger -->

@@ -5,6 +5,7 @@ namespace App\Http\Livewire\Order;
 use Livewire\Component;
 use App\Models\CommerceItem;
 use App\Models\Input;
+use App\Models\Order;
 use App\Models\OrderProduct;
 use Illuminate\Support\Facades\Auth;
 
@@ -16,6 +17,7 @@ class Item extends Component
     public $name;
     public $price;
     public $unit;
+    public $qty;
     public $description;
     public $selectedProduct;
     public $modalVisible = false;
@@ -31,7 +33,9 @@ class Item extends Component
     public function rules()
     {
         return [
-            'unit' => 'required',
+            'name' => 'required',
+            'price' => 'required',
+            'qty' => 'required',
         ];
     }
 
@@ -42,6 +46,7 @@ class Item extends Component
             'model'         => 'Order',
             'name'          => $this->name,
             'unit'          => $this->unit,
+            'qty'          => $this->qty,
             'price'         => $this->price,
             'note'          => $this->description,
             'user_id'       => Auth::user()->id
@@ -68,6 +73,7 @@ class Item extends Component
             'product_id'    => $product->id,
             'name'          => $product->name,
             'price'         => $product->unit_price,
+            'qty'           => $this->qty,
             'unit'          => $this->unit,
             'note'          => $this->description,
             'user_id'       => Auth::user()->id
@@ -87,6 +93,7 @@ class Item extends Component
         OrderProduct::find($this->item_id)->update([
             'name' => $this->name,
             'price' => $this->price,
+            'qty' => $this->qty,
             'unit' => $this->unit,
             'note' => $this->description
         ]);
@@ -176,13 +183,18 @@ class Item extends Component
      */
     public function read()
     {
-        return OrderProduct::orderBy('id', 'asc')->where('model', 'Order')->where('model_id', $this->data->id)->get();
+        $items = OrderProduct::orderBy('id', 'asc')->where('model', 'Order')->where('model_id', $this->data->id)->get();
+        $total = Order::find($this->data->id)->total;
+        return [
+            'items' => $items,
+            'total' => $total
+        ];
     }
 
     public function render()
     {
         return view('livewire.order.item', [
-            'items' => $this->read()
+            'data' => $this->read()
         ]);
     }
 }

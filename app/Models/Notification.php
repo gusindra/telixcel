@@ -53,6 +53,8 @@ class Notification extends Model
             return $this->belongsTo('App\Models\Ticket', 'model_id');
         }elseif($this->model=='Order'){
             return $this->belongsTo('App\Models\Order', 'model_id');
+        }elseif($this->model=='Balance'){
+            return $this->belongsTo('App\Models\SaldoUser', 'model_id');
         }
         return false;
     }

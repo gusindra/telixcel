@@ -26,13 +26,13 @@
                             </svg>
                         </span>
                         <x-jet-nav-link href="#" :active="true">
-                            {{$order->name}}
+                            {{$order->no}}
                         </x-jet-nav-link>
                     </div>
                 </div>
             </div>
 
-            @if($order->status=='approved')
+            @if($order->status=='approved' || $order->status=='unpaid' || $order->status=='paid')
             <div class="justify-end flex">
                 <div class="items-center justify-end px-2 text-right">
                     <x-jet-dropdown align="right" width="60">
@@ -50,7 +50,7 @@
                             <div class="w-60">
                                 <div>
                                     <form>
-                                        <a class="block px-4 py-2 text-sm leading-5 text-gray-700 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 transition" target="_blank" href="{{route('commercial.quotation.print', ['key'=>'invoice','order'=>$uuid])}}">
+                                        <a class="block px-4 py-2 text-sm leading-5 text-gray-700 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 transition" target="_blank" href="{{route('commercial.print', ['type'=>'invoice','id'=>$order->id])}}">
                                             <div class="flex items-center justify-between">
                                                 <div class="truncate">Print</div>
                                             </div>
@@ -66,7 +66,7 @@
         </div>
     </header>
     <div>
-        <div class="max-w-7xl mx-auto py-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto py-4 sm:px-6 lg:px-8 mb-6">
             @livewire('order.edit', ['uuid'=>$order->id])
         </div>
     </div>

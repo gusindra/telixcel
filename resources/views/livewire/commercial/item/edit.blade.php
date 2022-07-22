@@ -225,4 +225,8 @@
         </div>
     </div>
 
+    <x-jet-section-border />
+
+    @livewire('commission.edit', ['model' => 'product', 'data' => $item])
+
 </div>

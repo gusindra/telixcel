@@ -15,7 +15,7 @@ return new class extends Migration
     {
         Schema::create('saldo_users', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id', 50);
+            $table->foreignId('user_id');
             $table->string('team_id', 50)->nullable();
             $table->enum('mutation', ['debit', 'credit']);
             $table->string('description', 100);

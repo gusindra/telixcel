@@ -156,7 +156,7 @@
                 <hr>
                 <div class="flex justify-between py-2">
                     <span class="font-bold text-xl">{{ __('Total Bayar') }}</span>
-                    <span class="font-bold text-xl">{{ __('Rp111.000') }}</span>
+                    <span class="font-bold text-xl">Rp{{number_format($order->total)}}</span>
                 </div>
                 <hr>
                 <div class="flex justify-between pt-2">
@@ -164,7 +164,7 @@
                 </div>
                 <div class="flex justify-between pb-2">
                     <span>{{ __('Transfer Bank') }}</span>
-                    <span>{{ __('Rp111.000') }}</span>
+                    <span>Rp{{number_format($order->total)}}</span>
                 </div>
                 <hr>
                 <div class="flex justify-between py-2">
@@ -172,7 +172,12 @@
                 </div>
                 <div class="flex justify-between py-2">
                     <span class="font-bold">{{ __('Topup') }}</span>
-                    <span>{{ __('Rp100.000') }}</span>
+                    <span class="text-right">
+                        {{number_format($order->items[0]->price)}}<br>
+                        @foreach(estimationSaldo() as $product)
+                            <span class="text-xs capitalize">Estimation: {{number_format($order->items[0]->price/$product->unit_price)}} SMS</span>
+                        @endforeach
+                    </span>
                 </div>
             </div>
         </x-slot>
