@@ -7,7 +7,7 @@ info:
   license:
     name: 'Apache 2.0'
     url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
-  version: 1.0.0
+  version: 1.1.0
 servers:
   -
     url: 'http://telixnet.test/api'
@@ -24,6 +24,10 @@ paths:
           application/x-www-form-urlencoded:
             schema:
               properties:
+                team:
+                  description: 'Slug Name Team'
+                  required: true
+                  type: string
                 phone:
                   description: 'From no phone'
                   required: true
@@ -40,10 +44,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Chat'
-            application/xml:
-              schema:
-                $ref: '#/components/schemas/Chat'
+                $ref: '#/components/schemas/ApiResponse'
         '422':
           description: 'Invalid input'
           content:
@@ -89,14 +90,26 @@ paths:
         - sms
       summary: 'Return all sms record'
       operationId: getSms
+      parameters:
+        - name: start_date
+          in: query
+          type: string
+          format: date
+          description: >
+            The start date for the report. Must be used together with `end_date`.
+          example: '2022-01-20'
+        - name: end_date
+          in: query
+          type: string
+          format: date
+          description: >
+            The end date for the report. Must be used together with `start_date`.
+          example: '2022-01-20'
       responses:
         '200':
           description: 'successful operation'
           content:
             application/json:
-              schema:
-                $ref: '#/components/schemas/SingleSms'
-            application/xml:
               schema:
                 $ref: '#/components/schemas/SingleSms'
         '400':
@@ -118,8 +131,12 @@ paths:
             schema:
               $ref: '#/components/schemas/SendSms'
       responses:
-        default:
+        '200':
           description: 'successful operation'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
       security:
         - bearerAuth: []
   '/sms/{phone_number}':
@@ -152,7 +169,7 @@ paths:
           description: 'Record not found'
       security:
         - bearerAuth: []
-  /sms/sendbulk:
+  /sms/bulk:
     post:
       tags:
         - sms
@@ -161,8 +178,12 @@ paths:
       requestBody:
         $ref: '#/components/requestBodies/SmsArray'
       responses:
-        default:
+        '200':
           description: 'successful operation'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
       security:
         - bearerAuth: []
 components:
@@ -171,15 +192,17 @@ components:
       title: 'Api response'
       description: 'Api response'
       properties:
+        message:
+          title: Message
+          description: Message
+          type: string
+          example: "Successful"
         code:
           title: Code
           description: Code
           type: integer
           format: int32
-        message:
-          title: Message
-          description: Message
-          type: string
+          example: 200
         response:
           title: Response
           description: Response
@@ -195,6 +218,7 @@ components:
         - to
         - from
         - text
+        - servid
       properties:
         id:
           title: ID
@@ -210,13 +234,17 @@ components:
           title: 'Title'
           description: 'Broadcast Title'
           type: string
+        servid:
+          title: 'ServId'
+          description: 'ServID'
+          type: string
         text:
           title: 'Text'
           description: 'Message Content'
           type: string
         to:
           title: 'To'
-          description: 'Recipients mobile number'
+          description: 'The recipient’s mobile number must have the country code (without the “+” sign).'
           type: string
         status:
           title: 'Status'
@@ -227,6 +255,10 @@ components:
           description: 'Broadcast date'
           type: string
           format: date-time
+        otp:
+          title: 'OTP'
+          description: 'SMS Type OTP or NON OTP'
+          type: boolean
       type: object
       xml:
         name: SingleSms
@@ -238,6 +270,7 @@ components:
         - to
         - from
         - text
+        - servid
       properties:
         type:
           title: 'Type'
@@ -248,20 +281,27 @@ components:
           title: 'Title'
           description: 'Broadcast Title'
           type: string
+        servid:
+          title: 'ServId'
+          description: 'ServID'
+          type: string
         text:
           title: 'Text'
           description: 'Message Content'
           type: string
+        from:
+          title: 'From'
+          description: 'Sender Name'
+          type: string
         to:
           title: 'To'
-          description: 'Recipients mobile number'
-          type: array
-          items:
-            type: string
-            format: msisdn
-          xml:
-            name: To
-            wrapped: true
+          description: 'The recipient`s mobile number must have the country code (without the “+” sign).'
+          type: string
+          format: msisdn
+        otp:
+          title: 'OTP'
+          description: 'SMS Type OTP or NON OTP'
+          type: boolean
       type: object
       xml:
         name: BulkSms
@@ -273,17 +313,24 @@ components:
         - to
         - from
         - text
+        - servid
       properties:
         type:
           title: 'Type'
           description: 'Character type for text: 0 - ASCII 5 - Unicode'
           type: integer
           format: int64
+          example: 0
+        servid:
+          title: 'ServId'
+          description: 'ServID'
+          type: string
         to:
           title: 'To'
-          description: 'Recipients mobile number'
+          description: 'The recipient’s mobile number must have the country code (without the “+” sign).'
           type: string
           format: msisdn
+          example: "6281339668556"
         from:
           title: 'from'
           description: 'Sender’s name, Sender’s ID or Sender’s number'
@@ -292,10 +339,17 @@ components:
           title: 'Title'
           description: 'Broadcast Title'
           type: string
+          example: "First Broadcast"
         text:
           title: 'Text'
           description: 'Message Content'
           type: string
+          example: "Hello World!"
+        otp:
+          title: 'OTP'
+          description: 'Is SMS Type OTP'
+          type: boolean
+          example: "true / false / 1 / 0"
       type: object
       xml:
         name: SingleSms
@@ -323,7 +377,7 @@ components:
       xml:
         name: Chat
     InvalidInputChat:
-      title: 'Chat model'
+      title: 'Invalid Chat'
       description: 'Chat model'
       required:
         - text
@@ -379,7 +433,7 @@ components:
 tags:
   -
     name: chat
-    description: 'Everything about chat'
+    description: 'API for Chat'
   -
     name: sms
-    description: 'Everything about sms'
+    description: 'API for SMS'

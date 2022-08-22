@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Company;
 use Auth;
 
 class SettingController extends Controller
@@ -21,12 +22,20 @@ class SettingController extends Controller
 
     public function index()
     {
-        return view('role.role-table');
+        return view('role.role-table', ['page'=>'role']);
     }
 
     public function show($page)
     {
-        return $page;
-        return view('role.role-detail', ['role'=>$page]);
+        // return $page;
+        if($page=="company"){
+            return view('settings.company.companies', ['page'=>$page]);
+        }
+        return view('role.role-detail', ['page'=>$page]);
+    }
+
+    public function company(Company $company)
+    {
+        return view('settings.company.details', ['company'=>$company]);
     }
 }

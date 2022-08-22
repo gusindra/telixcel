@@ -7,14 +7,14 @@
 
     <div class="py-4">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
+            <div class="bg-white dark:bg-slate-600  overflow-hidden shadow-xl sm:rounded-lg">
                 @if (auth()->user()->currentTeam->id != 1 )
                     @livewire('template.templates')
                 @endif
 
                 <div class="p-3">
                     <div>
-                        <livewire:template.templates-table searchable="name, description" />
+                        <livewire:table.templates-table searchable="name, description" />
                     </div>
                 </div>
             </div>

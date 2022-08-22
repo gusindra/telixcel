@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Project;
-use Auth;
+use Illuminate\Support\Facades\Auth as FacadesAuth;
 
 class ProjectController extends Controller
 {
@@ -12,8 +12,11 @@ class ProjectController extends Controller
     {
         $this->middleware(function ($request, $next) {
             // Your auth here
-            $this->user_info=Auth::user()->super->first();
-            if($this->user_info && $this->user_info->role=='superadmin'){
+            $permission = false;
+            $id = array("PROJECT");
+            $permission = checkPermisissions($id);
+
+            if($permission){
                 return $next($request);
             }
             abort(404);

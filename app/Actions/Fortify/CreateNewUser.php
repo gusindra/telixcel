@@ -2,6 +2,8 @@
 
 namespace App\Actions\Fortify;
 
+use App\Models\RoleInvitation;
+use App\Models\RoleUser;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -29,21 +31,42 @@ class CreateNewUser implements CreatesNewUsers
             'terms' => Jetstream::hasTermsAndPrivacyPolicyFeature() ? ['required', 'accepted'] : '',
         ])->validate();
 
-        return DB::transaction(function () use ($input) {
+        $registeruser = DB::transaction(function () use ($input) {
             return tap(User::create([
                 'name' => $input['name'],
                 'email' => $input['email'],
                 'password' => Hash::make($input['password']),
             ]), function (User $user) {
                 //$this->createTeam($user);
-                $team = Team::find(1);
-                $newTeamMember = Jetstream::findUserByEmailOrFail($user->email);
 
-                $team->users()->attach(
-                    $newTeamMember, ['role' => 'editor']
-                );
             });
         });
+
+        if($input['email'] && $registeruser){
+            $role = 'client';
+            $newInvitation = RoleInvitation::where('email', $input['email'])->first();
+            $newTeamMember = Jetstream::findUserByEmailOrFail($input['email']);
+            if($newInvitation){
+                $role = 'editor';
+                $roleUser = RoleUser::where('user_id', $newTeamMember->id)->count();
+                if($roleUser==0){
+                    RoleUser::create([
+                        'user_id' => $newTeamMember->id,
+                        'role_id' => $newInvitation->role_id,
+                        'team_id' => $newInvitation->team_id
+                    ]);
+                    $newTeamMember->update(['current_team_id'=>$newInvitation->team_id]);
+                }
+                $newInvitation->delete();
+            }
+
+            $team = Team::find($newInvitation->team_id);
+            $team->users()->attach(
+                $newTeamMember, ['role' => $role]
+            );
+        }
+
+        return $registeruser;
     }
 
     /**

@@ -1,5 +1,9 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" x-cloak
+    x-init="$watch('darkMode', (val) => localStorage.setItem('dark',val))"
+    x-data="{darkMode: localStorage.getItem('dark')}"
+    :class="darkMode==='true' || darkMode==true ? 'dark' : ''"
+    :data-dark="darkMode">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -11,8 +15,8 @@
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap">
 
         <!-- Styles -->
-        <link rel="stylesheet" href="{{ url('backend/css/app.css') }}">
-        <link rel="stylesheet" href="{{ url('backend/css/custom.css') }}">
+        <link rel="stylesheet" href="{{ url('css/app.css') }}">
+        <link rel="stylesheet" href="{{ url('css/tail.css') }}">
         @trixassets
         @livewireStyles
 
@@ -22,7 +26,7 @@
     <body class="font-sans antialiased">
         <x-jet-banner />
 
-        <div class="min-h-screen bg-gray-100">
+        <div class="min-h-screen bg-gray-100 dark:bg-slate-600">
 
             <!-- Page Heading -->
             @if (isset($header))

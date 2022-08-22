@@ -12,18 +12,25 @@ class ProjectTable extends LivewireDatatable
 {
     public $model = Project::class;
 
+    public function builder()
+    {
+        return Project::query()->orderBy('updated_at', 'desc');
+    }
+
     public function columns()
     {
         return [
-    		Column::name('name')->label('Name'),
-    		Column::name('customer_name')->label('Customer'),
-    		Column::name('type')->label('Type'),
-            Column::callback(['status'], function ($type) {
-                return view('assistant.project.label', ['type' => $type]);
-            })->label('Status'),
-            NumberColumn::name('id')->label('Detail')->sortBy('id')->callback('id', function ($value) {
-                return view('datatables::link', [
-                    'href' => "/project/" . $value . '?month='.date('m').'&year='.date('Y'),
+    		Column::name('name')->label('Name')->filterable(),
+    		Column::name('customer_name')->label('Customer')->filterable(),
+    		Column::callback(['type'], function ($type) {
+                return view('label.type', ['type' => $type]);
+            })->label('Type')->filterable(['Selling', 'SAAS', 'Referral']),
+            Column::callback(['status'], function ($status) {
+                return view('label.label', ['type' => $status]);
+            })->label('Status')->filterable(['DRAFT', 'APPROVED', 'SUBMIT']),
+            NumberColumn::name('link')->label('Link')->callback('id', function ($value) {
+                return view('tables.link', [
+                    'href' => "/project/" . $value,
                     'slot' => 'View'
                 ]);
             }),

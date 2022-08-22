@@ -5,6 +5,7 @@ namespace App\Observers;
 use App\Jobs\SendMessageViaApi;
 use App\Models\Request as Message;
 use App\Models\Template;
+use App\Models\Team;
 use App\Models\ApiCredential;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -22,12 +23,17 @@ class RequestObserver
     public function created(Message $request)
     {
         $team = $request->client->team ? $request->client->team->detail : false;
+        if($request->team_id>0){
+            $team = Team::find($request->team_id);
+        }
         if($team){
+            //Log::debug($request->reply);
             $request->teams()->attach($team);
 
             //Check if request from customer
             if($request->source_id)
             {
+
                 // check if has first time template
                 $count = checkFirstRequest($request);
                 if($count == 1)
@@ -36,7 +42,7 @@ class RequestObserver
                     $template = Template::where('type', 'welcome')->where('user_id', $request->user_id)->with('teams')
                         ->whereHas('teams', function ($query) use($request) {
                             $query->where([
-                                'teams.id' => $request->team->team_id
+                                'teams.id' => $request->team_id
                             ]);
                         })->get();
                     // Log::debug('gelooo');
@@ -107,7 +113,9 @@ class RequestObserver
                                 $userInput = preg_split('/\r\n|\r|\n/', $request->reply);
                                 // var_dump($userInput);
                                 foreach($template->endpoint->inputs as $ki => $input){
-                                    if($ki > 0){
+                                    if($input->value!=null){
+                                        $data = $data.'&'.$input->name.'='.$input->value;
+                                    }elseif($ki > 0){
                                         if (array_key_exists($ki,$userInput)){
                                             $data = $data.'&'.$input->name.'='.$userInput[$ki];
                                         }else{
@@ -122,7 +130,7 @@ class RequestObserver
                                 $response = Http::asForm()->get($url);
                             }
                             // make logic to check template from api
-                            //Log::debug($url);
+                            Log::debug($url);
                             //Log::debug($response);
                             $trigger = Template::where('template_id', $template->id)->where('trigger', $response['code'])->first();
                             if($trigger){
@@ -230,19 +238,32 @@ class RequestObserver
 
                 if(!$this->replyed){
                     //check if trigger contain reply if not a question
-                    $template = Template::where('is_enabled', 1)->whereNull('template_id')->where('trigger_condition', 'equals')->where('trigger', $request->reply)->where('user_id', $request->user_id)->with('teams')
+                    //Log::debug('trigger contain reply if not a question '.$request->reply);
+                    $template = Template::where('is_enabled', 1)->whereNull('template_id')->where('trigger_condition', 'like', '%equal%')->where('trigger', $request->reply)->where('user_id', $request->user_id)->with('teams')
                         ->whereHas('teams', function ($query) use($request) {
                             $query->where([
-                                'teams.id' => $request->team->team_id
+                                'teams.id' => $request->team_id
                             ]);
                         })->first();
+                    // Log::debug($template);
                     if(!$template){
-                        $template = Template::where('is_enabled', 1)->whereNull('template_id')->where('trigger_condition', 'contain')->where('trigger', 'like', '%' . $request->reply . '%')->where('user_id', $request->user_id)->with('teams')
-                            ->whereHas('teams', function ($query) use($request) {
-                                $query->where([
-                                    'teams.id' => $request->team->team_id
-                                ]);
-                            })->first();
+                        $contains = Template::where('is_enabled', 1)->whereNull('template_id')->where('trigger_condition', 'contain')->where('user_id', $request->user_id)->pluck('trigger','id');
+
+                        foreach($contains as $key => $contain) {
+                            $place = strpos($request->reply, $contain);
+                            if (!empty($place)) {
+                                $template = Template::find($key);
+                            }
+                        }
+
+                        // $template = Template::where('is_enabled', 1)->whereNull('template_id')->where('trigger_condition', 'contain')->where('trigger', 'like', '%' . $request->reply . '%')->where('user_id', $request->user_id)->with('teams')
+                        //             ->whereHas('teams', function ($query) use($request) {
+                        //                 $query->where([
+                        //                     'teams.id' => $request->team_id
+                        //                 ]);
+                        //             })->first();
+
+                        Log::debug($template);
                     }
                     if($template){
                         if($template->actions->count()>0)
@@ -253,6 +274,7 @@ class RequestObserver
                             }
                         }
                     }
+                    Log::debug('done check template');
                 }
             }
             else
@@ -344,7 +366,7 @@ class RequestObserver
             //     }
             // }
             SendMessageViaApi::dispatch($request, $userCredention);
-        }elseif(auth()->user()->currentTeam->waWeb ){
+        }elseif(auth()->user() && auth()->user()->currentTeam && auth()->user()->currentTeam->waWeb ){
             // jika tikda ada api alternatif menggunakan wa web
 
         }

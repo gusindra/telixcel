@@ -2,11 +2,16 @@
     <x-slot name="header"></x-slot>
 
     <div class="py-4">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-12">
-            <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="bg-white dark:bg-slate-600 overflow-hidden shadow-xl sm:rounded-lg">
                 <div class="container mx-auto">
+                    <div class="flex justify-between">
+                        <div class="p-4">
+                            @livewire('user.add')
+                        </div>
+                    </div>
                     <div>
-                        <livewire:team-table searchable="name, email, gender" exportable />
+                        <livewire:table.team-table searchable="name, email, gender" exportable />
                     </div>
                 </div>
             </div>

@@ -27,17 +27,24 @@ class CommerceItem extends Model
         'unit_price',
         'way_import',
         'status',
+        'product_line',
+        'user_id'
+    ];
+
+    public static $searchable=[
+        "sku",
+        "name"
     ];
 
     protected $guarded = [];
 
     /**
-     * Get the action that belongs to template.
+     * Get the action that belongs to product line.
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    // public function endpoint()
-    // {
-    //     return $this->belongsTo('App\Models\Endpoint');
-    // }
+    public function productLine()
+    {
+        return $this->belongsTo('App\Models\ProductLine');
+    }
 }

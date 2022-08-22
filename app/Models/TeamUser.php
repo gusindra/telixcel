@@ -21,6 +21,7 @@ class TeamUser extends Model
         'user_id',
         'role',
         'status',
+        'working_id'
     ];
 
     protected $guarded = [];

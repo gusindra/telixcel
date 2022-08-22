@@ -17,7 +17,6 @@
                 </div>
                 @if(@$handling_session)
                     @if($handling_session->agent_id == $user_id && $handling_session->client_id == $client_id)
-
                     <button class="mr-2 p-1 border-transparent {{$transcript ? 'bg-gray-600 text-gray-100' : 'bg-gray-200 text-gray-800'}} " title="Show/Hide Transcript" wire:click="showTransript">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -36,7 +35,7 @@
 
     <!-- Chat Log -->
     <div id="messageArea" class="lg:max-h-96">
-        <div id="messageBox" wire:poll class="overflow-auto h-96 bg-green-50 py-0" style="display: flex;flex-direction: column;height: 100vh;overflow: auto;">
+        <div id="messageBox" wire:poll class="overflow-auto h-96 bg-green-50 py-0" style="display: flex;flex-direction: column;;overflow: auto;">
             @foreach($data['request'] as $item)
                 <div class="p-4 sm:p-4 sm:px-6 buble-chat object-left group {{preg_match("/[a-z]/i", $item->source_id)?'':'text-right right-0'}}">
                     <small class="text-gray-500 font-medium">{{preg_match("/[a-z]/i", $item->source_id)?$client->name:($item->from=='bot' || $item->from=='api'?'Bot':@$item->agent->name)}}</small>
@@ -147,10 +146,8 @@
                 </div>
                 @endif
             @endforeach
-
         </div>
         @if($client)
-            {{--count($data['quick'])--}}
             <div class="{{count($data['quick'])==0?'hidden':''}} lg:absolute lg:bottom-24 bottom-1 lg:w-2/4 w-100">
                 <div class="relative z-10 w-full mt-1 bg-gray-200 rounded-md shadow-lg top-0 border-2 border-gray-400">
                     <ul class="p-0 overflow-auto h-auto max-h-screen text-base leading-6 rounded-md shadow-xs focus:outline-none sm:text-sm sm:leading-5">
@@ -220,7 +217,6 @@
             </div>
 
         @endif
-
 
     </div>
 

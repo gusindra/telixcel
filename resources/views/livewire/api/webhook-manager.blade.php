@@ -26,60 +26,60 @@
             </div>
 
             <div class="space-y-6">
-                    <div class="flex flex-col">
-                        <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-                            <div class="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
-                                @if ($data->count())
-                                <div class="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
-                                    <table class="min-w-full divide-y divide-gray-200">
-                                        <thead>
+                <div class="flex flex-col">
+                    <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+                        <div class="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
+                            @if ($data->count())
+                            <div class="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
+                                <table class="min-w-full divide-y divide-gray-200 dark:bg-slate-600">
+                                    <thead>
+                                        <tr>
+                                            <th class="px-6 py-3 bg-gray-50 dark:bg-slate-700 dark:text-slate-300 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider w-1/2">Webhook</th>
+                                            <th class="px-6 py-3 bg-gray-50 dark:bg-slate-700 dark:text-slate-300 text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider w-1/4">Status</th>
+                                            <th class="px-6 py-3 bg-gray-50 dark:bg-slate-700 dark:text-slate-300 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider w-1/4"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white dark:bg-slate-700 divide-y divide-gray-200">
+                                        @foreach ($data as $item)
                                             <tr>
-                                                <th class="px-6 py-3 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider w-1/2">Webhook</th>
-                                                <th class="px-6 py-3 bg-gray-50 text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider w-1/4">Status</th>
-                                                <th class="px-6 py-3 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider w-1/4"></th>
+                                                <td class="px-6 py-4 text-sm whitespace-no-wrap">
+                                                    <x-jet-label for="client" value="{{ $item->client }}" />
+                                                    <input value="{{ route('api.client.webhook', $item->slug) }}" class="bg-gray-200 dark:bg-slate-800 border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 shadow-sm mt-1 block w-full p-3" readonly />
+                                                </td>
+                                                <td>
+                                                    <div>
+                                                        @if($item->is_enabled==1)
+                                                        <svg class="h-5 w-5 stroke-current text-green-600 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                        </svg>
+                                                        @else
+                                                        <svg class="h-5 w-5 stroke-current text-red-300 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                        </svg>
+                                                        @endif
+                                                    </div>
+                                                </td>
+                                                <td class="flex items-center justify-end px-4 py-3 text-right sm:px-6">
+                                                    <div class="flex items-center">
+                                                        <button class="cursor-pointer ml-6 text-sm text-red-500 py-6" wire:click="updateShowModal('{{ $item->id }}')">
+                                                            {{ __('Update') }}
+                                                        </button>
+                                                        <button class="cursor-pointer ml-6 text-sm text-red-500 py-6" wire:click="deleteShowModal('{{ $item->id }}')">
+                                                            {{ __('Delete') }}
+                                                        </button>
+                                                    </div>
+                                                </td>
                                             </tr>
-                                        </thead>
-                                        <tbody class="bg-white divide-y divide-gray-200">
-                                            @foreach ($data as $item)
-                                                <tr>
-                                                    <td class="px-6 py-4 text-sm whitespace-no-wrap">
-                                                        <x-jet-label for="client" value="{{ $item->client }}" />
-                                                        <input value="{{ route('api.client.webhook', $item->slug) }}" class="bg-gray-200 border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 shadow-sm mt-1 block w-full p-3" readonly />
-                                                    </td>
-                                                    <td>
-                                                        <div>
-                                                            @if($item->is_enabled==1)
-                                                            <svg class="h-5 w-5 stroke-current text-green-600 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                                            </svg>
-                                                            @else
-                                                            <svg class="h-5 w-5 stroke-current text-red-300 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                                            </svg>
-                                                            @endif
-                                                        </div>
-                                                    </td>
-                                                    <td class="flex items-center justify-end px-4 py-3 text-right sm:px-6">
-                                                        <div class="flex items-center">
-                                                            <button class="cursor-pointer ml-6 text-sm text-red-500 py-6" wire:click="updateShowModal('{{ $item->id }}')">
-                                                                {{ __('Update') }}
-                                                            </button>
-                                                            <button class="cursor-pointer ml-6 text-sm text-red-500 py-6" wire:click="deleteShowModal('{{ $item->id }}')">
-                                                                {{ __('Delete') }}
-                                                            </button>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            @endforeach
+                                        @endforeach
 
-                                        </tbody>
-                                    </table>
-                                </div>
-                                @endif
+                                    </tbody>
+                                </table>
                             </div>
+                            @endif
                         </div>
                     </div>
                 </div>
+            </div>
         </x-slot>
     </x-jet-form-section>
 
@@ -96,7 +96,7 @@
                 <select
                     name="client"
                     id="client"
-                    class="border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full"
+                    class="border-gray-300 dark:bg-slate-800 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full"
                     wire:model.debunce.800ms="client"
                     >
                     <option selected>-- Select Client --</option>
@@ -130,8 +130,8 @@
                             wire:model.defer="is_enabled" type="checkbox" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">
                     </div>
                     <div class="ml-3 text-sm">
-                        <label for="is_enabled" class="font-medium text-gray-700">Is enable ?</label>
-                        <p class="text-gray-500">Tick checkbox to enable this service.</p>
+                        <label for="is_enabled" class="font-medium text-gray-700 dark:text-slate-300">Is enable ?</label>
+                        <p class="text-gray-500 dark:text-slate-300">Tick checkbox to enable this service.</p>
                     </div>
                 </div>
             </div>

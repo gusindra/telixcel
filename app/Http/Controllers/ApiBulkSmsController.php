@@ -2,11 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\BlastMessage;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 use App\Jobs\ProcessSmsApi;
+use App\Jobs\ProcessSmsStatus;
 use App\Models\ApiCredential;
 
 class ApiBulkSmsController extends Controller
@@ -23,11 +21,7 @@ class ApiBulkSmsController extends Controller
             'title' => 'required|string',
             'detail' => 'string',
         ]);
-        // call request to MacroKiosk check by type
-        // text / multi
-        //check user pass Mk
-        // $ada = $request->all();
-        // return $ada['type'];
+
         try{
             $userCredention = ApiCredential::where("user_id", auth()->user()->id)->where("client", "api_sms_mk")->where("is_enabled", 1)->first();
             ProcessSmsApi::dispatch($request->all(), $userCredention);
@@ -40,6 +34,24 @@ class ApiBulkSmsController extends Controller
         // show result on progress
         return response()->json([
             'Msg' => "Successful",
+            'Status' => 200
+        ]);
+    }
+
+    /**
+     * status
+     *
+     * @param  mixed $request->msgid
+     * @param  mixed $request->msisdn
+     * @param  mixed $request->status
+     * @return void
+     */
+    public function status(Request $request)
+    {
+        ProcessSmsStatus::dispatch($request->all());
+
+        return response()->json([
+            'Msg' => "Process to update",
             'Status' => 200
         ]);
     }
