@@ -1,10 +1,10 @@
 <x-app-layout>
-    <header class="bg-white shadow">
+    <header class="bg-white dark:bg-slate-900 dark:border-slate-600 border-b shadow">
         <div class="max-w-7xl mx-auto py-3 px-4 sm:px-6 lg:px-8">
-            <big class="font-semibold text-xl text-gray-800 leading-tight">
+            <big class="font-semibold text-xl text-gray-800 dark:text-slate-300 leading-tight">
                 {{ __('User Name') }} : <span class="capitalize">{{$user->name}}</span>
                 -
-                <a class="hover:text-gray-400" href="{{route('user.show.balance', $user->id)}}">{{ __('Balance') }} : <span class="capitalize">Rp {{number_format(balance($user))}}</span></a>
+                <a class="hover:text-gray-400 dark:text-slate-300" href="{{route('user.show.balance', $user->id)}}">{{ __('Balance') }} : <span class="capitalize">Rp {{number_format(balance($user))}}</span></a>
             </big>
             <br>
             @if(balance($user)!=0)
@@ -36,7 +36,7 @@
                             <div class="w-60">
                                 <div>
                                     <form>
-                                        <a class="block px-4 py-2 text-sm leading-5 text-gray-700 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 transition" target="_blank" href="{{route('user.show.profile', ['user'=>$user->id])}}">
+                                        <a class="block px-4 py-2 text-sm leading-5 text-gray-700 dark:text-slate-400 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 transition" target="_blank" href="{{route('user.show.profile', ['user'=>$user->id])}}">
                                             <div class="flex items-center justify-between">
                                                 <div class="truncate">Profile</div>
                                             </div>
@@ -55,13 +55,13 @@
         <!-- Team Dashboard -->
         <div class="py-3">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
-                    <div class="p-2 bg-white border-b border-gray-200">
+                <div class="bg-white dark:bg-slate-600 overflow-hidden shadow-xl sm:rounded-lg">
+                    <div class="p-2 border-b border-gray-200">
                         <div class="mt-2 text-2xl">
                             Overview for
                         </div>
                         <form method="get" action="{{url('/user/'.$user->id)}}">
-                            <select name="month" id="">
+                            <select class="dark:bg-slate-800 dark:text-slate-300" name="month" id="month">
                                 <option {{app("request")->input('month')=='1'?'selected':''}} value="1">January</option>
                                 <option {{app("request")->input('month')=='2'?'selected':''}} value="2">February</option>
                                 <option {{app("request")->input('month')=='3'?'selected':''}} value="3">March</option>
@@ -75,7 +75,7 @@
                                 <option {{app("request")->input('month')=='11'?'selected':''}} value="11">November</option>
                                 <option {{app("request")->input('month')=='12'?'selected':''}} value="12">December</option>
                             </select>
-                            <select name="year" id="">
+                            <select class="dark:bg-slate-800 dark:text-slate-300" name="year" id="year">
                                 @for ($i=date('Y'); $i > date('Y')-5 ; $i--)
                                     <option {{app("request")->input('year')==$i?'selected':''}} value="{{$i}}">{{$i}}</option>
                                 @endfor
@@ -84,17 +84,17 @@
                         </form>
                     </div>
 
-                    <div class="p-6 sm:px-20 bg-gray-200 bg-opacity-25 grid grid-cols-1 md:grid-cols-4">
+                    <div class="p-6 sm:px-20 bg-gray-200 dark:bg-slate-600 bg-opacity-25 grid grid-cols-1 md:grid-cols-4">
                         <div class="p-6">
                             <div class="flex items-center">
                                 <a href="http://telixcel.com/client">
-                                    <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" class="w-16 text-gray-400">
+                                    <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" class="w-16 dark:text-slate-300 text-gray-400">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
                                     </svg>
                                 </a>
-                                <div class="ml-4 text-lg text-gray-600 leading-2 font-semibold text-3xl">
+                                <div class="ml-4 text-gray-600 dark:text-slate-300 leading-2 font-semibold text-3xl">
                                     <span>{{$user->clients(app('request')->input('month'),app('request')->input('year'))->count()}}</span>
-                                    <div class="mt-2 text-sm text-gray-500">
+                                    <div class="mt-2 text-sm text-gray-500 dark:text-slate-300">
                                         <a href="http://telixcel.com/client">Client</a>
                                     </div>
                                 </div>
@@ -104,13 +104,13 @@
                         <div class="p-6">
                             <div class="flex items-center">
                                 <a href="http://telixcel.com/message">
-                                    <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" class="w-16 text-gray-400">
+                                    <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" class="w-16 dark:text-slate-300 text-gray-400">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
                                     </svg>
                                 </a>
-                                <div class="ml-4 text-gray-600 leading-7 font-semibold text-3xl">
+                                <div class="ml-4 text-gray-600 dark:text-slate-300 leading-7 font-semibold text-3xl">
                                     <span>{{$user->outbounds(app('request')->input('month'),app('request')->input('year'))->count()}}</span>
-                                    <div class="mt-2 text-sm text-gray-500">
+                                    <div class="mt-2 text-sm text-gray-500 dark:text-slate-300">
                                         <a href="http://telixcel.com/message">Out Bound</a>
                                     </div>
                                 </div>
@@ -123,13 +123,13 @@
                         <div class="p-6">
                             <div class="flex items-center">
                                 <a href="http://telixcel.com/message">
-                                    <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" class="w-16 text-gray-400">
+                                    <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" class="w-16 dark:text-slate-300 text-gray-400">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                                     </svg>
                                 </a>
-                                <div class="ml-4 text-gray-600 leading-7 font-semibold text-3xl">
+                                <div class="ml-4 text-gray-600 dark:text-slate-300 leading-7 font-semibold text-3xl">
                                     <span>{{$user->inbounds(app('request')->input('month'),app('request')->input('year'))->count()}}</span>
-                                    <div class="mt-2 text-sm text-gray-500">
+                                    <div class="mt-2 text-sm text-gray-500 dark:text-slate-300">
                                         <a href="http://telixcel.com/message"> In Bound</a>
                                     </div>
                                 </div>
@@ -139,13 +139,13 @@
                         <div class="p-6">
                             <div class="flex items-center">
                                 <a href="http://telixcel.com/message">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-16 text-gray-400 dark:text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path>
                                     </svg>
                                 </a>
-                                <div class="ml-4 text-gray-600 leading-7 font-semibold text-3xl">
+                                <div class="ml-4 text-gray-600 dark:text-slate-300 leading-7 font-semibold text-3xl">
                                     <span>{{$user->currentTeam->callApi(app('request')->input('month'),app('request')->input('year'))->count()}}</span>
-                                    <div class="mt-2 text-sm text-gray-500">
+                                    <div class="mt-2 text-sm text-gray-500 dark:text-slate-300">
                                         <a href="http://telixcel.com/message"> API Call</a>
                                     </div>
                                 </div>
@@ -155,13 +155,13 @@
                         <div class="p-6">
                             <div class="flex items-center">
                                 <a href="http://telixcel.com/report/sms">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-16 text-gray-400 dark:text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                     </svg>
                                 </a>
-                                <div class="ml-4 text-gray-600 leading-7 font-semibold text-3xl">
+                                <div class="ml-4 text-gray-600 dark:text-slate-300 leading-7 font-semibold text-3xl">
                                     <span>{{$user->sentsms(app('request')->input('month'),app('request')->input('year'),'total')->count()}}</span>
-                                    <div class="mt-2 text-sm text-gray-500">
+                                    <div class="mt-2 text-sm text-gray-500 dark:text-slate-300">
                                         <a href="http://telixcel.com/report/sms"> Total SMS</a>
                                     </div>
                                 </div>
@@ -171,13 +171,13 @@
                         <div class="p-6">
                             <div class="flex items-center">
                                 <a href="http://telixcel.com/report/sms">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-16 text-gray-400 dark:text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                     </svg>
                                 </a>
-                                <div class="ml-4 text-gray-600 leading-7 font-semibold text-3xl">
+                                <div class="ml-4 text-gray-600 dark:text-slate-300 leading-7 font-semibold text-3xl">
                                     <span>{{$user->sentsms(app('request')->input('month'),app('request')->input('year'))->count()}}</span>
-                                    <div class="mt-2 text-sm text-gray-500">
+                                    <div class="mt-2 text-sm text-gray-500 dark:text-slate-300">
                                         <a href="http://telixcel.com/report/sms"> SMS DELIVERED</a>
                                     </div>
                                 </div>
@@ -187,13 +187,13 @@
                         <div class="p-6">
                             <div class="flex items-center">
                                 <a href="http://telixcel.com/report/sms">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-16 text-gray-400 dark:text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                     </svg>
                                 </a>
-                                <div class="ml-4 text-gray-600 leading-7 font-semibold text-3xl">
+                                <div class="ml-4 text-gray-600 dark:text-slate-300 leading-7 font-semibold text-3xl">
                                     <span>{{$user->sentsms(app('request')->input('month'),app('request')->input('year'), 'UNDELIVERED')->count()}}</span>
-                                    <div class="mt-2 text-sm text-gray-500">
+                                    <div class="mt-2 text-sm text-gray-500 dark:text-slate-300">
                                         <a href="http://telixcel.com/report/sms"> SMS UNDELIVERED</a>
                                     </div>
                                 </div>
@@ -203,13 +203,13 @@
                         <div class="p-6">
                             <div class="flex items-center">
                                 <a href="http://telixcel.com/report/sms">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-16 text-gray-400 dark:text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                 </a>
-                                <div class="ml-4 text-gray-600 leading-7 font-semibold text-2xl">
+                                <div class="ml-4 text-gray-600 dark:text-slate-300 leading-7 font-semibold text-2xl">
                                     <span>Rp {{number_format($user->sentsms(app('request')->input('month'),app('request')->input('year'))->sum('price'))}}</span>
-                                    <div class="mt-2 text-sm text-gray-500">
+                                    <div class="mt-2 text-sm text-gray-500 dark:text-slate-300">
                                         <a href="http://telixcel.com/report/sms"> SMS COST</a>
                                     </div>
                                 </div>
@@ -222,8 +222,8 @@
 
         <div class="py-3 mb-4">
             <div class="max-w-7xl lg:px-8 mx-auto grid lg:grid-cols-6 gap-2">
-                <div class="bg-white overflow-hidden shadow-xl sm:rounded-sm col-span-3">
-                    <div class="p-2 bg-white border-b border-gray-200">
+                <div class="bg-white dark:bg-slate-600 overflow-hidden shadow-xl sm:rounded-sm col-span-3">
+                    <div class="p-2 border-b border-gray-200">
                         <div class="mt-2 text-2xl">
                             Team
                         </div>
@@ -232,7 +232,7 @@
                     <div class="p-3">
                         <div class="overflow-x-auto">
                             <table class="table-auto w-full">
-                                <thead class="text-xs font-semibold uppercase text-gray-400 bg-gray-50">
+                                <thead class="text-xs font-semibold uppercase text-gray-400 bg-gray-50 dark:bg-slate-700">
                                     <tr>
                                         <th class="p-2 whitespace-nowrap">
                                             <div class="font-semibold text-left">Name</div>
@@ -278,8 +278,8 @@
                         </div>
                     </div>
                 </div>
-                <div class="bg-white overflow-hidden shadow-xl sm:rounded-sm col-span-3">
-                    <div class="flex justify-between p-2 bg-white border-b border-gray-200">
+                <div class="bg-white dark:bg-slate-600 overflow-hidden shadow-xl sm:rounded-sm col-span-3">
+                    <div class="flex justify-between p-2 border-b border-gray-200">
                         <div class="mt-2 text-2xl">
                             Bill
                         </div>
@@ -304,7 +304,7 @@
                                     x-show="open"></div>
                                 <div @click.stop=""
                                     x-show="open"
-                                    class="flex flex-col rounded-lg shadow-lg overflow-hidden bg-white w-3/5 h-auto z-10">
+                                    class="flex flex-col rounded-lg shadow-lg overflow-hidden  w-3/5 h-auto z-10">
                                     <div class="p-6 border-b">
                                         <h2 id="modal1_label">Create Bill Invoice</h2>
                                     </div>
@@ -357,7 +357,7 @@
                     <div class="p-3">
                         <div class="overflow-x-auto">
                             <table class="table-auto w-full">
-                                <thead class="text-xs font-semibold uppercase text-gray-400 bg-gray-50">
+                                <thead class="text-xs font-semibold uppercase text-gray-400 bg-gray-50 dark:bg-slate-700">
                                     <tr>
                                         <th class="p-2 whitespace-nowrap">
                                             <div class="font-semibold text-left">Code</div>
@@ -403,7 +403,7 @@
         <!-- Personal Dashboard -->
         <div class="py-3 hidden">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
+                <div class="bg-white dark:bg-slate-600 overflow-hidden shadow-xl sm:rounded-lg">
                     <div class="py-6 sm:px-10 bg-opacity-10 grid grid-cols-1 md:grid-cols-4 gap-5">
                         <div class="col-span-2 row-span-3">
                             <div class="h-full">
@@ -412,7 +412,7 @@
                         </div>
 
                         <div class=" col-span-1">
-                            <div class="flex shadow rounded p-2 border bg-white">
+                            <div class="flex shadow rounded p-2 border ">
                                 <a href="#">
                                     <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" class="w-6 text-gray-400">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
@@ -425,7 +425,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="flex shadow rounded p-2 mt-5 border bg-white">
+                            <div class="flex shadow rounded p-2 mt-5 border ">
                                 <a href="#">
                                     <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" class="w-6 text-gray-400">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
@@ -442,7 +442,7 @@
                         </div>
 
                         <div class=" col-span-1">
-                            <div class="flex shadow rounded p-2  border bg-white">
+                            <div class="flex shadow rounded p-2  border ">
                                 <a href="#">
                                     <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" class="w-6 text-gray-400">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
@@ -456,7 +456,7 @@
                                 </div>
                             </div>
 
-                            <div class="flex shadow rounded p-2 mt-5 border bg-white">
+                            <div class="flex shadow rounded p-2 mt-5 border">
                                 <a href="#">
                                     <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" class="w-6 text-gray-400">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />

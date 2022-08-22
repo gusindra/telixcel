@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Order;
+use App\Models\Commision;
 use Illuminate\Support\Facades\Auth as FacadesAuth;
 
 class CommissionController extends Controller
@@ -13,7 +13,7 @@ class CommissionController extends Controller
         $this->middleware(function ($request, $next) {
             // Your auth here
             $permission = false;
-            $id = array("ORDER");
+            $id = array("COMMISSION");
             $permission = checkPermisissions($id);
 
             if($permission){
@@ -28,8 +28,8 @@ class CommissionController extends Controller
         return view('assistant.order.commission');
     }
 
-    public function show(Order $order)
+    public function show(Commision $commission)
     {
-        return view('assistant.order.show', ['order'=>$order]);
+        return view('assistant.order.commission_show', ['data'=>$commission]);
     }
 }

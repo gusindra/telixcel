@@ -28,14 +28,16 @@ class ImageUpload extends Component
         ]);
 
         $name = date('YmdHis');'.'.$this->photo->extension();
+        $path = 'images/'.date('Y').'/'.date('F');
 
         // $this->photo->storeAs('photos', $name);
-        $file = Storage::disk('s3')->put('images', $this->photo);
+        $file = Storage::disk('s3')->put($path, $this->photo);
 
         Attachment::create([
             'model'         => $this->model,
             'model_id'      => $this->model_id,
-            'request_id'    => 1,
+            'uploaded_by'   => auth()->user()->id,
+            'request_id'    => null,
             'file'          => $file
         ]);
 

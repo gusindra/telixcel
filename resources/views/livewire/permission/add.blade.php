@@ -1,8 +1,8 @@
-<div class="p-6">
+<div class="p-4">
     <!-- <a class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:shadow-outline-gray disabled:opacity-25 transition" href="{{route('create.template')}}">
         {{ __('Create') }}
     </a> -->
-    <div class="flex items-center justify-end px-4 py-3 text-right sm:px-6 absolute right-20 mr-20">
+    <div class="flex items-center justify-end">
         <x-jet-button wire:click="actionShowModal">
             {{__('Add Menu')}}
         </x-jet-button>
@@ -27,7 +27,7 @@
                             wire:model.defer="type.view" type="checkbox" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">
                     </div>
                     <div class="ml-3 text-sm">
-                        <label for="type.view" class="font-medium text-gray-700">View</label>
+                        <label for="type.view" class="font-medium text-gray-700 dark:text-gray-300 ">View</label>
                     </div>
                 </div>
                 <div class="flex items-start ml-4">
@@ -36,7 +36,7 @@
                             wire:model.defer="type.create" type="checkbox" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">
                     </div>
                     <div class="ml-3 text-sm">
-                        <label for="type.create" class="font-medium text-gray-700">Create</label>
+                        <label for="type.create" class="font-medium text-gray-700 dark:text-gray-300">Create</label>
                     </div>
                 </div>
                 <div class="flex items-start ml-4">
@@ -45,7 +45,7 @@
                             wire:model.defer="type.update" type="checkbox" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">
                     </div>
                     <div class="ml-3 text-sm">
-                        <label for="type.update" class="font-medium text-gray-700">Update</label>
+                        <label for="type.update" class="font-medium text-gray-700 dark:text-gray-300">Update</label>
                     </div>
                 </div>
                 <div class="flex items-start ml-4">
@@ -54,7 +54,7 @@
                             wire:model.defer="type.delete" type="checkbox" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">
                     </div>
                     <div class="ml-3 text-sm">
-                        <label for="type.delete" class="font-medium text-gray-700">Delete</label>
+                        <label for="type.delete" class="font-medium text-gray-700 dark:text-gray-300">Delete</label>
                     </div>
                 </div>
                 <div class="flex items-start ml-4">
@@ -63,7 +63,7 @@
                             wire:model.defer="type.audit" type="checkbox" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">
                     </div>
                     <div class="ml-3 text-sm">
-                        <label for="type.audit" class="font-medium text-gray-700">Audit</label>
+                        <label for="type.audit" class="font-medium text-gray-700 dark:text-gray-300">Audit</label>
                     </div>
                 </div>
             </div>

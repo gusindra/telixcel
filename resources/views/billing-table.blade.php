@@ -6,8 +6,8 @@
     </x-slot>
 
     <div class="py-4">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-12">
-            <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white dark:bg-slate-600 overflow-hidden shadow-xl sm:rounded-lg">
                 <div class="p-6">
                     <a class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:shadow-outline-gray disabled:opacity-25 transition" href="http://telixnet.test/template/create">
                         Generate
@@ -15,7 +15,7 @@
                 </div>
                 <div class="container mx-auto">
                     <div>
-                        <livewire:all-billing-table searchable="name, email, gender" exportable />
+                        <livewire:table.all-billing-table searchable="name, email, gender" exportable />
                     </div>
                 </div>
             </div>

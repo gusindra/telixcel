@@ -27,5 +27,29 @@ class Billing extends Model
         'note'
     ];
 
+    public static $searchable=[
+        "code",
+        "description"
+    ];
+
     protected $guarded = [];
+
+    public function order()
+    {
+        return $this->belongsTo('App\Models\Order');
+    }
+
+    /**
+     * Get next approval.
+     */
+    public function approval(){
+    	return $this->hasOne('App\Models\FlowProcess', 'model_id')->where('model', 'INVOICE')->whereNull('status');
+    }
+
+    /**
+     * Get all of team.
+     */
+    public function commission(){
+    	return $this->hasOne('App\Models\Commision', 'model_id', 'order_id')->where('model', 'order');
+    }
 }

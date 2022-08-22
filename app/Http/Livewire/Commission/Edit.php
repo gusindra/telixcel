@@ -15,10 +15,12 @@ class Edit extends Component
     public $model;
     public $master;
     public $clientId;
+    public $type;
     public $selectedCleint;
     public $disabled;
     public $rate;
     public $status;
+    public $total;
     public $commission;
 
     public function mount($model, $data, $disabled=false)
@@ -35,6 +37,8 @@ class Edit extends Component
         if($this->commission){
             $this->rate = $this->commission->ratio;
             $this->clientId = $this->commission->client_id;
+            $this->type = $this->commission->type;
+            $this->total = 'Rp'.number_format($this->commission->total);
         }
         $this->disabled = $disabled;
         $this->status = 'draft';
@@ -46,6 +50,7 @@ class Edit extends Component
         $data = Commision::where('model', $this->model)->where('model_id', $id)->first();
         if($data){
             $data->update([
+                'type'     => $this->type,
                 'ratio'     => $this->rate,
                 'status'    => $this->status,
                 'client_id' => $this->clientId
@@ -54,6 +59,7 @@ class Edit extends Component
             Commision::create([
                 'model'     => $this->model,
                 'model_id'  => $id,
+                'type'      => $this->type,
                 'ratio'     => $this->rate,
                 'status'    => $this->status,
                 'client_id' => $this->clientId,

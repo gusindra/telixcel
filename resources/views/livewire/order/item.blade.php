@@ -1,6 +1,6 @@
 <div>
     <x-jet-action-section>
-        <x-slot name="title">3. Order items :</x-slot>
+        <x-slot name="title">Order items :</x-slot>
 
         <x-slot name="description">
             {{ __('The Order Product detail.') }}
@@ -15,7 +15,7 @@
                 <x-jet-action-message class="mr-3" on="saved">
                     {{ __('Action saved.') }}
                 </x-jet-action-message>
-                <x-save-button show="{{$data->status=='draft'?'true':'false'}}" wire:click="showCreateModal">
+                <x-save-button show="{{$data->status=='draft'?true:false}}" wire:click="showCreateModal">
                     {{__('Add Item')}}
                 </x-save-button>
             </div>
@@ -26,17 +26,17 @@
                         <div class="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
                             @if ($data['items']->count()>0)
                             <div class="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
-                                <table class="min-w-full divide-y divide-gray-200">
+                                <table class="min-w-full divide-y divide-gray-200 mt-2">
                                     <thead>
                                         <tr>
-                                            <th class="px-6 py-3 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider w-1/4">Item</th>
-                                            <th class="px-6 py-3 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider w-11">Price</th>
-                                            <th class="px-6 py-3 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider w-1/4">Unit Measurement</th>
-                                            <th class="px-6 py-3 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider w-1/2">Desc</th>
-                                            <th class="px-6 py-3 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider w-1/4"> </th>
+                                            <th class="px-6 py-3 bg-gray-50 dark:bg-slate-700 dark:text-slate-300 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider w-1/4">Item</th>
+                                            <th class="px-6 py-3 bg-gray-50 dark:bg-slate-700 dark:text-slate-300 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider w-11">Price</th>
+                                            <th class="px-6 py-3 bg-gray-50 dark:bg-slate-700 dark:text-slate-300 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider w-1/4">Unit Measurement</th>
+                                            <th class="px-6 py-3 bg-gray-50 dark:bg-slate-700 dark:text-slate-300 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider w-1/2">Desc</th>
+                                            <th class="px-6 py-3 bg-gray-50 dark:bg-slate-700 dark:text-slate-300 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider w-1/4"> </th>
                                         </tr>
                                     </thead>
-                                    <tbody wire:poll class="bg-white divide-y divide-gray-200">
+                                    <tbody wire:poll class="bg-white dark:bg-slate-600 divide-y divide-gray-200">
                                         @foreach ($data['items'] as $item)
                                             <tr>
                                                 <td class="px-6 text-xs py-4 whitespace-no-wrap">
@@ -79,7 +79,39 @@
             </div>
 
         </x-slot>
+
     </x-jet-action-section>
+
+    @if($data['items']->count()>0)
+    <x-jet-form-section submit="#">
+        <x-slot name="title">
+            {{ __(' ') }}
+        </x-slot>
+
+        <x-slot name="description">
+            {{ __(' ') }}
+        </x-slot>
+
+        <x-slot name="form">
+
+            <div class="col-span-6 grid grid-cols-2" wire:poll >
+                <div class="col-span-12 sm:col-span-1 mx-4">
+                    <x-jet-label for="input" value="{{ __(' ') }}" />
+                    <x-jet-input-error for="input" class="mt-2" />
+                </div>
+                <div class="col-span-12 sm:col-span-1 mx-4">
+                    <x-jet-label for="input.customer_id" value="{{ __('Total') }}" />
+                    <span class="border dark:bg-slate-800 rounded-md shadow-sm mt-1 block w-full p-2 text-right">Rp {{number_format($data['total'])}}</span>
+                    <x-jet-input-error for="input.total" class="mt-2" />
+                </div>
+            </div>
+        </x-slot>
+
+        <x-slot name="actions">
+
+        </x-slot>
+    </x-jet-form-section>
+    @endif
 
     <!-- Form Input Modal -->
     <x-jet-dialog-modal wire:model="modalVisible">
@@ -104,7 +136,7 @@
                     <x-jet-input id="qty" type="text" class="mt-1 block w-full" wire:model.debunce.800ms="qty" autofocus />
                     <x-jet-input-error for="qty" class="mt-2" />
                 </div>
-                <div class="">
+                <div class="ml-1">
                     <x-jet-label for="unit" value="{{ __('Unit Measurement') }}" />
                     <x-jet-input id="unit" placeholder="meter, unit, item, dll" type="text" class="mt-1 block w-full" wire:model.debunce.800ms="unit" autofocus />
                     <x-jet-input-error for="unit" class="mt-2" />
@@ -127,7 +159,7 @@
                     {{ __('Save') }}
                 </x-jet-button>
             @else
-                <x-jet-secondary-button wire:click="modalProductVisible">
+                <x-jet-secondary-button class="dark:bg-gray-600" wire:click="modalProductVisible">
                     {{__('Select Product')}}
                 </x-jet-secondary-button>
                 <x-jet-button class="ml-2" wire:click="create" wire:loading.attr="disabled">
@@ -149,7 +181,7 @@
                         <select
                             name="selectedProduct"
                             id="selectedProduct"
-                            class="border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full"
+                            class="border-gray-300 dark:bg-slate-800 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full"
                             wire:model.debunce.800ms="selectedProduct"
                             >
                             <option selected>-- Select Product --</option>
@@ -218,36 +250,5 @@
         </x-slot>
     </x-jet-confirmation-modal>
 
-    @if($data['items']->count()>0)
-    <x-jet-form-section submit="#">
-        <x-slot name="title">
-            {{ __(' ') }}
-        </x-slot>
 
-        <x-slot name="description">
-            {{ __(' ') }}
-        </x-slot>
-
-        <x-slot name="form">
-
-            <div class="col-span-6 grid grid-cols-2" wire:poll >
-                <div class="col-span-12 sm:col-span-1 mx-4">
-                    <x-jet-label for="input" value="{{ __(' ') }}" />
-                    <x-jet-input-error for="input" class="mt-2" />
-                </div>
-                <div class="col-span-12 sm:col-span-1 mx-4">
-                    <x-jet-label for="input.customer_id" value="{{ __('Total') }}" />
-                    <span class="border rounded-md shadow-sm mt-1 block w-full p-2 text-right">Rp {{number_format($data['total'])}}</span>
-                    <x-jet-input-error for="input.total" class="mt-2" />
-                </div>
-            </div>
-        </x-slot>
-
-        <x-slot name="actions">
-            <x-jet-action-message class="mr-3" on="saved">
-                {{ __('Order saved.') }}
-            </x-jet-action-message>
-        </x-slot>
-    </x-jet-form-section>
-    @endif
 </div>

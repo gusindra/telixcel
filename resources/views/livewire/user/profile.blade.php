@@ -12,7 +12,7 @@
             <!-- Profile Photo -->
             <div x-data="{photoName: null, photoPreview: null}" class="col-span-6 sm:col-span-4">
 
-                <label class="block font-medium text-sm text-gray-700" for="photo">
+                <label class="block font-medium text-sm text-gray-700 dark:text-slate-300" for="photo">
                     Photo
                 </label>
 
@@ -106,7 +106,7 @@
                     <select
                         name="title"
                         id="title"
-                        class="border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full"
+                        class="border-gray-300 dark:bg-slate-800 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full"
                         wire:model.debunce.800ms="inputclient.title"
                         >
                         <option selected>-- Select --</option>
@@ -231,12 +231,12 @@
     <x-jet-section-border />
 
     <div class="mt-10 sm:mt-0">
-        <div wire:id="nyoP2bKYZNvkVw50cY6w" class="md:grid md:grid-cols-3 md:gap-6">
+        <div class="md:grid md:grid-cols-3 md:gap-6">
             <div class="md:col-span-1 flex justify-between">
                 <div class="px-4 sm:px-0">
-                    <h3 class="text-lg font-medium text-gray-900">Delete Account</h3>
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-slate-300">Delete Account</h3>
 
-                    <p class="mt-1 text-sm text-gray-600">
+                    <p class="mt-1 text-sm text-gray-600 dark:text-slate-300">
                         Permanently delete your account.
                     </p>
                 </div>
@@ -247,8 +247,8 @@
             </div>
 
             <div class="mt-5 md:mt-0 md:col-span-2">
-                <div class="px-4 py-5 sm:p-6 bg-white shadow sm:rounded-lg">
-                    <div class="max-w-xl text-sm text-gray-600">
+                <div class="px-4 py-5 sm:p-6 bg-white dark:bg-slate-600 shadow sm:rounded-lg">
+                    <div class="max-w-xl text-sm text-gray-600 dark:text-slate-300">
                         Once your account is deleted, all of its resources and data will be permanently deleted.
                         Before deleting your account, please download any data or information that you wish to
                         retain.
@@ -261,12 +261,12 @@
                     </div>
 
                     <!-- Delete User Confirmation Modal -->
-                    <div x-data=" " x-on:close.stop="show = false" x-on:keydown.escape.window="show = false" x-on:keydown.tab.prevent="$event.shiftKey || nextFocusable().focus()" x-on:keydown.shift.tab.prevent="prevFocusable().focus()" x-show="show" id="36ac91a8122577c7b197539ebb1a5123" class="jetstream-modal fixed inset-0 overflow-y-auto px-4 py-6 sm:px-0 z-50" style="display: none;">
-                        <div x-show="show" class="fixed inset-0 transform transition-all" x-on:click="show = false" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" style="display: none;">
+                    <div class="jetstream-modal fixed inset-0 overflow-y-auto px-4 py-6 sm:px-0 z-50" style="display: none;">
+                        <div  class="fixed inset-0 transform transition-all"  x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" style="display: none;">
                             <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
                         </div>
 
-                        <div x-show="show" class="mb-6 bg-white rounded-lg overflow-hidden shadow-xl transform transition-all sm:w-full sm:max-w-2xl sm:mx-auto" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" style="display: none;">
+                        <div  class="mb-6 bg-white rounded-lg overflow-hidden shadow-xl transform transition-all sm:w-full sm:max-w-2xl sm:mx-auto" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" style="display: none;">
                             <div class="px-6 py-4">
                                 <div class="text-lg">
                                     Delete Account
@@ -277,7 +277,7 @@
                                     of its resources and data will be permanently deleted. Please enter your
                                     password to confirm you would like to permanently delete your account.
 
-                                    <div class="mt-4" x-data="{}" x-on:confirming-delete-user.window="setTimeout(() => $refs.password.focus(), 250)">
+                                    <div class="mt-4">
                                         <input class="border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-3/4" type="password" placeholder="Password" x-ref="password" wire:model.defer="password" wire:keydown.enter="deleteUser">
 
                                     </div>

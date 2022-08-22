@@ -18,7 +18,9 @@ class Commision extends Model
         'model',
         'model_id',
         'client_id',
+        'type',
         'ratio',
+        'total',
         'status',
     ];
 
@@ -44,8 +46,20 @@ class Commision extends Model
         return $this->belongsTo('App\Models\Order', 'model_id')->where('model', 'order');
     }
 
+    public function invoice()
+    {
+        return $this->belongsTo('App\Models\Order', 'model_id')->where('model', 'invoice');
+    }
+
     public function agent()
     {
         return $this->belongsTo('App\Models\Client', 'client_id');
+    }
+
+    /**
+     * Get all of team.
+     */
+    public function approval(){
+    	return $this->hasOne('App\Models\FlowProcess', 'model_id')->where('model', 'COMMISSION')->whereNull('status');
     }
 }

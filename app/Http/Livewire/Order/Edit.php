@@ -51,7 +51,7 @@ class Edit extends Component
         $this->input['status'] = $this->order->status ?? '';
         $this->input['source'] = $this->order->source ?? '';
         $this->input['source_id'] = $this->order->source_id ?? '';
-        $this->input['date'] = $this->order->date ?? '';
+        $this->input['date'] = $this->order->date ? $this->order->date->format('Y-m-d') :'';
         $this->input['total'] = $this->order->total ?? '';
     }
 

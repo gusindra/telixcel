@@ -25,7 +25,8 @@ class Member extends Component
     {
         $invitation = RoleInvitation::create([
             'email' => $this->inviteEmail,
-            'role_id' => $this->role
+            'role_id' => $this->role,
+            'team_id' => auth()->user()->current_team_id
         ]);
 
         Mail::to($this->inviteEmail)->send(new MailRoleInvitation($invitation));

@@ -27,7 +27,7 @@
                     <select
                         name="status"
                         id="status"
-                        class="border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full"
+                        class="border-gray-300 dark:bg-slate-800 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full"
                         wire:model.debunce.800ms="status"
                         >
                         <option selected>-- Select Status --</option>
@@ -44,7 +44,7 @@
                 <select
                     name="type"
                     id="type"
-                    class="border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full"
+                    class="border-gray-300 dark:bg-slate-800 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full"
                     wire:model.debunce.800ms="type"
                     >
                     <option selected>-- Select Party --</option>
@@ -62,13 +62,13 @@
                 <select
                     name="import"
                     id="import"
-                    class="border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full"
+                    class="border-gray-300 dark:bg-slate-800 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full"
                     wire:model.debunce.800ms="import"
                     >
                     <option selected>-- Select Import Way --</option>
                     <option value="none">None</option>
-                    <option value="fob">FOB</option>
-                    <option value="ddp">DDP</option>
+                    <option value="fob">FOB (Free on Board)</option>
+                    <option value="ddp">DDP (Delivered Duty Paid)</option>
                 </select>
                 <x-jet-input-error for="import" class="mt-2" />
             </div>
@@ -203,12 +203,12 @@
 
     <x-jet-section-border />
 
-    <div class="md:grid md:grid-cols-3 md:gap-6">
+    <div class="md:grid md:grid-cols-5 md:gap-6">
         <div class="md:col-span-1 flex justify-between">
             <div class="px-4 sm:px-0">
-                <h3 class="text-lg font-medium text-gray-900">Pics</h3>
+                <h3 class="text-lg font-medium text-gray-900 dark:text-slate-300">Pics</h3>
 
-                <p class="mt-1 text-sm text-gray-600">
+                <p class="mt-1 text-sm text-gray-600 dark:text-slate-300">
                     The Product picture.
                 </p>
             </div>
@@ -216,9 +216,9 @@
             <div class="px-4 sm:px-0"> </div>
         </div>
 
-        <div class="mt-0 md:mt-0 md:col-span-2">
-            <div class=" bg-white shadow sm:rounded-md">
-                <div class="  ">
+        <div class="mt-0 md:mt-0 md:col-span-4">
+            <div class=" bg-white dark:bg-slate-600 shadow sm:rounded-md">
+                <div class="">
                     @livewire('image-upload', ['model'=> 'product', 'model_id'=>$item->id])
                 </div>
             </div>

@@ -32,18 +32,18 @@
                             <div class="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
                                 @if ($data->count())
                                 <div class="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
-                                    <table class="min-w-full divide-y divide-gray-200">
+                                    <table class="min-w-full divide-y divide-gray-200 mt-2">
                                         <thead>
                                             <tr>
-                                                <th class="px-6 py-3 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider w-1/2">Message</th>
-                                                <th class="px-6 py-3 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider w-1/4"></th>
+                                                <th class="px-6 py-3 bg-gray-50 dark:bg-slate-800 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider w-1/2">Message</th>
+                                                <th class="px-6 py-3 bg-gray-50 dark:bg-slate-800 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider w-1/4"></th>
                                             </tr>
                                         </thead>
-                                        <tbody class="bg-white divide-y divide-gray-200">
+                                        <tbody class="bg-white dark:bg-slate-700 divide-y divide-gray-200">
                                             @foreach ($data as $item)
                                                 <tr>
                                                     <td class="px-6 py-4 text-sm whitespace-no-wrap">
-                                                        <div class="w-full flex md:flex-col bg-gradient-to-br from-green-100 to-green-200 rounded-tr-2xl rounded-tr-2xl rounded-b-xl">
+                                                        <div class="w-full flex md:flex-col bg-gradient-to-br from-green-100 to-green-200 rounded-tr-2xl rounded-b-xl">
                                                             <div class="items-start relative z-10 p-3 xl:p-3">
                                                                 @if($item->type=='image')
                                                                     <img src="{{$item->message}}" class="bg-gray-100 max-w-400 min-w-1/2 right-0 order-last" />
@@ -66,7 +66,7 @@
                                                                         Your browser does not support the audio element.
                                                                     </audio>
                                                                 @else
-                                                                    <span class="whitespace-pre-wrap">{{ $item->message }}</span>
+                                                                    <span class="whitespace-pre-wrap dark:text-slate-600">{{ $item->message }}</span>
                                                                 @endif
                                                             </div>
                                                         </div>
@@ -138,7 +138,7 @@
                             id="toggle"
                             name="toggle"
                             x-model="toggle"
-                            class="hidden appearance-none w-full h-full active:outline-none focus:outline-none" />
+                            class="hidden dark:bg-slate-800 appearance-none w-full h-full active:outline-none focus:outline-none" />
                     </div>
 
                     <span class=" block ml-3 text-xs">Attachment</span>
@@ -157,7 +157,7 @@
 
                 <div id="toggleOn" x-show="toggle">
                     <x-jet-label for="photo" value="{{ __('Link') }}" />
-                    <input class="border-gray-300 focus:border-indigo-300 w-full my-1 text-sm" type="text" placeholder="{{ __('Link Attachment') }}"
+                    <input class="border-gray-300 dark:bg-slate-800 focus:border-indigo-300 w-full my-1 text-sm" type="text" placeholder="{{ __('Link Attachment') }}"
                                 x-ref="link_attachment"
                                 wire:model.defer="link_attachment">
                 </div>

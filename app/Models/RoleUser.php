@@ -19,6 +19,7 @@ class RoleUser extends Model
     protected $fillable = [
         'role_id',
         'user_id',
+        'team_id',
         'status',
         'working_id'
     ];

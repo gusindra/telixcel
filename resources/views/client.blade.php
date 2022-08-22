@@ -7,10 +7,10 @@
 
     <div class="py-4">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-12">
-            <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
+            <div class="bg-white dark:bg-slate-600  overflow-hidden shadow-xl sm:rounded-lg">
                 <div class="container mx-auto">
                     <div>
-                        <livewire:client-datatables searchable="name, email, gender" exportable />
+                        <livewire:table.client-datatables searchable="name, email, gender" exportable />
                     </div>
                 </div>
             </div>

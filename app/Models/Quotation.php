@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -37,6 +38,11 @@ class Quotation extends Model
         'addressed_company',
     ];
 
+    public static $searchable=[
+        "title",
+        "quote_no"
+    ];
+
     protected $guarded = [];
 
     /**
@@ -46,6 +52,7 @@ class Quotation extends Model
      */
     protected $casts = [
         'date' => 'datetime',
+        'expired_date' => 'datetime',
     ];
 
     /**
@@ -81,5 +88,26 @@ class Quotation extends Model
     public function client()
     {
         return $this->belongsTo('App\Models\Client', 'model_id');
+    }
+    public function order()
+    {
+        return $this->hasOne('App\Models\Order', 'source_id')->where('source', 'QUOTATION');
+    }
+
+    /**
+     * attachment sign document
+     *
+     * @return void
+     */
+    public function attachments(){
+        return $this->hasMany('App\Models\Attachment', 'model_id')->where('model', 'quotation');
+    }
+
+    protected $appends = ['expired_date'];
+
+    public function getExpiredDateAttribute(){
+        $date = Carbon::createFromFormat('Y-m-d',  $this->date->format('Y-m-d'));
+        $daysToAdd = $this->valid_day;
+        return $date = $date->addDays($daysToAdd);
     }
 }

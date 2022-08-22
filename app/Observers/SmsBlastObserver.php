@@ -18,6 +18,10 @@ class SmsBlastObserver
     public function created(BlastMessage $request)
     {
         if($request->code=="200"){
+            //check logic order for sms active here
+            // get price for sms
+
+            //else run this price
             $master = ProductLine::where('name', 'Telixcel')->first();
 
             $items = $master->items;

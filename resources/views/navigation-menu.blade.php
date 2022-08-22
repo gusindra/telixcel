@@ -1,11 +1,13 @@
-<nav x-data="{ open: false }" class="bg-white border-b border-gray-100">
+<nav x-data="{ open: false }" class="bg-white dark:text-white border-b border-gray-100 dark:border-slate-50/[0.06] supports-backdrop-blur:bg-white/60 dark:bg-slate-800">
     <!-- Primary Navigation Menu -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
             <div class="flex">
                 <!-- Logo -->
                 <div class="flex-shrink-0 flex items-center">
-                    <a class="navbar-brand" href="/"><img src="https://telixcel.s3.ap-southeast-1.amazonaws.com/imgs/logo-150.png" title="{{ env('APP_NAME')}}" style="width: 150px;"/></a>
+                    <a class="navbar-brand" href="/">
+                        <img class="dark:bg-white" src="https://telixcel.s3.ap-southeast-1.amazonaws.com/imgs/logo-150.png" title="{{ env('APP_NAME')}}" style="width: 150px;"/>
+                    </a>
                 </div>
 
                 <!-- Navigation Links -->
@@ -30,19 +32,22 @@
                                 <x-jet-nav-link href="{{ route('user.index') }}" :active="request()->routeIs('user.index')">
                                     {{ __('Users') }}
                                 </x-jet-nav-link>
-                                <!-- <x-jet-nav-link href="{{ route('user.billing.index') }}" :active="request()->routeIs('user.billing.index')">
-                                    {{ __('Master Billing') }}
-                                </x-jet-nav-link> -->
+                                <!--<x-jet-nav-link href="{{ route('user.billing.index') }}" :active="request()->routeIs('user.billing.index')">-->
+                                <!--    {{ __('Master Billing') }}-->
+                                <!--</x-jet-nav-link>-->
                                 <x-jet-nav-link href="{{ route('billing') }}" :active="request()->routeIs('billing')">
                                     {{ __('Billing') }}
                                 </x-jet-nav-link>
                                 <x-jet-nav-link href="{{ route('assistant') }}" :active="request()->routeIs('assistant')">
                                     {{ __('Assistant') }}
                                 </x-jet-nav-link>
-                            @endif
-                            @if(@Auth::user()->super->first()->role == 'superadmin')
                                 <x-jet-nav-link href="{{ route('settings') }}" :active="request()->routeIs('settings')">
                                     {{ __('Settings') }}
+                                </x-jet-nav-link>
+                            @endif
+                            @if(Auth::user()->role->first() && Auth::user()->role->first()->role)
+                                <x-jet-nav-link href="{{ route('assistant') }}" :active="request()->routeIs('assistant')">
+                                    {{ __('Assistant') }}
                                 </x-jet-nav-link>
                             @endif
                         @else
@@ -69,13 +74,14 @@
             </div>
 
             <div class="hidden sm:flex sm:items-center sm:ml-6 flex-auto justify-end space-x-1">
+
                 <!-- Teams Dropdown -->
                 @if (Auth::user()->currentTeam && Laravel\Jetstream\Jetstream::hasTeamFeatures())
                     <div class="ml-3 relative">
                         <x-jet-dropdown align="right" width="60">
                             <x-slot name="trigger">
                                 <span class="inline-flex rounded-md">
-                                    <button type="button" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:bg-gray-50 hover:text-gray-700 focus:outline-none focus:bg-gray-50 active:bg-gray-50 transition">
+                                    <button type="button" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 dark:text-slate-300 bg-white supports-backdrop-blur:bg-white/60 dark:bg-slate-800 hover:bg-gray-50 hover:text-gray-700 focus:outline-none focus:bg-gray-50 active:bg-gray-50 transition">
                                         {{ Auth::user()->currentTeam->name }}
 
                                         <svg class="ml-2 -mr-0.5 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
@@ -132,7 +138,7 @@
                     <x-jet-dropdown align="right" width="48">
                         <x-slot name="trigger">
                             @if (Laravel\Jetstream\Jetstream::managesProfilePhotos())
-                                <button class="flex text-sm border-2 border-transparent rounded-full focus:outline-none focus:border-gray-300 transition">
+                                <button class="flex text-sm border-2 border-transparent rounded-full focus:outline-none focus:border-gray-300 dark:bg-slate-700 transition">
                                     <img class="h-8 w-8 rounded-full object-cover" src="{{ Auth::user()->profile_photo_url }}" alt="{{ Auth::user()->name }}" />
                                     @if(count(Auth::user()->role)>0)
                                     <span class="m-2 text-xs">{{Auth::user()->role->first()->role->name}}</span>
@@ -172,7 +178,6 @@
                                     </x-jet-dropdown-link>
                                 @endif
                             @endif
-
                             @can('create', Laravel\Jetstream\Jetstream::newTeamModel())
                                 <x-jet-dropdown-link href="{{ route('teams.create') }}">
                                     {{ __('Create New Team') }}
@@ -201,6 +206,11 @@
 
                 <!-- Notification Dropdown -->
                 @livewire('notification-app', ['client_id' => Auth::user()->id], key(Auth::user()->id))
+
+                @if(auth()->user()->currentTeam && auth()->user()->currentTeam->id == env('IN_HOUSE_TEAM_ID'))
+                    <!-- Global Search -->
+                    @livewire('search.all')
+                @endif
             </div>
 
             <!-- Hamburger -->
@@ -290,11 +300,13 @@
                         {{ __('Team Settings') }}
                     </x-jet-responsive-nav-link>
 
-                    @can('create', Laravel\Jetstream\Jetstream::newTeamModel())
-                        <x-jet-responsive-nav-link href="{{ route('teams.create') }}" :active="request()->routeIs('teams.create')">
-                            {{ __('Create New Team') }}
-                        </x-jet-responsive-nav-link>
-                    @endcan
+                    @if(auth()->user()->super->first() && auth()->user()->super->first()->role == 'member')
+                        @can('create', Laravel\Jetstream\Jetstream::newTeamModel())
+                            <x-jet-responsive-nav-link href="{{ route('teams.create') }}" :active="request()->routeIs('teams.create')">
+                                {{ __('Create New Team') }}
+                            </x-jet-responsive-nav-link>
+                        @endcan
+                    @endif
 
                     <div class="border-t border-gray-200"></div>
 

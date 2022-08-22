@@ -22,7 +22,7 @@ class RoleController extends Controller
 
     public function index()
     {
-        return view('role.role-table');
+        return view('role.role-table', ['page'=>'role']);
     }
 
     public function show(Role $role)

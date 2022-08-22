@@ -15,6 +15,7 @@ class RoleInvitation extends Model
     protected $fillable = [
         'email',
         'role_id',
+        'team_id'
     ];
 
     /**

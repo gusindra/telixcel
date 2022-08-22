@@ -4,6 +4,7 @@ namespace App\Observers;
 
 use App\Models\Project;
 use App\Models\FlowProcess;
+use App\Models\FlowSetting;
 use Illuminate\Support\Facades\Auth;
 
 class ProjectObserver
@@ -36,12 +37,24 @@ class ProjectObserver
                 'status'    => 'submited'
             ]);
 
-            FlowProcess::create([
-                'model'     => 'PROJECT',
-                'model_id'  => $request->id,
-                'role_id'   => 1
-            ]);
+            // FlowProcess::create([
+            //     'model'     => 'PROJECT',
+            //     'model_id'  => $request->id,
+            //     'role_id'   => 1
+            // ]);
+            // APPROVAL
+            $flow = FlowSetting::where('model', 'PROJECT')->where('team_id', auth()->user()->currentTeam->id)->get();
+
+            foreach($flow as $key => $value){
+                FlowProcess::create([
+                    'model'     => $value->model,
+                    'model_id'  => $request->id,
+                    'role_id'   => $value->role_id,
+                    'task'      => $value->description,
+                ]);
+            }
         }
+
     }
 
     /**

@@ -16,6 +16,7 @@ use App\Http\Controllers\UserBillingController;
 use App\Http\Controllers\UploadController;
 use App\Http\Controllers\CommercialController;
 use App\Http\Controllers\CommissionController;
+use App\Http\Controllers\FlowController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PaymentController;
@@ -25,6 +26,7 @@ use App\Jobs\ProcessEmail;
 use App\Models\ApiCredential;
 use App\Models\BlastMessage;
 use App\Models\Client;
+use App\Models\FlowSetting;
 use App\Models\Notification;
 use App\Models\Template;
 use App\Models\Request;
@@ -33,6 +35,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Http\Request as HttpRequest;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 /*
 |--------------------------------------------------------------------------
@@ -54,8 +57,10 @@ Route::group(['middleware' => 'web'], function () {
 });
 
 Route::middleware(['auth:sanctum', 'verified'])->group(function () {
-
     Route::get('/dashboard', function () {
+        if(empty(auth()->user()->currentTeam)){
+            return redirect()->route('teams.create');
+        }
         return view('dashboard');
     })->name('dashboard');
 
@@ -113,6 +118,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/permission', function () {
         return view('permission.index', ['page'=>'permission']);
     })->name('permission.index');
+    Route::get('/flow/{model}', [FlowController::class, 'show'])->name('flow.show');
 
     Route::get('/settings', [SettingController::class, 'index'])->name('settings');
     Route::get('/settings/{page}', [SettingController::class, 'show'])->name('settings.show');
@@ -134,12 +140,15 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/project/{project}', [ProjectController::class, 'show'])->name('project.show');
 
     Route::get('/order', [OrderController::class, 'index'])->name('order');
-    Route::get('/invoice', [InvoiceController::class, 'index'])->name('invoice');
-    Route::get('/commission', [CommissionController::class, 'index'])->name('commission');
     Route::get('/order/{order}', [OrderController::class, 'show'])->name('show.order');
-    // Route::get('/order',  function () {
-    //     return view('assistant.order.index');
-    // })->name('order');
+    Route::get('/invoice', [InvoiceController::class, 'index'])->name('invoice');
+    Route::get('/invoice-order/{invoice}', [InvoiceController::class, 'show'])->name('show.invoice');
+    Route::get('/commission', [CommissionController::class, 'index'])->name('commission');
+    Route::get('/commission/{commission}', [CommissionController::class, 'show'])->name('show.commission');
+
+    // Route::get('/order/{order}',  function ($i) {
+    //     return $i;
+    // });
 
     // Route::get('/order/{uuid}', function ($uuid) {
     //     return view('assistant.order.show', ['uuid'=> $uuid]);
@@ -161,7 +170,6 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
 Route::get('/role-invitations/{invitation}', [RoleInvitationController::class, 'accept'])->middleware(['signed'])->name('role-invitations.accept');
 
-
 Route::get('/devhook', [DevhookController::class, 'index']);
 
 Route::post('/webhook/{slug}', [ApiWaController::class, 'inbounceMessage'])->name('webhook.client');
@@ -175,9 +183,7 @@ Route::get('/chat/{slug}', function ($slug) {
 });
 
 Route::get('/chating/{slug}', [ChatController::class, 'show'])->name('chat.slug');
-
 Route::get('/upload', [UploadController::class, 'index']);
-
 Route::get('/logout', [AuthController::class, 'destroy'])->name('logout');
 Route::post('/logout', [AuthController::class, 'destroy'])->name('logout');
 
@@ -248,8 +254,6 @@ Route::get('queue/{id}', function ($id) {
 });
 
 Route::get('/restart-service', function(){
-
-
     $curl = curl_init();
     curl_setopt($curl, CURLOPT_SSL_VERIFYHOST,0);
     curl_setopt($curl, CURLOPT_SSL_VERIFYPEER,0);
@@ -347,6 +351,8 @@ Route::get('/testing', function(){
 });
 
 Route::get('/tester', function(HttpRequest $request){
+    // return auth()->user()->super->first()->role;
+    return $flow = FlowSetting::where('model', 'QUOTATION')->where('team_id', auth()->user()->currentTeam->id)->get();
     // return $request;
     $url = $request->url;
     $secretkey = $request->key;

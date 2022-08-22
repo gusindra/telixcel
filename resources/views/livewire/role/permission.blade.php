@@ -14,7 +14,7 @@
         <x-slot name="form">
 
             <div class="col-span-6 sm:col-span-6">
-                <span class="text-gray-500 font-bold">Role Permissions</span>
+                <span class="text-gray-500 dark:text-slate-300 font-bold">Role Permissions</span>
             </div>
 
             <!-- is_enabled -->
@@ -30,7 +30,7 @@
                             <div class="flex items-center h-5 mb-1">
                                 <!-- <input id="status" name="status" wire:model="request.{{$data->model}}" wire:model.defer="request.{{$data->model}}" type="checkbox"
                                     class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded"> -->
-                                <span class="text-gray-500 font-bold">MENU {{$data->model}}</span>
+                                <span class="text-gray-500 dark:text-slate-300 font-bold">MENU {{$data->model}}</span>
                             </div>
                             <div class="flex col-span-1 sm:col-span-1 space-x-8 lg:space-x-18 mb-8">
                         @endif
@@ -40,11 +40,11 @@
                                     type="checkbox"
                                     value="1"
                                     wire:click.prevent="check({{$data->id}})"
-                                    class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">
+                                    class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 dark:text-slate-800 border-gray-300 rounded">
                             </div>
 
                             <div class="ml-3 text-xs">
-                                <label for="permission{{$data->id}}" class="text-gray-700 text-xs">{{$data->name}}</label>
+                                <label for="permission{{$data->id}}" class="text-gray-700 dark:text-slate-300 text-xs">{{$data->name}}</label>
                             </div>
                         </div>
                         @if($loop->last)

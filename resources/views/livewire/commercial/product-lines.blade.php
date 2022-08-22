@@ -20,13 +20,13 @@
                             wire:model.defer="product_line"
                             wire:model.debunce.800ms="product_line" />
                 @else
-                    <span class="border rounded-md shadow-sm mt-1 block w-full p-2">{{$selected_line}}</span>
+                    <span class="border rounded-md shadow-sm mt-1 block w-full p-2 dark:bg-slate-800">{{$selected_line}}</span>
                 @endif
                 <x-jet-input-error for="product_line" class="mt-2" />
                 @if(count($data['quick'])>0 || $product_line!="")
                 <div :class="[open ? 'block' : 'block']" class="block">
                     <div class="z-40 left-0 mt-2 w-full">
-                        <div class="py-1 text-sm bg-white rounded shadow-lg border border-gray-300">
+                        <div class="py-1 text-sm rounded shadow-lg border border-gray-300">
                             @if(count($data['quick'])==0 && $product_line!="")
                                 <a wire:click="addProduct()" class="block py-1 px-5 cursor-pointer hover:bg-indigo-600 hover:text-white">Add
                                         Product Line: "<span class="font-semibold" x-text="textInput">{{$product_line}}</span>"</a>

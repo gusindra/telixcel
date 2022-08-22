@@ -6,9 +6,11 @@ use App\Models\Company;
 use App\Models\Order;
 use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class Add extends Component
 {
+    use AuthorizesRequests;
     public $modalActionVisible = false;
     public $type;
     public $entity;
@@ -25,6 +27,7 @@ class Add extends Component
 
     public function create()
     {
+        $this->authorize('create', new Order);
         $this->validate();
         Order::create($this->modelData());
         $this->modalActionVisible = false;
@@ -65,7 +68,7 @@ class Add extends Component
 
     private function readCompany()
     {
-        if(Auth::user()->super->first()->role == 'superadmin'){
+        if(Auth::user()->super->first() && Auth::user()->super->first()->role == 'superadmin'){
             return Company::where('user_id', 0)->get();
         }
         return Company::where('user_id', Auth::user()->id)->get();

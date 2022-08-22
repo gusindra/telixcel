@@ -4,11 +4,11 @@
             {{ __('Edit Commerce Item') }}
         </h2>
     </x-slot>
-    <header class="bg-white shadow ">
+    <header class="bg-white dark:bg-slate-900 dark:border-slate-600 border-b shadow ">
         <div class="flex justify-between pt-2 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="justify-end flex">
                 <div class="items-center justify-end px-2">
-                    <div class="space-x-1 sm:-my-px">
+                    <div class="space-x-1 sm:-my-px pb-2">
                         <x-jet-nav-link href="{{ route('assistant') }}">
                             {{ __('Assistant') }}
                         </x-jet-nav-link>
@@ -34,12 +34,12 @@
                             </svg>
                         </span>
                         <x-jet-nav-link href="#" :active="true">
-                            {{$code}}
+                            {{$code}}. {{$data->name}}
                         </x-jet-nav-link>
                     </div>
                 </div>
             </div>
-            <div class="justify-end flex">
+            <div class="justify-end flex hidden">
                 <div class="items-center justify-end px-2 text-right">
                     <x-jet-dropdown align="right" width="60">
                         <x-slot name="trigger">

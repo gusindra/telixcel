@@ -22,7 +22,9 @@ class Balance extends LivewireDatatable
     {
         return [
     		DateColumn::name('created_at')->label('DATE')->format('d/m/Y H:i')->filterable(),
-    		Column::name('mutation')->label('MUTATION (DEBIT/CREDIT)')->filterable(['debit', 'credit']),
+    		Column::callback(['mutation'], function ($y) {
+                return view('label.type', ['type' => $y]);
+            })->label('MUTATION (DEBIT/CREDIT)')->filterable(['debit', 'credit']),
     		Column::name('description')->label('DESCRIPTION')->filterable(),
     		Column::name('currency')->label('Currency')->filterable(),
     		Column::callback(['amount', 'mutation'], function ($amount, $mutation) {

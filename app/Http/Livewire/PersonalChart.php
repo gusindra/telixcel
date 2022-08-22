@@ -2,6 +2,7 @@
 
 namespace App\Http\Livewire;
 
+use App\Models\BlastMessage;
 use Livewire\Component;
 use App\Models\Request;
 use Asantibanez\LivewireCharts\Models\AreaChartModel;
@@ -15,7 +16,8 @@ use Illuminate\Support\Facades\DB;
 
 class PersonalChart extends Component
 {
-
+    public $dataRes = array();
+    public $modalActionVisible = false;
     public $types = ['text', 'shopping', 'entertainment', 'travel', 'other'];
     public $colors = [
         'text' => '#f6ad55',
@@ -34,15 +36,26 @@ class PersonalChart extends Component
 
     public function handleOnPointClick($point)
     {
-        dd($point);
+        // dd($point);
+        $this->dataRes = $point;
+        $this->modalActionVisible = true;
     }
     public function handleOnSliceClick($slice)
     {
-        dd($slice);
+        $this->dataRes = $slice;
+        $this->modalActionVisible = true;
+        // dd($slice);
     }
     public function handleOnColumnClick($column)
     {
-        dd($column);
+        $this->dataRes = $column;
+        $this->modalActionVisible = true;
+        // dd($column);
+    }
+
+    public function actionShowModal()
+    {
+        $this->modalActionVisible = true;
     }
 
     public function render()
@@ -50,57 +63,62 @@ class PersonalChart extends Component
         $columnChartModel = null;
         $lineChartModel = null;
         $multiLineChartModel = null;
-                
-        if(auth()->user()->currentTeam && auth()->user()->currentTeam->requestAll){
-            $expenses = auth()->user()->currentTeam->requestAll->where('user_id', auth()->user()->id);
+        if(auth()->user()->super && auth()->user()->super->first() && auth()->user()->super->first()->role == 'superadmin'){
+            $expenses = Request::query();
         }else{
-            $expenses = Request::where('user_id', auth()->user()->id);
+            if(auth()->user()->currentTeam->user_id == auth()->user()->id){
+                $expenses = Request::select('source_id', 'from', 'user_id', 'created_at')->where('user_id', auth()->user()->id)->groupBy(function($date) {
+                    return Carbon::parse($date->created_at)->format('dayofWeek'); // dayofWeek
+                }, 'from')->get()->toArray();
+            }else{
+                //auth()->user()->currentTeam->requestAll
+                $expenses = auth()->user()->currentTeam->requestAll->where('user_id', auth()->user()->id)->groupBy(function($date) {
+                    return Carbon::parse($date->created_at)->format('dayofWeek'); // dayofWeek
+                }, 'from');
+            }
         }
-        
-        $columnChartModel = $expenses->groupBy(function($date) {
-            return Carbon::parse($date->created_at)->format('dayofWeek'); // dayofWeek
-        })->reduce(
-            function ($columnChartModel, $data) {
-                $type = $data->first()->type;
-                $value = $data->count();
-                // dd($data);
-                if($type!='document' && $type!='image'){
-                    // return $columnChartModel->addColumn($data->first()->created_at->format("d M"), $value, $this->colors[$type], ['id' => $data]);
-                }
-            },
-            LivewireCharts::columnChartModel()
-                ->setTitle('Request by Type')
-                ->setAnimated($this->firstRun)
-                ->withOnColumnClickEventName('onColumnClick')
-        );
-        
-        $lineChartModel = $expenses->groupBy(function($date) {
-            return Carbon::parse($date->created_at)->format('dayofWeek'); // dayofWeek
-        })->reduce(
-            function ($lineChartModel, $data) {
-                $date = $data->first()->created_at->format("d M Y");
-                $amountSum = $data->count();
-                // if ($index == 6) {
-                //     $lineChartModel->addMarker(7, $amountSum);
-                // }
-                // if ($index == 11) {
-                //     $lineChartModel->addMarker(12, $amountSum);
-                // }
-                return $lineChartModel->addPoint($data->first()->created_at->format("d M"), $amountSum, ['id' => $data]);
-            },
-            LivewireCharts::lineChartModel()
-                ->setTitle('Direct Chat')
-                ->setAnimated($this->firstRun)
-                ->withOnPointClickEvent('onPointClick')
-        );
-        
-        $multiLineChartModel = $expenses->groupBy(function($date) {
-            return Carbon::parse($date->created_at)->format('dayofWeek'); // dayofWeek
-        }, 'from')->reduce(function ($multiLineChartModel, $data) use ($expenses) {
-            $index = $expenses->search($data);
-            $date = $data->first()->created_at->format("d M Y");
-            $amountSum = $data->count();
-            $type = $data->first()->from != 'bot' ? 'User':'Bot';
+        // $columnChartModel = $expenses->groupBy(function($date) {
+        //     return Carbon::parse($date->created_at)->format('dayofWeek'); // dayofWeek
+        // })->reduce(
+        //     function ($columnChartModel, $data) {
+        //         $type = $data->first()->type;
+        //         $value = $data->count();
+        //         // dd($data);
+        //         if($type!='document' && $type!='image'){
+        //             // return $columnChartModel->addColumn($data->first()->created_at->format("d M"), $value, $this->colors[$type], ['id' => $data]);
+        //         }
+        //     },
+        //     LivewireCharts::columnChartModel()
+        //         ->setTitle('Request by Type')
+        //         ->setAnimated($this->firstRun)
+        //         ->withOnColumnClickEventName('onColumnClick')
+        // );
+
+        // $lineChartModel = $expenses->groupBy(function($date) {
+        //     return Carbon::parse($date->created_at)->format('dayofWeek'); // dayofWeek
+        // })->reduce(
+        //     function ($lineChartModel, $data) {
+        //         $date = $data->first()->created_at->format("d M Y");
+        //         $amountSum = $data->count();
+        //         // if ($index == 6) {
+        //         //     $lineChartModel->addMarker(7, $amountSum);
+        //         // }
+        //         // if ($index == 11) {
+        //         //     $lineChartModel->addMarker(12, $amountSum);
+        //         // }
+        //         return $lineChartModel->addPoint($data->first()->created_at->format("d M"), $amountSum, ['id' => $data]);
+        //     },
+        //     LivewireCharts::lineChartModel()
+        //         ->setTitle('Direct Chat')
+        //         ->setAnimated($this->firstRun)
+        //         ->withOnPointClickEvent('onPointClick')
+        // );
+        dd($expenses);
+        $multiLineChartModel = $expenses->reduce(function ($multiLineChartModel, $data) use ($expenses) {
+            // $index = $expenses->search($data);
+            // $date = $data->first()->created_at->format("d M Y");
+            // $amountSum = $data->count();
+            // $type = $data->first()->from != 'bot' ? 'User':'Bot';
             // $defaultArr = array(
             //     'bot' => 0,
             //     'user' => 0,
@@ -118,10 +136,17 @@ class PersonalChart extends Component
                 }
                 return $array;
             });
+            $sms = BlastMessage::where('user_id', auth()->user()->id)->count();
+            // foreach($){
+
+            // }
+            $dataArr['SMS'] = 40;
             // dd($dataArr);
             foreach($dataArr as $key => $req){
                 $multiLineChartModel = $multiLineChartModel->addSeriesPoint($key, $data->first()->created_at->format("d M"),  $req,  ['id' => $data]);
+                // $multiLineChartModel = $multiLineChartModel->addSeriesPoint('API', $data->first()->created_at->format("d M"), 20,  ['id' => $data]);
             }
+            // dd($data->last()->created_at->format("d M"));
             return $multiLineChartModel;
         }, LivewireCharts::multiLineChartModel()
             ->setTitle('Request by Type')
@@ -130,7 +155,6 @@ class PersonalChart extends Component
             ->setSmoothCurve()
             ->multiLine()
             ->setDataLabelsEnabled($this->showDataLabels)
-            // ->addSeriesPoint('A', '1 Jul', 10, ['id' => 1])
             // ->addSeriesPoint('B', '1 Jul', 20, ['id' => 1])
             // ->addSeriesPoint('A', '2 Jul', 320, ['id' => 2])
             // ->addSeriesPoint('B', '2 Jul', 40, ['id' => 2])
@@ -138,15 +162,15 @@ class PersonalChart extends Component
             // ->addSeriesPoint('B', '3 Jul', 60, ['id' => 3])
             // ->addSeriesPoint('A', '4 Jul', 70, ['id' => 4])
             // ->addSeriesPoint('B', '4 Jul', 80, ['id' => 4])
-            //->setColors(['#b01a1b', '#f66665', '#000000'])
+            // ->setColors(['#b01a1b', '#f66665', '#000000'])
         );
-        
+        // dd($multiLineChartModel);
+
         $this->firstRun = false;
-        
-        return view('livewire.personal-chart')
-                ->with([
-                    'columnChartModel' => $columnChartModel,
-                    'lineChartModel' => $lineChartModel,
+
+        return view('livewire.personal-chart')->with([
+                    // 'columnChartModel' => $columnChartModel,
+                    // 'lineChartModel' => $lineChartModel,
                     'multiLineChartModel' => $multiLineChartModel,
                 ]);
     }

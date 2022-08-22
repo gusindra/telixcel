@@ -5,7 +5,7 @@
         </h2>
     </x-slot>
 
-    <header class="bg-white shadow ">
+    <header class="bg-white dark:bg-slate-900 dark:border-slate-600 border-b shadow">
         <div class="flex justify-between pt-2 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="justify-end flex">
                 <div class="items-center justify-end px-2 mb-3">

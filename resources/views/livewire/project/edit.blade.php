@@ -19,7 +19,7 @@
                 <div class="col-span-6 grid grid-cols-2">
                     <div class="col-span-12 sm:col-span-1">
                         <x-jet-label for="name" value="{{ __('Entity of Party B') }}" />
-                        <p class="uppercase">{{$entity}}</p>
+                        <p class="uppercase">{{$entity > 0 ? $project->company ? $project->company->name:$entity :$entity}}</p>
                     </div>
                 </div>
                 <div class="col-span-6 grid grid-cols-2">
@@ -50,7 +50,7 @@
                         {{disableInput($project->status)?'disabled':''}}
                         name="entity"
                         id="entity"
-                        class="border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full"
+                        class="border-gray-300 dark:bg-slate-800 focus:border-indigo-300 focus:ring focus:ring-indigo-200focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full"
                         wire:model.debunce.800ms="entity"
                         >
                         <option selected>-- Select Party --</option>
@@ -67,7 +67,7 @@
                         {{disableInput($project->status)?'disabled':''}}
                         name="type"
                         id="type"
-                        class="border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full"
+                        class="border-gray-300 dark:bg-slate-800 focus:border-indigo-300 focus:ring focus:ring-indigo-200focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full"
                         wire:model.debunce.800ms="type"
                         >
                         <option selected>-- Select Type --</option>
@@ -86,19 +86,15 @@
                 {{ __('Project saved.') }}
             </x-jet-action-message>
 
-            <x-save-button show="{{$project->status=='draft'?'true':'false'}}">
+            <x-save-button show="{{$project->status=='draft'?true:false}}">
                 {{ __('Save') }}
-            </x-save-button>
+            </x-jet-button>
         </x-slot>
     </x-jet-form-section>
 
     @livewire('project.add-customer', ['id' => $project->id])
-
     @livewire('project.edit-type', ['id' => $project->id, 'disabled' => disableInput($project->status)])
-
     @livewire('project.orders', ['id' => $project->id])
     @livewire('project.quotations', ['id' => $project->id])
     @livewire('project.contracts', ['id' => $project->id])
-
-
 </div>

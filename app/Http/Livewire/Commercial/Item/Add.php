@@ -39,7 +39,7 @@ class Add extends Component
             'type'          => $this->type,
             'name'          => $this->name,
             'sku'           => $this->sku,
-            'price'         => $this->price,
+            'unit_price'    => $this->price,
             'user_id'       => Auth::user()->id,
         ];
     }

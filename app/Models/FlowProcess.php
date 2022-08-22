@@ -56,6 +56,4 @@ class FlowProcess extends Model
     {
         return $query->where('model', $model)->where('model_id', $id)->whereNull('status')->orderBy('id', 'asc');
     }
-
-
 }

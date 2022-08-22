@@ -30,8 +30,10 @@ class Edit extends Component
     public $addressed_role;
     public $addressed_company;
     public $description;
+    public $source;
+    public $source_id;
 
-    public function mount($code)
+    public function mount($code, $source=null, $source_id=null)
     {
         $this->quote = Quotation::find($code);
         $this->name = $this->quote->title;
@@ -47,10 +49,18 @@ class Edit extends Component
         $this->model_id = $this->quote->model_id;
         $this->addressed_company = $this->quote->addressed_company;
         $this->description = $this->quote->description;
-        $this->created_by = $this->quote->created_by;
-        $this->created_role = $this->quote->created_role;
+        $this->created_by = $this->quote->created_by == '' ? auth()->user()->name : $this->quote->created_by;
+        $this->created_role = $this->quote->created_role == '' ? '' : $this->quote->created_role;
         $this->addressed_name = $this->quote->addressed_name;
         $this->addressed_role = $this->quote->addressed_role;
+        if($source && $source_id){
+            $this->source = $source;
+            $this->source_id = $source_id;
+            if($this->source=='project'){
+                $this->addressed_company = $this->quote->project->customer_name;
+                $this->addressed_name = $this->quote->project->customer_name;
+            }
+        }
     }
 
     public function rules()
@@ -106,6 +116,17 @@ class Edit extends Component
         }
     }
 
+    public function generateNo(){
+        $code = '';
+        if($this->type=='PROJECT'){
+            $code = $this->quote->project->company->code;
+        }elseif($this->type=='COMPANY'){
+            $code = $this->quote->company->code;
+        }
+        $this->quoteNo = $code.date('Ymd').$this->quote->id;
+    }
+
+
     /**
      * The read function.
      *
@@ -128,6 +149,9 @@ class Edit extends Component
      */
     public function readSourceSelection()
     {
+        if($this->source=='project' || $this->model=='PROJECT'){
+           return Project::where('id', $this->model_id)->pluck('name', 'id');
+        }
         if($this->model=='PROJECT'){
             $data = Project::where('team_id', auth()->user()->currentTeam->team_id)->pluck('name', 'id');
         }elseif($this->model=='COMPANY'){

@@ -3,14 +3,14 @@
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
         <div class="md:grid md:grid-cols-5 md:gap-6 mt-8 sm:mt-0">
             <div class="md:col-span-1"></div>
-            <div class="md:col-span-3 px-4 py-5 bg-white sm:p-6 shadow sm:rounded-tl-md sm:rounded-tr-md">
+            <div class="md:col-span-3 px-4 py-5 bg-white dark:bg-slate-600 sm:p-6 shadow sm:rounded-tl-md sm:rounded-tr-md">
                 <div class="px-4 sm:px-0 mb-4">
                     <div class="flex justify-between my-1">
                         <span class="font-semibold text-xl text-gray-900 mb-4">Menunggu Pembayaran</span>
                     </div>
 
                     @foreach ($list_orders as $order)
-                        <div class="flex justify-between my-4 shadow">
+                        <div class="flex justify-between my-4 shadow dark:bg-slate-800">
                             <img class="w-20 h-6" src="https://telixcel.s3.ap-southeast-1.amazonaws.com/imgs/2022/v2_logo-bca.png" />
                             <p class="text-gray-600 ">
                                 <span>Top-up</span><br>
@@ -19,7 +19,7 @@
                             </p>
                             <div class="copy mx-4">
                                 <p class="text-right text-sm">Total pembayaran:<br> Rp{{number_format($order->total)}}</p>
-                                <div class="flex justify-between gap-2 items-center py-3 bg-gray-50 sm:rounded-bl-md sm:rounded-br-md">
+                                <div class="flex justify-between gap-2 items-center py-3 sm:rounded-bl-md sm:rounded-br-md">
                                     <a href="{{route('invoice.topup', $order->id)}}" class="w-auto text-center px-4 py-2 bg-green-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 active:bg-green-900 focus:outline-none focus:border-green-900 focus:shadow-outline-gray disabled:opacity-25 transition">
                                         Lihat Detail
                                     </a>

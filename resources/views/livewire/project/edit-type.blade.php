@@ -11,26 +11,26 @@
         </x-slot>
 
         <x-slot name="form">
-            @if($project->status=='approved')
-                <div class="col-span-6 sm:col-span-6">
+            @if(in_array($project->status, ['submit','approved', 'done']))
+                <div class="col-span-12 sm:col-span-12">
                     @if ($project->type == 'referral')
-                        <span class="text-gray-500 font-bold">This project referrer from</span>
+                        <span class="text-gray-500 dark:text-slate-300font-bold">This project referrer from</span>
                         <p class="capitalize">{{$referrer_name}}</p>
                     @elseif($project->product_line)
-                        <span class="text-gray-500 font-bold">Product Line</span>
+                        <span class="text-gray-500 dark:text-slate-300 font-bold">Product Line</span>
                         <p class="capitalize">{{$project->productLine->name}}</p>
                     @endif
                 </div>
             @else
-                <div class="col-span-6 sm:col-span-6">
+                <div class="col-span-12 sm:col-span-12">
                     @if($project->type == 'selling')
-                        <span class="text-gray-500 font-bold">Selling Product / Annexed Service</span>
+                        <span class="text-gray-500 dark:text-slate-300 font-bold">Selling Product / Annexed Service</span>
                         @livewire('commercial.product-lines', ['model' => 'project', 'data' => $project, 'disabled' => $disabled])
                     @elseif ($project->type == 'saas')
-                        <span class="text-gray-500 font-bold">SAAS Service</span>
+                        <span class="text-gray-500 dark:text-slate-300 font-bold">SAAS Service</span>
                         @livewire('commercial.product-lines', ['model' => 'project', 'data' => $project, 'disabled' => $disabled ])
                     @elseif ($project->type == 'referral')
-                        <span class="text-gray-500 font-bold">This project referrer from</span>
+                        <span class="text-gray-500 dark:text-slate-300 font-bold">This project referrer from</span>
                         <div class="col-span-12 sm:col-span-1">
                             <x-jet-input id="referrer_name"
                                     disabled="{{disableInput($project->status)}}"

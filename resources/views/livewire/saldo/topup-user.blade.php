@@ -2,16 +2,16 @@
     <form wire:submit.prevent="create">
         <div class="md:grid md:grid-cols-3 md:gap-6 mt-8 sm:mt-0">
             <div class="mt-2 md:mt-0 md:col-span-2">
-                <div class="px-4 py-5 bg-white sm:p-10 shadow sm:rounded-tl-md sm:rounded-tr-md">
+                <div class="px-4 py-5 bg-white dark:bg-slate-600 sm:p-10 shadow sm:rounded-tl-md sm:rounded-tr-md">
 
                     <div class="col-span-6 sm:col-span-4 mb-8">
                         <div class="col-span-12 sm:col-span-1">
                             <x-jet-label for="nominal" value="{{ __('Nominal') }}" />
                             <div class="flex">
-                                <span class="pt-2 px-4 bg-gray-300 border border-gray-300  shadow-sm mt-1 ">Rp</span>
+                                <span class="pt-2 px-4 bg-gray-300 dark:bg-slate-700 border border-gray-300  shadow-sm mt-1 ">Rp</span>
                                 <x-jet-input id="nominal"
                                             type="text"
-                                            class="mt-1 block w-full rounded-r-lg"
+                                            class="mt-1 block w-full rounded-r-lg rounded-l-none"
                                             wire:model="nominal"
                                             wire:model.defer="nominal"
                                             wire:model.debunce.800ms="nominal"
@@ -37,30 +37,26 @@
 
             </div>
 
-            <div class="md:col-span-1 px-4 py-5 bg-white sm:p-6 shadow sm:rounded-tl-md sm:rounded-tr-md">
+            <div class="md:col-span-1 px-4 py-5 bg-white dark:bg-slate-600 sm:p-6 shadow sm:rounded-tl-md sm:rounded-tr-md">
                 <div class="px-4 sm:px-0 mb-4">
-                    <h3 class="font-semibold text-xl text-gray-900 mb-4">Ringkasan Top up</h3>
+                    <h3 class="font-semibold text-xl text-gray-900 dark:text-slate-300 mb-4">Ringkasan Top up</h3>
 
-                    <p class="px-4 mt-1 text-sm text-gray-600 flex justify-between">
+                    <p class="px-4 mt-1 text-sm text-gray-600 dark:text-slate-300 flex justify-between">
                         <span>Account</span>
                         <span class="text-right">{{auth()->user()->email}} <br> {{auth()->user()->name}}</span>
                     </p>
-                    <p class="px-4 mt-1 text-sm text-gray-600 flex justify-between">
+                    <p class="px-4 mt-1 text-sm text-gray-600 dark:text-slate-300 flex justify-between">
                         <span>Nominal Top-up</span>
                         <span>Rp {{number_format($nominal)}}</span>
                     </p>
-                    <!-- <p class="mt-1 text-sm text-gray-600 flex justify-between">
-                        <span>Basic information.</span>
-                        <span>Basic information.</span>
-                    </p> -->
                 </div>
 
-                <div class="flex items-center justify-end px-4 py-3 bg-gray-50 sm:rounded-bl-md sm:rounded-br-md">
+                <div class="flex items-center justify-end px-4 py-3 sm:rounded-bl-md sm:rounded-br-md">
                     <x-jet-action-message class="mr-3" on="fail">
                         {{ __('Something is wrong') }}
                     </x-jet-action-message>
 
-                    <button type="submit" class="w-full items-center px-4 py-2 bg-green-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 active:bg-green-900 focus:outline-none focus:border-green-900 focus:shadow-outline-gray disabled:opacity-25 transition">
+                    <button type="submit" class="w-full items-center px-4 py-2 bg-green-800 border border-green-800 dark:border-white/40 dark:bg-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 active:bg-green-900 focus:outline-none focus:border-green-900 focus:shadow-outline-gray disabled:opacity-25 transition">
                         Continue
                     </button>
                 </div>

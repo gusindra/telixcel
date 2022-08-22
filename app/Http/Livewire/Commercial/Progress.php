@@ -2,7 +2,12 @@
 
 namespace App\Http\Livewire\Commercial;
 
+use App\Models\Billing;
+use App\Models\Commision;
+use App\Models\Contract;
 use App\Models\FlowProcess;
+use App\Models\FlowSetting;
+use App\Models\Order;
 use App\Models\Project;
 use App\Models\Quotation;
 use Livewire\Component;
@@ -23,6 +28,14 @@ class Progress extends Component
             $this->model = Project::find($id);
         }elseif($model=='quotation'){
             $this->model = Quotation::find($id);
+        }elseif($model=='contract'){
+            $this->model = Contract::find($id);
+        }elseif($model=='order'){
+            $this->model = Order::find($id);
+        }elseif($model=='commission'){
+            $this->model = Commision::find($id);
+        }elseif($model=='invoice'){
+            $this->model = Billing::find($id);
         }
     }
 
@@ -36,19 +49,21 @@ class Progress extends Component
             'status' => 'submit'
         ]);
 
+        return redirect(request()->header('Referer'));
         $this->emit('saved');
     }
 
     public function next($status=''){
-        $update_status = 'approved';
-        if($status==''){
-            $update_status = $status;
+        $update_status = $status;
+        $flow = FlowProcess::find($this->model->approval->id);
+        $setting = FlowSetting::where('description', $flow->task)->where('role_id', $flow->role_id)->first();
+        if($setting){
+            $update_status = $setting->result_status;
         }
+        // dd($update_status);
         $this->model->update([
             'status' => $update_status
         ]);
-
-        $flow = FlowProcess::find($this->model->approval->id);
 
         $flow->user_id = auth()->user()->id;
         $flow->status = $update_status;
@@ -58,7 +73,10 @@ class Progress extends Component
 
         $this->approval = false;
 
+        return redirect(request()->header('Referer'));
         $this->emit('saved');
+
+
     }
 
     public function decline(){
@@ -74,6 +92,9 @@ class Progress extends Component
 
         $flow->save();
 
+        FlowProcess::where('model', $flow->model)->where('model_id', $flow->model_id)->whereNull('status')->delete();
+
+        return redirect(request()->header('Referer'));
         $this->emit('saved');
     }
 

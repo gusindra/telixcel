@@ -9,7 +9,7 @@ class AgentStatus extends Component
 {
     public $selection = ['Online', 'Praying', 'Meeting', 'Eating', 'Toileting', 'Maintenance', 'Offline'];
     public $status;
-
+    public $team_id;
 
     /**
      * mount
@@ -18,10 +18,13 @@ class AgentStatus extends Component
      */
     public function mount()
     {
-        if(auth()->user()->currentTeam){
-            $team = TeamUser::where('team_id', auth()->user()->currentTeam->id)->where('user_id', auth()->user()->id)->first();
-            if($team)
+        $this->status = 'Online';
+        $this->team_id = empty(auth()->user()->currentTeam)?1:auth()->user()->currentTeam->id;
+        if($this->team_id){
+            $team = TeamUser::where('team_id', $this->team_id)->where('user_id', auth()->user()->id)->first();
+            if($team){
                 $this->status = $team->status;
+            }
         }
     }
     /**
@@ -31,8 +34,8 @@ class AgentStatus extends Component
      */
     public function updateStatus($status)
     {
-        abort(404);
-        $teamuser = TeamUser::where('team_id', auth()->user()->currentTeam->id)->where('user_id', auth()->user()->id)->first();
+        // abort(404);
+        $teamuser = TeamUser::where('team_id', $this->team_id)->where('user_id', auth()->user()->id)->first();
         if($status == 'Offline'){
             $status = null;
         }

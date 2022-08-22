@@ -31,6 +31,11 @@ class CommerceItem extends Model
         'user_id'
     ];
 
+    public static $searchable=[
+        "sku",
+        "name"
+    ];
+
     protected $guarded = [];
 
     /**

@@ -1,6 +1,6 @@
 <div>
     <div class="w-full">
-        <div class="container max-w-2xl mx-auto">
+        <div class="container p-4 mx-auto">
             @if (session()->has('message'))
             <div class="flex items-center px-4 py-3 mb-6 text-sm font-bold text-white bg-green-500 rounded" role="alert">
                 <svg class="w-4 h-4 mr-2 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
@@ -13,8 +13,8 @@
             <div class="flex flex-wrap1 -mx-2">
                 @foreach($photos as $photo)
                 <div class="w-1/2 p-2">
-                    <div class="w-full h-full border">
-                        <img src="https://telixcel.s3.ap-southeast-1.amazonaws.com/{{ $photo->file }}">
+                    <div class="w-full h-full border dark:border-0">
+                        <img class="w-auto" src="https://telixcel.s3.ap-southeast-1.amazonaws.com/{{ $photo->file }}">
                     </div>
                 </div>
                 @endforeach
@@ -29,7 +29,7 @@
                         <div wire:loading wire:target="photo" class="text-sm italic text-gray-500">Uploading...</div>
                     </div>
 
-                    <button type="submit" class="px-4 py-2 font-bold text-white bg-blue-500 rounded hover:bg-blue-700">Upload</button>
+                    <button type="submit" class="px-4 py-2 font-bold text-white bg-blue-500 rounded hover:bg-blue-700">Upload Image</button>
                 </form>
             </div>
 

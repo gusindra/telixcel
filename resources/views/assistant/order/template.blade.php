@@ -55,7 +55,7 @@
                                     @if($data->company && $data->company->img_logo)
                                     <img style="height:100px;" src="https://telixcel.s3.ap-southeast-1.amazonaws.com/{{$data->company->img_logo->file}}" />
                                     @else
-                                    <h3 class="text-lg font-medium text-gray-900">{{$data->company->name}}</h3>
+                                    <h3 class="text-lg font-medium text-gray-900">{{$data->company ? $data->company->name : $data->entity_party}}</h3>
                                     @endif
                                 </div>
                             </div>
@@ -115,10 +115,10 @@
                                         <table class="min-w-full divide-y divide-gray-200">
                                             <tbody class="bg-white divide-y divide-gray-200">
                                                 <tr class="border-none">
-                                                    <td class="text-sm whitespace-no-wrap"> {{$data->company->name}} </td>
+                                                    <td class="text-sm whitespace-no-wrap"> {{$data->company ? $data->company->name : $data->entity_party}} </td>
                                                 </tr>
                                                 <tr class="border-none">
-                                                    <td class="text-sm whitespace-no-wrap"> {{$data->company->address}} </td>
+                                                    <td class="text-sm whitespace-no-wrap"> {{$data->company ? $data->company->address : $data->entity_party}} </td>
                                                 </tr>
                                                 <tr class="border-none">
                                                     <td class="text-sm whitespace-no-wrap"> NPWP : {{@$data->company->tax_id}} </td>
@@ -188,7 +188,7 @@
                                             <tfoot>
                                                 <tr class="bg-gray-100">
                                                     <td class="px-1 py-2 text-xl whitespace-no-wrap text-right" colspan="4" align="center">Total</td>
-                                                    <td class="px-2 py-2 text-xl whitespace-no-wrap text-right"><span class="uppercase">{{$data->bill->currency}}</span> {{number_format($data->bill->amount)}}</td>
+                                                    <td class="px-2 py-2 text-xl whitespace-no-wrap text-right"><span class="uppercase">{{$data->bill->currency ?? 'IDR'}}</span> {{number_format($data->bill->amount)}}</td>
                                                 </tr>
                                             </tfoot>
                                         </table>

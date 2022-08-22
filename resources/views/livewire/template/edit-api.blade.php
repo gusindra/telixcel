@@ -12,7 +12,7 @@
         </x-slot>
 
         <x-slot name="content">
-            <div class="grid grid-cols-6 gap-6">
+            <div class="grid grid-cols-6 ">
                 <div class="col-span-1 sm:col-span-1">
                     <div>
                         <x-jet-label for="request" value="{{ __('Request') }}" />
@@ -20,7 +20,7 @@
                     <select
                         name="request"
                         id="request"
-                        class="border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full"
+                        class="border-gray-300 text-xs py-3 rounded-r-none dark:bg-slate-800 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full"
                         wire:model.debunce.800ms="request"
                         >
                         <option value="get" selected>GET</option>
@@ -40,7 +40,7 @@
                             <!-- <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
                                 http://
                             </span> -->
-                            <input type="text" name="endpoint" id="endpoint" class="focus:ring-indigo-500 focus:border-indigo-500 flex-1 block w-full rounded-none rounded-r-md sm:text-sm border-gray-300" placeholder="http://www.example.com"
+                            <input type="text" name="endpoint" id="endpoint" class="focus:ring-indigo-500 py-2 pb-3 dark:bg-slate-800 focus:border-indigo-500 flex-1 block w-full rounded-none rounded-r-md sm:text-sm border-gray-300" placeholder="http://www.example.com"
                                 wire:model="endpoint"
                                 wire:model.defer="endpoint"
                                 wire:model.debunce.800ms="endpoint"

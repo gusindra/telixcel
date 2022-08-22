@@ -22,18 +22,18 @@
                                 <table class="min-w-full divide-y divide-gray-200">
                                     <thead>
                                         <tr>
-                                            <th class="px-6 py-3 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider w-1/2">
+                                            <th class="px-6 py-3 bg-gray-50 dark:bg-slate-800 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider w-1/2">
                                             Error Template For
                                             </th>
-                                            <th class="px-6 py-3 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider w-1/4"></th>
+                                            <th class="px-6 py-3 bg-gray-50 dark:bg-slate-800 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider w-1/4"></th>
                                         </tr>
                                     </thead>
-                                    <tbody class="bg-white divide-y divide-gray-200">
+                                    <tbody class="bg-white dark:bg-slate-700 divide-ydivide-gray-200">
 
                                         @foreach($template->questionError as $question)
                                             <tr>
                                                 <td class="px-6 py-4 text-sm whitespace-no-wrap">
-                                                    <a href="{{route('show.template', $question->uuid)}}" class="p-2 border border-transparent text-base font-medium rounded-md {{$question->is_enabled==1?'text-indigo-700 bg-indigo-200 hover:bg-indigo-200':'text-red-700 bg-red-100 hover:bg-red-200'}}" >
+                                                    <a href="{{route('show.template', $question->uuid)}}" class="underline p-2 border border-transparent text-xs font-medium rounded-md {{$question->is_enabled==1?'text-indigo-700 bg-indigo-200 hover:bg-indigo-200':'text-red-700 bg-red-100 hover:bg-red-200'}}" >
                                                         {{$question->name}}
                                                     </a>
                                                 </td>
@@ -112,7 +112,7 @@
                 <select
                     name="trigger_condition"
                     id="trigger_condition"
-                    class="border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full"
+                    class="border-gray-300 dark:bg-slate-800 dark:text-slate-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full"
                     wire:model.debunce.800ms="trigger_condition"
                     >
                     <option value="equal" selected>Equals</option>

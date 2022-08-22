@@ -1,8 +1,8 @@
 <div>
     @if($project->status=='draft')
-        <div class="px-4 py-5 bg-white sm:p-6 shadow sm:rounded-tl-md sm:rounded-tr-md">
+        <div class="px-4 py-5 bg-white dark:bg-slate-600 sm:p-6 shadow sm:rounded-tl-md sm:rounded-tr-md">
             <div class="sm:px-0">
-                <h3 class="text-base font-bold text-gray-900">Submission Process</h3>
+                <h3 class="text-base font-bold text-gray-900 dark:text-slate-300">Submission Process</h3>
             </div>
             <div class="w-auto text-center mt-4">
                 <x-jet-button wire:click="submit" class="hover:bg-green-700 bg-green-700">
@@ -13,9 +13,9 @@
         <br>
     @endif
     @if($approvals->count() > 0)
-        <div class="hidden sm:block px-4 py-5 bg-white sm:p-6 shadow sm:rounded-tl-md sm:rounded-tr-md">
+        <div class="hidden sm:block px-4 py-5 bg-white dark:bg-slate-600 sm:p-6 shadow sm:rounded-tl-md sm:rounded-tr-md">
             <div class="px-4 pb-6 sm:px-0">
-                <h3 class="text-sm font-bold text-gray-900">Approval Process</h3>
+                <h3 class="text-sm font-bold text-gray-900 dark:text-slate-300">Approval Process</h3>
             </div>
             <div>
                 <ol class="relative">
@@ -42,12 +42,12 @@
                             @endif
                             <div class="flex gap-2">
                                 <h3 class="mt-0 text-sm font-semibold text-gray-900 dark:text-white">{{$approval->status!='submited' ? $approval->role->name : $approval->user->name}}</h3>
-                                <p class="mt-0 text-sm font-semibolde text-gray-900 dark:text-gray-500 capitalize">{{$approval->status}}</p>
+                                <p class="mt-0 text-sm font-semibolde text-gray-900 dark:text-gray-300 capitalize">{{$approval->status}}</p>
                             </div>
                             @if($approval->status!=null)
                             <div>
                                 @if($approval->comment!='')
-                                <p class="text-xs font-normal text-gray-500 dark:text-gray-400 bg-gray-300 rounded-sm px-2 py-1">{{$approval->comment}}</p>
+                                <p class="text-xs font-normal text-gray-500 dark:text-gray-300 dark:bg-slate-700 bg-gray-300 rounded-sm px-2 py-1">{{$approval->comment}}</p>
                                 @endif
                                 <p class="text-right flex">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-gray-400 mt-2 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -69,7 +69,9 @@
                             <div>
                                 <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Notified</h3>
                                 <ul class="text-left">
-                                    <li class="mb-4 mt-2 text-xs font-normal leading-none text-gray-400 dark:text-gray-500">ola</li>
+                                    @foreach ($approvals as $approval)
+                                        <li class="mb-4 mt-2 text-xs font-normal leading-none text-gray-400 dark:text-gray-500">{{$approval->user->name}}</li>
+                                    @endforeach
                                 </ul>
                             </div>
                         </li>
@@ -80,7 +82,7 @@
 
         <!-- The offcanvas component -->
         <div class="block sm:hidden" x-data="{ offcanvas: false }">
-            <button class="fixed top-52 right-0 bg-blue-100 p-1 text-sm text-gray-400" @click="offcanvas = true">Approval</button>
+            <button class="fixed top-52 right-0 bg-blue-100  p-1 text-sm text-gray-400" @click="offcanvas = true">Approval</button>
             <section x-show="offcanvas" class="fixed inset-y-0 right-0 z-50 flex">
                 <div class="w-60 max-w-sm">
                     <div class="flex flex-col h-full divide-y divide-gray-200 bg-gray-100">
@@ -181,9 +183,9 @@
         </div>
     @endif
     @if($project->status=='submit' && $approval && $project->approval && checkRoles($project->approval->role_id))
-        <div class="px-4 py-5 bg-white sm:p-6 shadow sm:rounded-tl-md sm:rounded-tr-md mt-4">
+        <div class="px-4 py-5 bg-white dark:bg-slate-600 sm:p-6 shadow sm:rounded-tl-md sm:rounded-tr-md mt-4">
             <div class="sm:px-0">
-                <h3 class="text-base font-medium text-gray-900">Next Process</h3>
+                <h3 class="text-base font-medium text-gray-900 dark:text-slate-300">Next Process</h3>
             </div>
             <div class="col-span-12 sm:col-span-1">
                 <x-jet-label for="remark" value="{{ __('Remark') }}" />
@@ -195,7 +197,7 @@
                 <x-jet-input-error for="remark" class="mt-2" />
             </div>
             <div class="w-auto text-center mt-4 flex gap-2">
-                <button type="submit" wire:click="decline" class="inline-flex items-center px-2 py-2 border border-transparent rounded-md font-semibold text-xs uppercase tracking-widest active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:shadow-outline-gray disabled:opacity-25 transition hover:bg-red-400 bg-red-200" wire:click="submit">
+                <button type="submit" wire:click="decline" class="inline-flex items-center px-2 py-2 border border-transparent rounded-md font-semibold text-xs uppercase tracking-widest active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:shadow-outline-gray disabled:opacity-25 transition dark:bg-red-400 hover:bg-red-400 bg-red-200" wire:click="submit">
                     {{ __('Decline') }}
                 </button>
                 <x-jet-button wire:click="next" class="hover:bg-green-700 bg-green-500 px-2">

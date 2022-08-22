@@ -16,11 +16,13 @@ class CommerceItem extends LivewireDatatable
         return [
     		Column::name('sku')->label('SKU')->searchable(),
     		Column::name('name')->label('Name')->searchable(),
-    		Column::name('description')->label('Description'),
-    		Column::name('type')->label('Type')->searchable(),
+    		Column::name('description')->truncate(150)->label('Description'),
+    		Column::callback(['type'], function ($y) {
+                return view('label.type', ['type' => $y]);
+            })->label('Type')->searchable(),
             Column::callback(['id', 'name'], function ($id, $name) {
                 return view('tables.product-actions', ['id' => $id, 'name' => $name, 'url' =>  "/commercial/item/" . $id ]);
-            })->unsortable()->label('Action')
+            })->label('Action')
 
     	];
     }

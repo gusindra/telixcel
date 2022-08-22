@@ -26,17 +26,17 @@
                         <div class="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
 
                         @if (count($data['items'])>0)
-                            <div class="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
-                                <table class="min-w-full divide-y divide-gray-200">
+                            <div class="shadow overflow-hidden border-b border-gray-200 dark:border-slate-700 sm:rounded-lg">
+                                <table class="min-w-full divide-y divide-gray-200 mt-4">
                                     <thead>
                                         <tr>
-                                            <th class="px-6 py-3 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider w-1/4">Method</th>
-                                            <th class="px-6 py-3 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider w-11">Provider</th>
-                                            <th class="px-6 py-3 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider w-1/2">Note</th>
-                                            <th class="px-6 py-3 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider w-1/4"> </th>
+                                            <th class="px-6 py-3 bg-gray-50 dark:bg-slate-800 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider w-1/4">Method</th>
+                                            <th class="px-6 py-3 bg-gray-50 dark:bg-slate-800 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider w-11">Provider</th>
+                                            <th class="px-6 py-3 bg-gray-50 dark:bg-slate-800 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider w-1/2">Note</th>
+                                            <th class="px-6 py-3 bg-gray-50 dark:bg-slate-800 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider w-1/4"> </th>
                                         </tr>
                                     </thead>
-                                    <tbody wire:poll class="bg-white divide-y divide-gray-200">
+                                    <tbody wire:poll class="bg-white dark:bg-slate-600 divide-y divide-gray-200">
                                         @foreach ($data['items'] as $item)
                                             <tr>
                                                 <td class="px-6 text-xs py-4 whitespace-no-wrap uppercase align-top">
@@ -87,7 +87,7 @@
                 <select
                     name="input.method"
                     id="input.method"
-                    class="border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full"
+                    class="border-gray-300 dark:bg-slate-800 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full"
                     wire:model.debunce.800ms="input.method"
                     >
                     <option selected>-- Select Method --</option>

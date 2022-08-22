@@ -13,14 +13,14 @@ class Commission extends LivewireDatatable
 
     public function builder()
     {
-        return Commision::query()->orderBy('created_at', 'desc');
+        return Commision::query()->where('model', 'order')->orderBy('created_at', 'desc');
     }
 
     public function columns()
     {
         return [
-    		Column::name('id')->label('ID'),
-    		Column::name('model')->label('Model'),
+    		// Column::name('id')->label('ID'),
+    		// Column::name('model')->label('Model'),
     		Column::name('data.name')->callback('model, model_id, product.name, project.name, order.name', function ($m, $mi, $p, $v, $o) {
                 if($m=='product'){
                     return view('datatables::link', [
@@ -37,22 +37,24 @@ class Commission extends LivewireDatatable
                     'href' => "/order/" . $mi,
                     'slot' => $o
                 ]);
-            })->label('Data'),
+            })->label('Data')->filterable(),
     		Column::name('agent.name')->callback('client_id, agent.name, agent.user.id', function ($c, $slot, $id) {
                 return view('datatables::link', [
                             'href' => "/user/" . $id,
                             'slot' => $slot
                         ]);
             })->label('Agent'),
-    		Column::name('ratio')->label('Rate %'),
-    		Column::name('status')->label('Status'),
+    		Column::name('total')->label('Total'),
     		Column::name('created_at')->label('Created_at'),
-            // NumberColumn::name('id')->label('Detail')->sortBy('id')->callback('id', function ($value) {
-            //     return view('datatables::link', [
-            //         'href' => "/order/" . $value,
-            //         'slot' => 'View'
-            //     ]);
-            // }),
+    		Column::callback(['status'], function ($y) {
+                return view('label.label', ['type' => $y]);
+            })->label('Status'),
+            NumberColumn::name('id')->label('Detail')->sortBy('id')->callback('id', function ($value) {
+                return view('datatables::link', [
+                    'href' => "/commission/" . $value,
+                    'slot' => 'View'
+                ]);
+            }),
 
     	];
     }

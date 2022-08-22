@@ -29,6 +29,7 @@ class Progress extends Component
         $this->project->update([
             'status' => 'submit'
         ]);
+        return redirect(request()->header('Referer'));
 
         $this->emit('saved');
     }
@@ -45,6 +46,7 @@ class Progress extends Component
         $flow->comment = $this->remark;
 
         $flow->save();
+        return redirect(request()->header('Referer'));
 
         $this->emit('saved');
     }
@@ -61,6 +63,7 @@ class Progress extends Component
         $flow->comment = $this->remark;
 
         $flow->save();
+        return redirect(request()->header('Referer'));
 
         $this->emit('saved');
     }

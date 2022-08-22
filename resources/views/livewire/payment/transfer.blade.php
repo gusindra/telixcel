@@ -4,16 +4,16 @@
         <div class="py-3">
             <div class="md:grid md:grid-cols-4 md:gap-6 mt-8 sm:mt-0">
                 <div class="md:col-span-1"></div>
-                <div class="md:col-span-2 px-4 py-5 bg-white sm:p-6 shadow sm:rounded-tl-md sm:rounded-tr-md">
+                <div class="md:col-span-2 px-4 py-5 bg-white dark:bg-slate-600 sm:p-6 shadow sm:rounded-tl-md sm:rounded-tr-md">
                     <div class="px-4 sm:px-0 mb-4">
                         <div class="flex justify-between my-1">
-                            <span class="font-semibold text-xl text-gray-900 mb-4">Transfer Bank</span>
-                            <img class="w-20 h-6" src="https://telixcel.s3.ap-southeast-1.amazonaws.com/imgs/2022/v2_logo-bca.png">
+                            <span class="font-semibold text-xl text-gray-900 dark:text-slate-300 mb-4">Transfer Bank</span>
+                            <img class="w-20 h-6 dark:bg-white" src="https://telixcel.s3.ap-southeast-1.amazonaws.com/imgs/2022/v2_logo-bca.png">
                             <span>Invoice No {{$order->no}} <span class="text-xs uppercase {{$order->status=='paid'?'text-green-600':'text-red-600'}}">{{$order->status=='paid'?'[PAID]':'['.$order->status.']'}}</span></span>
                         </div>
 
                         <div class="flex justify-between my-4" x-data="{alert:false}">
-                            <p class="mx-4 mt-1 text-gray-600 ">
+                            <p class="mx-4 mt-1 text-gray-600 dark:text-slate-300">
                                 <span>No Rekening</span><br>
                                 <span class="text-xl font-semibold"> 505 5564 644</span><br>
                                 <input id="rekening" class="text-xl font-semibold hidden" value="5055564644" />
@@ -25,7 +25,7 @@
                             </p>
                         </div>
                         <div class="flex justify-between" x-data="{ input: 'Foo!' }">
-                            <p class="mx-4 mt-1 text-gray-600 ">
+                            <p class="mx-4 mt-1 text-gray-600 dark:text-slate-300">
                                 <span>Total Pembayaran</span><br>
                                 <span class="text-xl font-semibold">Rp {{number_format($order->total)}}</span>
                             </p>
@@ -41,7 +41,7 @@
                     <x-jet-action-message class="mr-3" on="already">
                         {{ __('Your request has been processed..') }}
                     </x-jet-action-message>
-                    <div class="flex justify-between gap-2 items-center px-4 py-3 bg-gray-50 sm:rounded-bl-md sm:rounded-br-md">
+                    <div class="flex justify-between gap-2 items-center px-4 py-3 sm:rounded-bl-md sm:rounded-br-md">
                         <button {{$check_status==0?'disabled':''}} wire:click="checkPayment" class="w-full items-center px-4 py-2 bg-green-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 active:bg-green-900 focus:outline-none focus:border-green-900 focus:shadow-outline-gray disabled:opacity-25 transition">
                             Cek Pembayaran
                         </button>
@@ -85,10 +85,10 @@
                 </div>
                 <div class="md:col-span-1"></div>
                 <div class="md:col-span-1"></div>
-                <div class="md:col-span-2 px-4 py-5 bg-white sm:p-6 shadow sm:rounded-tl-md sm:rounded-tr-md">
+                <div class="md:col-span-2 px-4 py-5 bg-white dark:bg-slate-600 sm:p-6 shadow sm:rounded-tl-md sm:rounded-tr-md">
                     <div class="px-4 sm:px-0 mb-4">
                         @if($order->status=='unpaid')
-                            <h3 class="font-semibold text-xl text-gray-900 mb-2">Cara pembayaran</h3>
+                            <h3 class="font-semibold text-xl text-gray-900 dark:text-slate-300 mb-2">Cara pembayaran</h3>
                             <p class="mt-1 text-sm text-gray-600 flex justify-between mb-3">
                                 <ol>
                                     <li class="text-sm">1. Pilih Menu Transfer.</li>
@@ -118,12 +118,12 @@
                                 </tbody>
                             </table>
                         @endif
-                        <p class="mt-1 text-xs text-gray-600 flex justify-between pt-6 pb-2">
+                        <p class="mt-1 text-xs text-gray-600 dark:text-slate-300 flex justify-between pt-6 pb-2">
                             Catatan
+                            <li class="text-xs ">Simpan bukti pembayaran yang sewaktu-waktu diperlukan jika terjadi kendala transaksi</li>
+                            <li class="text-xs ">Silakan kutip No Invoice saat pembayaran dilakukan</li>
+                            <li class="text-xs ">Pertanyaan terkait pembayaran dapat dikirimkan ke e-mail: <a class="text-blue-600 dark:text-blue-400" href="mailto:support@telixcel.com">support@telixcel.com</a></li>
                         </p>
-                        <li class="text-xs text-gray-600">Simpan bukti pembayaran yang sewaktu-waktu diperlukan jika terjadi kendala transaksi</li>
-                        <li class="text-xs text-gray-600">Silakan kutip No Invoice saat pembayaran dilakukan</li>
-                        <li class="text-xs text-gray-600">Pertanyaan terkait pembayaran dapat dikirimkan ke e-mail: <a class="text-blue-600" href="mailto:support@telixcel.com">support@telixcel.com</a></li>
                     </div>
                 </div>
                 <div class="md:col-span-1"></div>
@@ -203,23 +203,23 @@
             <div class="flex justify-between">
                 <div class="col-span-6 sm:col-span-4 px-3 pb-2">
                     <x-jet-label for="currency" value="{{ __('Tanggal/Waktu Transfer') }}"  />
-                    <label class="block font-medium text-gray-700 text-xs" for="currency">
+                    <label class="block font-medium text-gray-700 dark:text-slate-300 text-xs" for="currency">
                         contoh: tgl. {{date('d/m/Y')}} / jam {{date('H:s:i')}}
                     </label>
                     <br>
                     <x-jet-label for="currency" value="{{ __('Detail Penerima') }}" />
-                    <label class="block font-medium text-gray-700 text-xs" for="currency">
+                    <label class="block font-medium text-gray-700 dark:text-slate-300 text-xs" for="currency">
                         contoh: Transfer ke Rekening PT TELIXCEL
                     </label>
                 </div>
                 <div class="col-span-6 sm:col-span-4 px-3">
                     <x-jet-label for="currency" value="{{ __('Status Berhasil') }}" />
-                    <label class="block font-medium text-gray-700 text-xs" for="currency">
+                    <label class="block font-medium text-gray-700 dark:text-slate-300 text-xs" for="currency">
                         contoh: Transfer BERHASIL, Transaksi Sukses
                     </label>
                     <br>
                     <x-jet-label for="currency" value="{{ __('Jumlah Transfer') }}" />
-                    <label class="block font-medium text-gray-700 text-xs" for="currency">
+                    <label class="block font-medium text-gray-700 dark:text-slate-300 text-xs" for="currency">
                         contoh: Rp 123.456,00
                     </label>
                 </div>

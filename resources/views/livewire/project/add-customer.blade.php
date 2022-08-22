@@ -14,7 +14,7 @@
                 @if($project->status=='approved')
                     <div class="col-span-6 grid grid-cols-2">
                         <div class="col-span-12 sm:col-span-1">
-                            <x-jet-label for="name" value="{{ __('Customer') }}" />
+                            <x-jet-label for="name" value="{{ __('Party A / Customer Name') }}" />
                             <p class="capitalize">{{$customer_name}}</p>
                         </div>
                     </div>
@@ -51,7 +51,7 @@
                                     {{disableInput($project->status)?'disabled':''}}
                                     wire:model="customer_address"
                                     wire:model.defer="customer_address"
-                                    wire:model.debunce.800ms="customer_address"  class="border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full" x-bind:autofocus="isSet"></textarea>
+                                    wire:model.debunce.800ms="customer_address"  class="border-gray-300 dark:bg-slate-800 focus:border-indigo-300focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full" x-bind:autofocus="isSet"></textarea>
                             <x-jet-input-error for="name" class="mt-2" />
                         </div>
 
@@ -65,9 +65,9 @@
                 {{ __('Customer Details (Party A) saved.') }}
             </x-jet-action-message>
 
-            <x-save-button show="{{$project->status=='draft'?'true':'false'}}">
+            <x-save-button show="{{$project->status=='draft'?true:false}}">
                 {{ __('Save') }}
-            </x-save-button>
+            </x-jet-button>
         </x-slot>
     </x-jet-form-section>
 </div>

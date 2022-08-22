@@ -27,6 +27,10 @@ class Contract extends Model
         'model_id'
     ];
 
+    public static $searchable=[
+        "title"
+    ];
+
     protected $guarded = [];
 
     /**
@@ -38,4 +42,38 @@ class Contract extends Model
         'actived_at' => 'datetime',
         'expired_at' => 'datetime',
     ];
+
+    /**
+     * Relation ship project / client
+     *
+     * @return void
+     */
+    public function project()
+    {
+        return $this->belongsTo('App\Models\Project', 'model_id');
+    }
+    /**
+     * client
+     *
+     * @return void
+     */
+    public function client()
+    {
+        return $this->belongsTo('App\Models\Client', 'model_id');
+    }
+    /**
+     * Get last approval.
+     */
+    public function approval(){
+    	return $this->hasOne('App\Models\FlowProcess', 'model_id')->where('model', 'CONTRACT')->whereNull('status');
+    }
+
+    /**
+     * attachment order
+     *
+     * @return void
+     */
+    public function attachments(){
+        return $this->hasMany('App\Models\Attachment', 'model_id')->where('model', 'contract');
+    }
 }

@@ -42,7 +42,7 @@
                     <select
                         name="type"
                         id="type"
-                        class="border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full"
+                        class="border-gray-300 dark:bg-slate-800 dark:text-slate-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full"
                         wire:model.debunce.800ms="type"
                         >
                         <option value="admin" selected>Admin</option>
@@ -63,7 +63,7 @@
                     <select
                         name="role_for"
                         id="role_for"
-                        class="border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full"
+                        class="border-gray-300 dark:bg-slate-800 dark:text-slate-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full"
                         wire:model.debunce.800ms="role_for"
                         >
                         <option value="admin" selected>Admin</option>
@@ -83,8 +83,8 @@
                             wire:model.defer="status" type="checkbox" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">
                     </div>
                     <div class="ml-3 text-sm">
-                        <label for="status" class="font-medium text-gray-700">is enable ?</label>
-                        <p class="text-gray-500">Enable this role.</p>
+                        <label for="status" class="font-medium text-gray-700 dark:text-slate-300">is enable ?</label>
+                        <p class="text-gray-500 dark:text-slate-300">Enable this role.</p>
                     </div>
                 </div>
             </div>

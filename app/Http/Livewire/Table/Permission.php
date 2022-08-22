@@ -3,6 +3,7 @@
 namespace App\Http\Livewire\Table;
 
 use App\Models\Permission as ModelsPermission;
+use Illuminate\Support\Str;
 use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
 use Mediconesystems\LivewireDatatables\BooleanColumn;
 use Mediconesystems\LivewireDatatables\Column;
@@ -22,13 +23,18 @@ class Permission extends LivewireDatatable
     {
         return [
     		Column::name('name')->label('Name'),
-    		Column::name('model')->label('Model'),
-            NumberColumn::name('id')->label('Detail')->sortBy('id')->callback('id', function ($value) {
-                return view('datatables::link', [
-                    'href' => "/roles/" . $value . '?month='.date('m').'&year='.date('Y'),
-                    'slot' => 'View'
-                ]);
-            }),
+    		Column::callback('model', function ($value) {
+                    return view('datatables::link', [
+                        'href' => "/flow/" . Str::lower($value),
+                        'slot' => $value
+                    ]);
+                })->label('Model'),
+            // NumberColumn::name('id')->label('Detail')->sortBy('id')->callback('id', function ($value) {
+            //     return view('datatables::link', [
+            //         'href' => "/roles/" . $value . '?month='.date('m').'&year='.date('Y'),
+            //         'slot' => 'View'
+            //     ]);
+            // }),
 
     	];
     }

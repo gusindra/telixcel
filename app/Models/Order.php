@@ -42,6 +42,11 @@ class Order extends Model
         'date' => 'datetime',
     ];
 
+    public static $searchable=[
+        "name",
+        "no"
+    ];
+
     /**
      * Get all of the permission that are assigned this role.
      */
@@ -93,4 +98,19 @@ class Order extends Model
     public function bill(){
     	return $this->hasOne('App\Models\Billing', 'order_id');
     }
+
+    /**
+     * Get next approval.
+     */
+    public function approval(){
+    	return $this->hasOne('App\Models\FlowProcess', 'model_id')->where('model', 'ORDER')->whereNull('status');
+    }
+
+    /**
+     * Get all of team.
+     */
+    public function commission(){
+    	return $this->hasOne('App\Models\Commision', 'model_id')->where('model', 'order');
+    }
+
 }

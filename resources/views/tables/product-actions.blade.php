@@ -1,11 +1,11 @@
 <div class="flex space-x-1 justify-around">
-    <a href="{{ $url }}" target="_blank" class="p-1 text-xs text-blue-600 hover:bg-blue-500 hover:text-white rounded">
+    <a href="{{ $url }}" target="_blank" class="p-1 text-xs text-blue-600 border bg-gray-300 dark:bg-slate-800 dark:text-slate-300 hover:bg-blue-500 hover:text-white rounded">
         Edit
     </a>
 
     <x-modal :value="$id">
         <x-slot name="trigger">
-            <button class="p-1 text-blue-600 hover:bg-blue-600 hover:text-white rounded text-xs">
+            <button class="p-1 text-blue-600 dark:text-slate-300 border bg-gray-300 dark:bg-slate-800 hover:bg-blue-600 hover:text-white rounded text-xs">
                 Syn
             </button>
         </x-slot>

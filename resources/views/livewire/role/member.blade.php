@@ -14,7 +14,7 @@
 
             <x-slot name="form">
                 <div class="col-span-6">
-                    <div class="max-w-xl text-sm text-gray-600">
+                    <div class="max-w-xl text-sm text-gray-600 dark:text-slate-300">
                         {{ __('Please provide the email address of the person you would like to add to this role.') }}
                     </div>
                 </div>
@@ -58,7 +58,7 @@
                     <!-- foreach invite user -->
                     @foreach ($invites as $invite)
                         <div class="flex items-center justify-between">
-                            <div class="text-gray-600">{{$invite->email}}</div>
+                            <div class="text-gray-600 dark:text-slate-300">{{$invite->email}}</div>
 
                             <div class="flex items-center">
                                 <!-- Cancel Team Invitation -->

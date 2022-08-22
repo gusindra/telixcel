@@ -20,11 +20,13 @@ class ProjectTable extends LivewireDatatable
     public function columns()
     {
         return [
-    		Column::name('name')->label('Name'),
+    		Column::name('name')->label('Name')->filterable(),
     		Column::name('customer_name')->label('Customer')->filterable(),
-    		Column::name('type')->label('Type')->filterable(['Selling', 'SAAS', 'Referral']),
-            Column::callback(['status'], function ($type) {
-                return view('assistant.project.label', ['type' => $type]);
+    		Column::callback(['type'], function ($type) {
+                return view('label.type', ['type' => $type]);
+            })->label('Type')->filterable(['Selling', 'SAAS', 'Referral']),
+            Column::callback(['status'], function ($status) {
+                return view('label.label', ['type' => $status]);
             })->label('Status')->filterable(['DRAFT', 'APPROVED', 'SUBMIT']),
             NumberColumn::name('link')->label('Link')->callback('id', function ($value) {
                 return view('tables.link', [

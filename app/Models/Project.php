@@ -27,6 +27,10 @@ class Project extends Model
         'product_line'
     ];
 
+    public static $searchable=[
+        "name"
+    ];
+
     protected $guarded = [];
 
     /**
@@ -79,5 +83,14 @@ class Project extends Model
      */
     public function quotations(){
         return $this->hasMany('App\Models\Quotation', 'model_id')->where('model', 'PROJECT')->orderBy('updated_at', 'DESC');
+    }
+
+    /**
+     * Get company owner
+     *
+     * @return void
+     */
+    public function company(){
+    	return $this->belongsTo('App\Models\Company', 'entity_party');
     }
 }

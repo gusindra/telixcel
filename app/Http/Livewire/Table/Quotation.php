@@ -28,8 +28,10 @@ class Quotation extends LivewireDatatable
                 return $m;
             })->label('Source')->filterable(),
     		DateColumn::name('date')->label('Date')->filterable(),
-    		NumberColumn::name('valid_day')->label('Duration')->filterable(),
-    		Column::name('status')->label('Status')->filterable(['DRAFT', 'APPROVED', 'SUBMIT']),
+    		NumberColumn::name('valid_day')->label('Duration (Day)')->filterable(),
+    		Column::callback(['status'], function ($status) {
+                return view('label.label', ['type' => $status]);
+            })->label('Status')->filterable(['DRAFT', 'APPROVED', 'SUBMIT']),
             NumberColumn::name('id')->label('Detail')->sortBy('id')->callback('id', function ($value) {
                 return view('datatables::link', [
                     'href' => "/commercial/quotation/" . $value,

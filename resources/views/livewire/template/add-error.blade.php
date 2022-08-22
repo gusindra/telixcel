@@ -42,14 +42,14 @@
                                     <table class="min-w-full divide-y divide-gray-200">
                                         <thead>
                                             <tr>
-                                                <th class="px-6 py-3 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider w-1/2">Template</th>
-                                                <th class="px-6 py-3 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider w-1/4"></th>
+                                                <th class="px-6 py-3 bg-gray-50 dark:bg-slate-800 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider w-1/2">Template</th>
+                                                <th class="px-6 py-3 bg-gray-50 dark:bg-slate-800 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider w-1/4"></th>
                                             </tr>
                                         </thead>
-                                        <tbody class="bg-white divide-y divide-gray-200">
+                                        <tbody class="bg-white dark:bg-slate-700 divide-y divide-gray-200">
                                             <tr>
                                                 <td class="px-6 py-4 text-sm whitespace-no-wrap">
-                                                    <a href="{{route('show.template', $errorUuid)}}" class=" p-2 border border-transparent text-base font-medium rounded-md {{$errorEnabled==1?'text-indigo-700 bg-indigo-200 hover:bg-indigo-200':'text-red-700 bg-red-100 hover:bg-red-200'}}" >
+                                                    <a href="{{route('show.template', $errorUuid)}}" class="underline p-2 border border-transparent text-xs font-medium rounded-md {{$errorEnabled==1?'text-indigo-700 bg-indigo-200 hover:bg-indigo-200':'text-red-700 bg-red-100 hover:bg-red-200'}}" >
                                                         {{ $errorName }}
                                                     </a>
                                                 </td>
@@ -69,7 +69,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="p-6">
+                <div class="py-6">
                     <!-- is_enabled -->
                     <div class="col-span-6 sm:col-span-6">
                         <div class="flex items-start">
@@ -78,8 +78,8 @@
                                     wire:model.defer="sameTemplate" type="checkbox" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">
                             </div>
                             <div class="ml-3 text-sm">
-                                <label for="same_template" class="font-medium text-gray-700">Resent Action Message</label>
-                                <p class="text-gray-500">Enable to resend Action Message if error / wrong answer.</p>
+                                <label for="same_template" class="font-medium text-gray-700 dark:text-slate-300">Resent Action Message</label>
+                                <p class="text-gray-500 dark:text-slate-300">Enable to resend Action Message if error / wrong answer.</p>
                             </div>
                         </div>
                     </div>
@@ -100,7 +100,7 @@
                 <select
                     name="type"
                     id="type"
-                    class="border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full"
+                    class="border-gray-300 dark:bg-slate-800 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full"
                     wire:model.debunce.800ms="type"
                     >
                     <option selected>-- Select Type --</option>

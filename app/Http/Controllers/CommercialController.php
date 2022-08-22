@@ -62,9 +62,17 @@ class CommercialController extends Controller
                 return view('assistant.commercial.quotation.show', ['code'=>$id, 'quote' => $data]);
             }
         }elseif($key=='contract'){
-            return view('assistant.commercial.contract.show', ['code'=>$id]);
+            $data = Contract::find($id);
+            if($data){
+                return view('assistant.commercial.contract.show', ['code'=>$id, 'contract' => $data]);
+            }
         }
-        return view('assistant.commercial.show', ['code'=>$id]);
+        $data = CommerceItem::find($id);
+        if($data){
+            return view('assistant.commercial.show', ['code'=>$id, 'data' => $data]);
+        }
+        abort(404);
+
     }
 
     public function template($key, $id){

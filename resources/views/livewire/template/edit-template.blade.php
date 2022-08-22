@@ -47,12 +47,12 @@
             <div class="col-span-6 grid grid-cols-2">
                 <!-- Type Information -->
                 <div class="col-span-1">
-                    <x-jet-label value="{{ $template->type }}" />
+                    <x-jet-label class="capitalize" value="{{ $template->type }}" />
 
                     <div class="flex items-center mt-1">
                         <div class="p-3 pl-0 pt-0">
-                            <div class="border-2 border-lightgrey-500 p-1">
-                                <div class="text-gray-700 text-sm">
+                            <div class="border border-lightgrey-400 p-1 rounded-lg">
+                                <div class="text-gray-700 dark:text-slate-300 text-sm ">
                                     @if($template->type == 'api')
                                         All Respond will check via API form endpoint that given.
                                     @elseif($template->type == 'welcome')
@@ -105,8 +105,8 @@
                             wire:model.defer="is_enabled" type="checkbox" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">
                     </div>
                     <div class="ml-3 text-sm">
-                        <label for="is_enabled" class="font-medium text-gray-700">is enable ?</label>
-                        <p class="text-gray-500">Enable template to send respond to your customer.</p>
+                        <label for="is_enabled" class="font-medium text-gray-700 dark:text-slate-300">is enable ?</label>
+                        <p class="text-gray-500 dark:text-slate-300">Enable template to send respond to your customer.</p>
                     </div>
                 </div>
             </div>
@@ -121,8 +121,8 @@
                             wire:model.defer="is_waiting" type="checkbox" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">
                     </div>
                     <div class="ml-3 text-sm">
-                        <label for="is_waiting" class="font-medium text-gray-700">is waiting Agent Response ?</label>
-                        <p class="text-gray-500">Enable to notif agent to give response to the customer.</p>
+                        <label for="is_waiting" class="font-medium text-gray-700 dark:text-slate-300">is waiting Agent Response ?</label>
+                        <p class="text-gray-500 dark:text-slate-300">Enable to notif agent to give response to the customer.</p>
                     </div>
                 </div>
             </div>
@@ -142,6 +142,7 @@
             </x-slot>
         @endif
     </x-jet-form-section>
+
     @if($template->type!='welcome' && $template->type!='helper')
     @livewire('template.edit-trigger', ['template' => $template])
     @endif

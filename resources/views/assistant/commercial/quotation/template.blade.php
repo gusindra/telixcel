@@ -47,26 +47,56 @@
             @endisset
             <div class="bg-white overflow-hidden sm:rounded-lg">
                 <div class="container mx-auto" x-ref="print" >
-                    <div class="px-4 py-2  " id="PRINT">
-
+                    <div class="px-4 py-2" id="PRINT">
                         <!-- Header -->
-                        <div class="md:grid md:grid-cols-3 md:gap-6 my-4">
-                            <div class="md:col-span-1 flex justify-between">
-                                <div class="px-4 sm:px-0">
-                                    @if($data->model == 'COMPANY')
-                                        @if($data->company && $data->company->img_logo)
-                                        <img style="height:100px;" src="https://telixcel.s3.ap-southeast-1.amazonaws.com/{{$data->company->img_logo->file}}" />
+                        <!--<div class="md:grid md:grid-cols-3 md:gap-6 my-4">-->
+                        <!--    <div class="md:col-span-1 flex justify-between">-->
+                        <!--        <div class="px-4 sm:px-0">-->
+                        <!--            @if($data->model == 'COMPANY')-->
+                        <!--                @if($data->company && $data->company->img_logo)-->
+                        <!--                <img style="height:100px;" src="https://telixcel.s3.ap-southeast-1.amazonaws.com/{{$data->company->img_logo->file}}" />-->
+
+                        <!--                @endif-->
+                        <!--            @elseif($data->model == 'PROJECT')-->
+                        <!--                @if($data->project->company && $data->project->company->img_logo)-->
+                        <!--                <img style="height:100px;" src="https://telixcel.s3.ap-southeast-1.amazonaws.com/{{$data->project->company->img_logo->file}}" />-->
+                        <!--                @endif-->
+                        <!--            @else-->
+                        <!--                <h3 class="text-lg font-medium text-gray-900">{{$data->company->name}}</h3>-->
+                        <!--            @endif-->
+                        <!--        </div>-->
+                        <!--    </div>-->
+                        <!--    <div class="mt-5 md:mt-0 md:col-span-2 uppercase text-center">-->
+                        <!--        CONFIDENTIAL<br>-->
+                        <!--        CORPORATE QUOTATION - {{$data->title}}-->
+                        <!--    </div>-->
+                        <!--</div>-->
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <tr>
+                                <td>
+                                    <div class="px-4 sm:px-0">
+                                        @if($data->model == 'COMPANY')
+                                            @if($data->company && $data->company->img_logo)
+                                            <img style="height:100px;" src="https://telixcel.s3.ap-southeast-1.amazonaws.com/{{$data->company->img_logo->file}}" />
+
+                                            @endif
+                                        @elseif($data->model == 'PROJECT')
+                                            @if($data->project->company && $data->project->company->img_logo)
+                                            <img style="height:100px;" src="https://telixcel.s3.ap-southeast-1.amazonaws.com/{{$data->project->company->img_logo->file}}" />
+                                            @endif
                                         @else
-                                        <h3 class="text-lg font-medium text-gray-900">{{$data->company->name}}</h3>
+                                            <h3 class="text-lg font-medium text-gray-900">{{$data->company->name}}</h3>
                                         @endif
-                                    @endif
-                                </div>
-                            </div>
-                            <div class="mt-5 md:mt-0 md:col-span-2 uppercase text-center">
-                                CONFIDENTIAL<br>
-                                CORPORATE QUOTATION - {{$data->title}}
-                            </div>
-                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="mt-5 md:mt-0 md:col-span-2 uppercase text-left">
+                                        <strong>CONFIDENTIAL<br>
+                                        CORPORATE QUOTATION - {{$data->title}}</strong>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
                         <!-- Costumer -->
                         <div class="md:grid md:grid-cols-3 md:gap-6 my-4">
                             <div class="md:col-span-1 flex justify-between">
@@ -138,10 +168,10 @@
                                             <tbody class="bg-white divide-y divide-gray-200">
                                                 @foreach ($data->items as $item)
                                                     <tr class=" ">
-                                                        <td class="px-6 py-2 text-sm whitespace-no-wrap"> {{$loop->iteration}} </td>
+                                                        <td class="px-6 py-2 text-sm whitespace-no-wrap align-top"> {{$loop->iteration}} </td>
                                                         <td class="px-6 py-2 text-sm whitespace-no-wrap align-top"> {{$item->name}} </td>
                                                         <td class="px-2 py-2 text-sm whitespace-no-wrap text-right align-top"> {{number_format($item->price)}} </td>
-                                                        <td class="px-2 py-2 text-sm whitespace-no-wrap flex"> {{$item->qty}} {{$item->unit}} </td>
+                                                        <td class="px-2 py-2 text-sm whitespace-no-wrap flex"> {{$item->qty>0 ? $item->qty:''}} {{$item->unit}} </td>
                                                         <td class="px-6 py-2 text-sm whitespace-no-wrap align-top"> {{$item->note}} </td>
                                                     </tr>
                                                 @endforeach
@@ -183,8 +213,6 @@
                                     <br>
                                     <br>
                                     <br>
-                                    <br>
-                                    <br>
                                     <p class="text-gray-900">{{$data->created_by}}</p>
                                     <p class="text-gray-900">{{$data->created_role}}</p>
 
@@ -193,8 +221,6 @@
                             <div class="justify-end flex p-4">
                                 <div class="  items-center justify-end px-2 text-right">
                                     <p class="text-gray-900">I, hereby accept the quotation</p>
-                                    <br>
-                                    <br>
                                     <br>
                                     <br>
                                     <br>

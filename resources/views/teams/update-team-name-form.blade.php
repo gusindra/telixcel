@@ -17,7 +17,7 @@
 
                 <div class="ml-4 leading-tight">
                     <div>{{ $team->owner->name }}</div>
-                    <div class="text-gray-700 text-sm">{{ $team->owner->email }}</div>
+                    <div class="text-gray-700 dark:text-slate-300 text-sm">{{ $team->owner->email }}</div>
                 </div>
             </div>
         </div>
@@ -39,10 +39,10 @@
             <x-jet-label for="slug" value="{{ __('Team Slug URL') }}" />
             <div >
                 <div class="mt-1 flex rounded-md shadow-sm">
-                    <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+                    <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 dark:bg-slate-800 border-gray-300 bg-gray-50 text-gray-500 text-sm">
                         {{env('APP_URL')}}/chating/
                     </span>
-                    <input type="text" name="slug" id="slug" class="focus:ring-indigo-500 focus:border-indigo-500 flex-1 block w-full rounded-none rounded-r-md sm:text-sm border-gray-300" placeholder="www.example.com"
+                    <input type="text" name="slug" id="slug" class="focus:ring-indigo-500 dark:bg-slate-800 focus:border-indigo-500 flex-1 block w-full rounded-none rounded-r-md sm:text-sm border-gray-300" placeholder="www.example.com"
                         wire:model.defer="state.slug"
                         :disabled="! Gate::check('update', $team)"
                     >

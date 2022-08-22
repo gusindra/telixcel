@@ -7,6 +7,7 @@ use App\Models\Permission;
 use App\Models\ProductLine;
 use App\Models\Request as Message;
 use App\Models\SaldoUser;
+use App\Models\TeamUser;
 use Illuminate\Support\Facades\Auth;
 
  /**
@@ -153,13 +154,17 @@ function isJSON($string){
 
 function checkPermisissions($array_id){
     $user = Auth::user();
+    // return $user->super->first();
+
     if($user->super->first()){
         if($user->super->first()->role=='superadmin'){
             return true;
         }
-    }elseif($user->role){
+    }
+    if( count($user->role)>0){
+        // return count($user->role);
         foreach($user->role as $role){
-            // dd($role->role->permission);
+            return $role->role->permission;
             foreach($role->role->permission as $permission){
                 if (in_array($permission->model, $array_id)){
                     return true;
@@ -170,15 +175,47 @@ function checkPermisissions($array_id){
     return false;
 }
 
+/**
+ * checkTaskPermisission
+ *
+ * @param  mixed $task = CREATE PROJECT / UPDATE PROJECT
+ * @return void
+ */
+function checkTaskPermisission($task){
+    $user = Auth::user();
+    // return $user->super->first();
+
+    if($user->super->first()){
+        if($user->super->first()->role=='superadmin'){
+            return true;
+        }
+    }
+    if( count($user->role)>0){
+        // return count($user->role);
+        foreach($user->role as $role){
+            // return $role->role->permission;
+            foreach($role->role->permission as $permission){
+                if ($permission->name == $task){
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
 function checkRoles($role_id){
+    // return $role_id;
     $user = Auth::user();
     if($user->super->first()){
         if($user->super->first()->role=='superadmin'){
             return true;
         }
-    }elseif($user->role){
+    }
+    if(count($user->role)>0){
         foreach($user->role as $role){
-            if ( $role->id == $role_id ){
+            // return $role;
+            if ( $role->role_id == $role_id ){
                 return true;
             }
         }
@@ -187,7 +224,8 @@ function checkRoles($role_id){
 }
 
 function disableInput($status){
-    return $status == 'draft' ? false:true;
+    if($status=='released') return false;
+    return $status == 'draft' || $status == 'new' ? false:true;
 }
 
 /**
@@ -262,5 +300,9 @@ function get_my_companies(){
     if(Auth::user()->super->first()->role == 'superadmin'){
         return Company::where('user_id', 0)->get();
     }
-    return Company::where('user_id', Auth::user()->id)->get();
+    return Company::where('user_id', auth()->user()->currentTeam->user_id)->get();
+}
+
+function list_online(){
+    return TeamUser::where('status', '!=', NULL)->get();
 }

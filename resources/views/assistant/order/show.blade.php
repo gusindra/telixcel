@@ -4,7 +4,7 @@
             {{ __('Edit Order') }}
         </h2>
     </x-slot>
-    <header class="bg-white shadow ">
+    <header class="bg-white dark:bg-slate-900 dark:border-slate-600 border-b shadow">
         <div class="flex justify-between pt-2 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="justify-end flex mb-2">
                 <div class="items-center justify-end px-2">
@@ -34,6 +34,13 @@
 
             @if($order->status=='approved' || $order->status=='unpaid' || $order->status=='paid')
             <div class="justify-end flex">
+                @if ($order->bill)
+                    <span class="inline-flex rounded-md mb-2">
+                        <a href="{{route('show.invoice', [$order->bill->id])}}" class="inline-flex dark:bg-slate-800 dark:text-slate-300 items-center px-2 py-1 border text-xs leading-4 font-medium rounded-md text-gray-500  bg-gray-200 hover:bg-gray-300 hover:text-gray-700 focus:outline-none focus:bg-gray-400 active:bg-gray-400 transition">
+                            View Invoice
+                        </a>
+                    </span>
+                @endif
                 <div class="items-center justify-end px-2 text-right">
                     <x-jet-dropdown align="right" width="60">
                         <x-slot name="trigger">
@@ -67,7 +74,20 @@
     </header>
     <div>
         <div class="max-w-7xl mx-auto py-4 sm:px-6 lg:px-8 mb-6">
-            @livewire('order.edit', ['uuid'=>$order->id])
+            @if($order->status=='paid')
+            <div class="bg-green-100 border sm:rounde border-green-500 text-green-700 px-4 py-3 mb-4" role="alert">
+                <p class="font-bold capitalize">{{$order->status}}</p>
+            </div>
+            @endif
+
+            <div class="md:grid md:grid-cols-5 md:gap-6">
+                <div class="md:col-span-12 lg:col-span-4">
+                    @livewire('order.edit', ['uuid'=>$order->id])
+                </div>
+                <div class="justify-between lg:visible md:invisible">
+                    @livewire('commercial.progress', ['model'=>'order','id'=>$order->id])
+                </div>
+            </div>
         </div>
     </div>
 </x-app-layout>

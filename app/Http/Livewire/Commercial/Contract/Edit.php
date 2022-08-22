@@ -65,7 +65,7 @@ class Edit extends Component
     public function onChangeModelId()
     {
         if($this->input['model_id']!=0){
-            if($this->input['model']=='Project'){
+            if($this->input['model']=='PROJECT'){
                 $this->addressed = Project::find($this->input['model_id']);
                 $this->input['model'] = 'Project';
             }else{
@@ -88,8 +88,8 @@ class Edit extends Component
      */
     public function readModelSelection()
     {
-        if($this->input['model']=='Project'){
-            $data = Project::where('team_id', auth()->user()->currentTeam->team_id)->pluck('name', 'id');
+        if($this->input['model']=='PROJECT'){
+            $data = Project::pluck('name', 'id');
         }else{
             $data = Client::where('user_id', auth()->user()->currentTeam->user_id)->pluck('name', 'id');
         }

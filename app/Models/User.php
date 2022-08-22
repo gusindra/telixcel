@@ -26,7 +26,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'name', 'email', 'password', 'handling', 'phone_no', 'nick'
+        'name', 'email', 'password', 'handling', 'phone_no', 'nick', 'current_team_id'
     ];
 
     /**
@@ -112,7 +112,7 @@ class User extends Authenticatable
      * @return void
      */
     public function super(){
-    	return $this->hasMany('App\Models\TeamUser','user_id')->where('team_id', 1);
+    	return $this->hasMany('App\Models\TeamUser','user_id')->where('team_id', env('IN_HOUSE_TEAM_ID'));
     }
 
     /**
@@ -121,7 +121,7 @@ class User extends Authenticatable
      * @return void
      */
     public function isSuper(){
-    	return $this->hasOne('App\Models\TeamUser','user_id')->where('team_id', 1);
+    	return $this->hasOne('App\Models\TeamUser','user_id')->where('team_id', env('IN_HOUSE_TEAM_ID'));
     }
 
     /**

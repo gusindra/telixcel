@@ -1,14 +1,14 @@
 <x-app-layout>
 
-    <header class="bg-white shadow ">
+    <header class="bg-white dark:bg-slate-600 shadow ">
         <div class="flex justify-between pt-2 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="justify-end flex">
+            <div class="justify-end flex mb-2">
                 <div class="items-center justify-end px-2">
                     <div class="space-x-1 sm:-my-px">
-                        <x-jet-nav-link href="{{ route('project') }}">
+                        <x-jet-nav-link class="dark:text-slate-300" href="{{ route('project') }}">
                             {{ __('Project') }}
                         </x-jet-nav-link>
-                        <span class="inline-flex items-center px-1 pt-1 text-xs font-medium leading-5 text-gray-900 ">
+                        <span class="inline-flex items-center px-1 pt-1 text-xs font-medium leading-5 text-gray-900 dark:text-slate-300">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
                             </svg>
@@ -72,7 +72,6 @@
         <div class="max-w-7xl mx-auto pt-4 pb-10 sm:px-6 lg:px-8">
             <div class="{{$project->status=='approved'?'bg-green-100':'bg-blue-100'}} border sm:rounded {{$project->status=='approved'?'border-green-500':'border-blue-500'}} {{$project->status=='approved'?'text-green-700':'text-blue-700'}} px-4 py-3 mb-4" role="alert">
                 <p class="font-bold capitalize">{{$project->status}}</p>
-                <!-- <p class="text-sm">Some additional text to explain said message.</p> -->
             </div>
             <div class="md:grid md:grid-cols-5 md:gap-6">
                 <div class="md:col-span-12 lg:col-span-4">

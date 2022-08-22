@@ -7,9 +7,11 @@ use Livewire\Component;
 use App\Models\Project;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class Add extends Component
 {
+    use AuthorizesRequests;
     public $modalActionVisible = false;
     public $type;
     public $name;
@@ -26,6 +28,7 @@ class Add extends Component
 
     public function create()
     {
+        $this->authorize('create', new Project);
         $this->validate();
         Project::create($this->modelData());
         $this->modalActionVisible = false;
@@ -62,7 +65,7 @@ class Add extends Component
 
     private function readCompany()
     {
-        if(Auth::user()->super->first()->role == 'superadmin'){
+        if(Auth::user()->super->first() && Auth::user()->super->first()->role == 'superadmin' ){
             return Company::where('user_id', 0)->get();
         }
         return Company::where('user_id', Auth::user()->id)->get();

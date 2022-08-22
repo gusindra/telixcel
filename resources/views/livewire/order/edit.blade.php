@@ -30,51 +30,58 @@
         </x-jet-dialog-modal>
     @endif
 
-    <x-jet-form-section submit="updateStatus({{$order->id}})">
-        <x-slot name="title">
-            {{ __('Update') }}
-        </x-slot>
+    @if(($order->status=='draft' || $order->status=='unpaid' || $order->status=='paid') && @Auth::user()->role && Auth::user()->super->first() && @Auth::user()->super->first()->role == 'superadmin')
+        <x-jet-form-section submit="updateStatus({{$order->id}})">
+            <x-slot name="title">
+                {{ __('Update') }}
+            </x-slot>
 
-        <x-slot name="description">
-            {{ __('Status information.') }}
-        </x-slot>
+            <x-slot name="description">
+                {{ __('Status information.') }}
+            </x-slot>
 
-        <x-slot name="form">
+            <x-slot name="form">
 
-            <div class="col-span-6 grid grid-cols-2">
-                <div class="col-span-12 sm:col-span-1 mx-4">
-                    <x-jet-label for="status" value="{{ __('Status') }}" />
-                    <select
-                        name="valid_day"
-                        id="valid_day"
-                        class="border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full"
-                        wire:model.debunce.800ms="input.status"
-                        >
-                        <option selected>-- Select --</option>
-                        <option value="draft">Draft</option>
-                        <option value="unpaid">Unpaid</option>
-                        <option value="paid">Paid</option>
-                        <option value="process">Process</option>
-                        <option value="refund">Refund</option>
-                        <option value="done">Done</option>
-                    </select>
-                    <x-jet-input-error for="status" class="mt-2" />
+                <div class="col-span-6 grid grid-cols-2">
+                    <div class="col-span-12 sm:col-span-1 mx-4">
+                        <x-jet-label for="status" value="{{ __('Status') }}" />
+                        <select
+                            name="valid_day"
+                            id="valid_day"
+                            class="border-gray-300 dark:bg-slate-800 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full"
+                            wire:model.debunce.800ms="input.status"
+                            >
+                            <option selected>-- Select --</option>
+                            @if($order->status=='draft')
+                            <option value="draft">Draft</option>
+                            @endif
+                            @if($order->status=='unpaid' || $order->status=='paid')
+                            <option value="unpaid">Unpaid</option>
+                            <option value="paid">Paid</option>
+                            <option value="process">Process</option>
+                            <option value="refund">Refund</option>
+                            @endif
+                            @if($order->status=='paid')
+                            <option value="done">Done</option>
+                            @endif
+                        </select>
+                        <x-jet-input-error for="status" class="mt-2" />
+                    </div>
                 </div>
-            </div>
-        </x-slot>
+            </x-slot>
 
-        <x-slot name="actions">
-            <x-jet-action-message class="mr-3" on="update_status">
-                {{ __('Status updated') }}
-            </x-jet-action-message>
+            <x-slot name="actions">
+                <x-jet-action-message class="mr-3" on="update_status">
+                    {{ __('Status updated') }}
+                </x-jet-action-message>
 
-            <x-jet-button class="ml-2" type="submit" wire:loading.attr="disabled">
-                {{ __('Save') }}
-            </x-jet-button>
-        </x-slot>
-    </x-jet-form-section>
-
-    <x-jet-section-border />
+                <x-jet-button class="ml-2" type="submit" wire:loading.attr="disabled">
+                    {{ __('Save') }}
+                </x-jet-button>
+            </x-slot>
+        </x-jet-form-section>
+        <x-jet-section-border />
+    @endif
 
     <x-jet-form-section submit="update({{$order->id}})">
         <x-slot name="title">
@@ -117,7 +124,7 @@
             <div class="col-span-6 sm:col-span-4">
                 <div class="col-span-12 sm:col-span-1">
                     <x-jet-label for="date" value="{{ __('Date') }}" />
-                    <x-input.date-picker wire:model="input.date" :error="$errors->first('input.date')"/>
+                    <x-input.date-picker show="{{disableInput($order->status)?true:false}}" wire:model="input.date" :error="$errors->first('input.date')"/>
                     <x-jet-input-error for="date" class="mt-2" />
                 </div>
             </div>
@@ -128,7 +135,7 @@
                 {{ __('Order basic saved.') }}
             </x-jet-action-message>
 
-            <x-save-button show="{{$order->status=='draft'?'true':'false'}}">
+            <x-save-button show="{{$order->status=='draft'?true:false}}">
                 {{ __('Save') }}
             </x-jet-button>
         </x-slot>
@@ -146,7 +153,6 @@
         </x-slot>
 
         <x-slot name="form">
-
             <div class="col-span-6 grid grid-cols-2">
                 <div class="col-span-12 sm:col-span-1 mx-4">
                     <x-jet-label for="input.customer_id" value="{{ __('Client') }}" />
@@ -155,17 +161,14 @@
                         wire:change="onChangeModelId"
                         name="input.customer_id"
                         id="input.customer_id"
-                        class="border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full"
+                        class="border-gray-300 dark:bg-slate-800 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full"
                         wire:model.debunce.800ms="input.customer_id"
                         >
                         <option selected>-- Select --</option>
                         @foreach($model_list as $key => $item)
                         <option value="{{$key}}">{{$item}}</option>
                         @endforeach
-
-                        @if($order->type!="project")
-                        <option value="0">New Client</option>
-                        @endif
+                        <option value="new">New User</option>
 
                     </select>
                     <x-jet-input-error for="input.customer_id" class="mt-2" />
@@ -173,14 +176,18 @@
 
                 <div class="col-span-12 sm:col-span-1">
                     <x-jet-label for="addressed_company" value="{{ __('Customer') }}" />
-
                     @if($client)
-                        <span class="border rounded-md shadow-sm mt-1 block w-full p-2 capitalize">{{$client->name}}</span>
                         @if($client->user && $client->user_id == 0)
-                            <p class="text-right">
+                            <div class="absolute p-3 ml-20" style=" margin-top: -35px; ">
                                 <a href="{{route('user.show', $client->user->id)}}" class="text-xs">view</a>
-                            </p>
+                            </div>
                         @endif
+                        <span class="border dark:bg-slate-800 rounded-md shadow-sm mt-1 block w-full p-2 capitalize">{{$client->name}}</span>
+                    @endif
+                    @if($input['customer_id']=='new')
+                        <div class="py-3">
+                            @livewire('user.add', ['model'=>'order'])
+                        </div>
                     @endif
                 </div>
             </div>
@@ -191,7 +198,7 @@
                 {{ __('Order saved.') }}
             </x-jet-action-message>
 
-            <x-save-button show="{{$order->status=='draft'?'true':'false'}}">
+            <x-save-button show="{{$order->status=='draft'?true:false}}">
                 {{ __('Save') }}
             </x-jet-button>
         </x-slot>

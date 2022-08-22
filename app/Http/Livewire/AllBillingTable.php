@@ -14,30 +14,33 @@ class AllBillingTable extends LivewireDatatable
 
     public function builder()
     {
-        return Billing::query();
+        return Billing::query()->orderBy('created_at', 'desc');
     }
 
     public function columns()
     {
         return [
     		NumberColumn::name('code')->label('Transaction ID')->sortBy('code'),
-    		Column::name('description')->label('Description'),
+    		Column::name('description')->label('Description')->filterable(),
     		NumberColumn::name('amount')->callback('amount', function ($value) {
                 if($value){
                     return 'Rp'.number_format($value);
                 }
                 return 0;
             })->label('Amount'),
-    		Column::name('status')->label('Status'),
-    		DateColumn::name('created_at')->label('Creation Date'),
+    		DateColumn::name('created_at')->label('Creation Date')->filterable(),
+    		Column::callback(['status'], function ($y) {
+                return view('label.label', ['type' => $y]);
+            })->label('Status')->filterable(['PAID', 'UNPAID']),
             NumberColumn::name('id')->label('Detail')->sortBy('id')->callback('id, order_id', function ($value, $order) {
+                $link = '';
                 if($order){
-                    return view('datatables::link', [
-                        'href' => "commercial/". $order."/invoice/print",
-                        'slot' => 'Invoice'
+                    $link = view('datatables::link', [
+                        'href' => "invoice-order/". $value,
+                        'slot' => 'View'
                     ]);
                 }
-                return '';
+                return $link;
             }),
     	];
     }

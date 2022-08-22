@@ -7,6 +7,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\URL;
 
 class RoleInvitation extends Mailable
@@ -32,9 +33,13 @@ class RoleInvitation extends Mailable
      */
     public function build()
     {
-        return $this->markdown('mail.role-invitation', [
-            'acceptUrl' => URL::signedRoute('role-invitations.accept', [
+        $url = URL::signedRoute('role-invitations.accept', [
             'invitation' => $this->invitation,
-        ])])->subject(__('Role Invitation'));
+        ]);
+
+        Log::debug($url);
+        return $this->markdown('mail.role-invitation', [
+            'acceptUrl' => $url
+        ])->subject(__('Role Invitation'));
     }
 }
