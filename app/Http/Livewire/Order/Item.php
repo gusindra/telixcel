@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 
 class Item extends Component
 {
+    public $input;
     public $data;
     public $products;
     public $item_id;

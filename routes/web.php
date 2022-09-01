@@ -26,8 +26,10 @@ use App\Jobs\ProcessEmail;
 use App\Models\ApiCredential;
 use App\Models\BlastMessage;
 use App\Models\Client;
+use App\Models\Contract;
 use App\Models\FlowSetting;
 use App\Models\Notification;
+use App\Models\OrderProduct;
 use App\Models\Template;
 use App\Models\Request;
 use App\Models\SaldoUser;
@@ -280,79 +282,93 @@ Route::get('/restart-service', function(){
 
 // TESTING
 Route::get('/testing', function(){
-    return base64_encode('SITC01'.':'.'92f70cad-1fa4-40de-bbd8-39dbfd6a7242');
+    $contract = Contract::find(10);
+    return $contract->attachments->sortByDesc('id')->first();
+    // return base64_encode('SITC01'.':'.'92f70cad-1fa4-40de-bbd8-39dbfd6a7242');
     // $request = Request::find(244);
     // return $request->client->team->detail;
     // return $userCredention->team->detail;
 
-    $curl = curl_init();
+    // $curl = curl_init();
 
-    curl_setopt_array($curl, array(
-        CURLOPT_URL => 'http://pickup.sicepat.com:8087/api/partner/requestpickuppackage',
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_ENCODING => '',
-        CURLOPT_MAXREDIRS => 10,
-        CURLOPT_TIMEOUT => 0,
-        CURLOPT_FOLLOWLOCATION => true,
-        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-        CURLOPT_CUSTOMREQUEST => 'POST',
-        CURLOPT_POSTFIELDS =>'{
-            "auth_key": "C70575F6ADB1457DBBB0AE825FC04542",
-            "reference_number": "SICEPAT-TEST-SCPT123",
-            "pickup_request_date": "2021-01-01 09:00",
-            "pickup_merchant_name": "Telixmart",
-            "pickup_method": "PICKUP",
-            "pickup_address": "Jalan Daan Mogot II No. 100, M-NN No.RT.6, RT.6/RW.5, Duri Kepa, Kec. Kb. Jeruk, Kota Jakarta Barat, Daerah Khusus Ibukota Jakarta 11510",
-            "pickup_city": "KOTA JAKARTA BARAT",
-            "pickup_merchant_phone": "02150200050",
-            "pickup_merchant_email": "support@jarvis-store.com",
-            "PackageList": [
-                {
-                    "receipt_number": "999888777111",
-                    "origin_code": "CGK",
-                    "delivery_type": "BEST",
-                    "parcel_category": "Clothing",
-                    "parcel_content": "Kaos Katun Polos",
-                    "parcel_qty": 2,
-                    "parcel_uom": "Pcs",
-                    "parcel_value": 199000,
-                    "total_weight": 0.6,
-                    "shipper_name": "Sicepat Telixmart",
-                    "shipper_address": "Jalan Daan Mogot II No. 100, M-NN No.RT.6, RT.6/RW.5, Duri Kepa, Kec. Kb. Jeruk, Kota Jakarta Barat, Daerah Khusus Ibukota Jakarta 1510",
-                    "shipper_province": "DKI JAKARTA",
-                    "shipper_city": "KOTA JAKARTA BARAT",
-                    "shipper_district": "KEBON JERUK",
-                    "shipper_zip": "11510",
-                    "shipper_phone": "02150200050",
-                    "shipper_longitude": "-6.155960",
-                    "shipper_latitude": "106.708860",
-                    "recipient_title": "Mrs",
-                    "recipient_name": "Ratna Galih",
-                    "recipient_address": "testing tanpa lang & lat recipient",
-                    "recipient_province": "JAWA TENGAH",
-                    "recipient_city": "KAB. BANYUMAS",
-                    "recipient_district": "PURWOKERTO BARAT",
-                    "recipient_zip": "53132",
-                    "recipient_phone": "087888888888",
-                    "destination_code": "SRG10424"
-                }
-            ]
-        }',
-        CURLOPT_HTTPHEADER => array(
-            'Content-Type: application/json'
-        ),
-    ));
+    // curl_setopt_array($curl, array(
+    //     CURLOPT_URL => 'http://pickup.sicepat.com:8087/api/partner/requestpickuppackage',
+    //     CURLOPT_RETURNTRANSFER => true,
+    //     CURLOPT_ENCODING => '',
+    //     CURLOPT_MAXREDIRS => 10,
+    //     CURLOPT_TIMEOUT => 0,
+    //     CURLOPT_FOLLOWLOCATION => true,
+    //     CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+    //     CURLOPT_CUSTOMREQUEST => 'POST',
+    //     CURLOPT_POSTFIELDS =>'{
+    //         "auth_key": "C70575F6ADB1457DBBB0AE825FC04542",
+    //         "reference_number": "SICEPAT-TEST-SCPT123",
+    //         "pickup_request_date": "2021-01-01 09:00",
+    //         "pickup_merchant_name": "Telixmart",
+    //         "pickup_method": "PICKUP",
+    //         "pickup_address": "Jalan Daan Mogot II No. 100, M-NN No.RT.6, RT.6/RW.5, Duri Kepa, Kec. Kb. Jeruk, Kota Jakarta Barat, Daerah Khusus Ibukota Jakarta 11510",
+    //         "pickup_city": "KOTA JAKARTA BARAT",
+    //         "pickup_merchant_phone": "02150200050",
+    //         "pickup_merchant_email": "support@jarvis-store.com",
+    //         "PackageList": [
+    //             {
+    //                 "receipt_number": "999888777111",
+    //                 "origin_code": "CGK",
+    //                 "delivery_type": "BEST",
+    //                 "parcel_category": "Clothing",
+    //                 "parcel_content": "Kaos Katun Polos",
+    //                 "parcel_qty": 2,
+    //                 "parcel_uom": "Pcs",
+    //                 "parcel_value": 199000,
+    //                 "total_weight": 0.6,
+    //                 "shipper_name": "Sicepat Telixmart",
+    //                 "shipper_address": "Jalan Daan Mogot II No. 100, M-NN No.RT.6, RT.6/RW.5, Duri Kepa, Kec. Kb. Jeruk, Kota Jakarta Barat, Daerah Khusus Ibukota Jakarta 1510",
+    //                 "shipper_province": "DKI JAKARTA",
+    //                 "shipper_city": "KOTA JAKARTA BARAT",
+    //                 "shipper_district": "KEBON JERUK",
+    //                 "shipper_zip": "11510",
+    //                 "shipper_phone": "02150200050",
+    //                 "shipper_longitude": "-6.155960",
+    //                 "shipper_latitude": "106.708860",
+    //                 "recipient_title": "Mrs",
+    //                 "recipient_name": "Ratna Galih",
+    //                 "recipient_address": "testing tanpa lang & lat recipient",
+    //                 "recipient_province": "JAWA TENGAH",
+    //                 "recipient_city": "KAB. BANYUMAS",
+    //                 "recipient_district": "PURWOKERTO BARAT",
+    //                 "recipient_zip": "53132",
+    //                 "recipient_phone": "087888888888",
+    //                 "destination_code": "SRG10424"
+    //             }
+    //         ]
+    //     }',
+    //     CURLOPT_HTTPHEADER => array(
+    //         'Content-Type: application/json'
+    //     ),
+    // ));
 
-    $response = curl_exec($curl);
+    // $response = curl_exec($curl);
 
-    curl_close($curl);
-    echo $response;
+    // curl_close($curl);
+    // echo $response;
 
 });
 
 Route::get('/tester', function(HttpRequest $request){
     // return auth()->user()->super->first()->role;
-    return $flow = FlowSetting::where('model', 'QUOTATION')->where('team_id', auth()->user()->currentTeam->id)->get();
+    $sms = BlastMessage::find(435);
+    if($quote = App\Models\Quotation::where('client_id', 1)->whereIn('status', ['reviewed'])->orderBy('id', 'desc')->first()){
+        $items = OrderProduct::orderBy('id', 'asc')->where('model', 'Quotation')->where('model_id', $quote->id)->get();
+        foreach($items as $product){
+            echo $product;
+            if(Str::contains($product->name, 'SMS NON OTP') && $sms->otp == 0){
+                return $product->price.' NONOTP '.$sms->id;
+            }elseif(Str::contains($product->name, 'SMS OTP') && $sms->otp == 1){
+                return $product->price.' OTP '.$sms->id;
+            }
+        }
+    }
+    return 0;
     // return $request;
     $url = $request->url;
     $secretkey = $request->key;

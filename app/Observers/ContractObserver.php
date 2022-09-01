@@ -43,8 +43,23 @@ class ContractObserver
                     'task'      => $value->description,
                 ]);
             }
+
+            if($request->status){
+                $contract = Contract::find($request->id);
+                $contract->update([
+                    'original_attachment' => $contract->attachments->sortBy('id')->first()->id
+                ]);
+            }
+
         }
 
+        if($request->status == 'approve'){
+
+            $contract = Contract::find($request->id);
+            $contract->update([
+                'result_attachment' => $contract->attachments->sortByDesc('id')->first()->id
+            ]);
+        }
         // if($request->status == 'approved')
         // {
         //     //Releaser

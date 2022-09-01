@@ -96,16 +96,16 @@
                                         <table class="min-w-full divide-y divide-gray-200">
                                             <tbody class="bg-white divide-y divide-gray-200">
                                                 <tr class="border-none">
-                                                    <td class="text-sm whitespace-no-wrap font-bold uppercase"> {{$data->customer->name}} </td>
+                                                    <td class="text-sm whitespace-no-wrap font-bold uppercase"> {{@$data->customer->name}} </td>
                                                 </tr>
                                                 <tr class="border-none">
-                                                    <td class="text-sm whitespace-no-wrap"> {{$data->customer->address}} </td>
+                                                    <td class="text-sm whitespace-no-wrap"> {{@$data->customer->address}} </td>
                                                 </tr>
                                                 <tr class="border-none">
                                                     <td class="text-sm whitespace-no-wrap"> NPWP : {{@$data->customer->user->userBilling->tax_id}} </td>
                                                 </tr>
                                                 <tr class="border-none">
-                                                    <td class="text-sm whitespace-no-wrap"> CN : {{$data->customer->uuid}}</td>
+                                                    <td class="text-sm whitespace-no-wrap"> CN : {{@$data->customer->uuid}}</td>
                                                 </tr>
                                             </tbody>
                                         </table>
@@ -216,13 +216,15 @@
                                         <tr>
                                             <td class="font-bold text-sm align-top flex justify-around1 justify-end">
                                                 <div class="border border-gray-50 p-2 mb-2">
-                                                    @foreach ($data->company->payable as $account)
-                                                        {{$account->provider_name}}<br>
-                                                        {{$account->provider_location}}<br>
-                                                        {{$account->account_name}}<br>
-                                                        Account No {{$account->account_number}}<br>
-                                                        {{$account->notes}}
-                                                    @endforeach
+                                                    @if($data->company && $data->company->payable)
+                                                        @foreach ($data->company->payable as $account)
+                                                            {{$account->provider_name}}<br>
+                                                            {{$account->provider_location}}<br>
+                                                            {{$account->account_name}}<br>
+                                                            Account No {{$account->account_number}}<br>
+                                                            {{$account->notes}}
+                                                        @endforeach
+                                                    @endif
                                                 </div>
                                             </td>
                                         </tr>
@@ -247,7 +249,7 @@
                                     <table class="min-w-full divide-y divide-gray-200">
                                         <tbody class="bg-white divide-y divide-gray-200">
                                             <tr class="border-none">
-                                                <td class="font-bold text-sm whitespace-no-wrap"> {{$data->company->person_in_charge}}</td>
+                                                <td class="font-bold text-sm whitespace-no-wrap"> {{@$data->company->person_in_charge}}</td>
                                             </tr>
                                         </tbody>
                                     </table>

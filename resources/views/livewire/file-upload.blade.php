@@ -9,19 +9,30 @@
                 <p>{{ session('message') }}</p>
             </div>
             @endif
-
+            <x-jet-action-message class="mr-3" on="deleted">
+                {{ __('1 selected document deleted.') }}
+            </x-jet-action-message>
             <div class="flex flex-wrap1 -mx-2">
                 <table class="table w-full border m-2">
                     <tr class="border-b">
-                        <td>Uploaded at</td>
-                        <td>File</td>
-                        <td>Action</td>
+                        <td class="border text-center">No</td>
+                        <td class="border text-center">Uploaded at</td>
+                        <td class="border text-center">File</td>
+                        <td class="border text-center">Action</td>
                     </tr>
                     @forelse($files as $file)
                         <tr>
+                            <td class="border border-gray-300 p-2">{{$loop->iteration}}</td>
                             <td class="border border-gray-300 p-2">{{$file->created_at->format('d F Y - H:i')}}</td>
                             <td class="border border-gray-300 p-2"><div><img src="{{url('/backend/img/'.substr(strrchr($file->file, '.'), 1).'.png')}}" class="h-8" title="{{substr(strrchr($file->file, '/'), 1)}}" /></div></td>
-                            <td class="border border-gray-300 p-2"><div><a target="_blank" href="https://telixcel.s3.ap-southeast-1.amazonaws.com/{{$file->file}}" title="download"><svg viewBox="0 0 34 34" width="34" height="34" class="ml-2"><path fill="currentColor" d="M17 2c8.3 0 15 6.7 15 15s-6.7 15-15 15S2 25.3 2 17 8.7 2 17 2m0-1C8.2 1 1 8.2 1 17s7.2 16 16 16 16-7.2 16-16S25.8 1 17 1z"></path><path fill="currentColor" d="M22.4 17.5h-3.2v-6.8c0-.4-.3-.7-.7-.7h-3.2c-.4 0-.7.3-.7.7v6.8h-3.2c-.6 0-.8.4-.4.8l5 5.3c.5.7 1 .5 1.5 0l5-5.3c.7-.5.5-.8-.1-.8z"></path></svg></a></div></td>
+                            <td class="border border-gray-300 p-2">
+                                <div class="flex justify-around">
+                                    <a target="_blank" href="https://telixcel.s3.ap-southeast-1.amazonaws.com/{{$file->file}}" title="download"><svg viewBox="0 0 34 34" class="w-6 h-6 ml-2"><path fill="currentColor" d="M17 2c8.3 0 15 6.7 15 15s-6.7 15-15 15S2 25.3 2 17 8.7 2 17 2m0-1C8.2 1 1 8.2 1 17s7.2 16 16 16 16-7.2 16-16S25.8 1 17 1z"></path><path fill="currentColor" d="M22.4 17.5h-3.2v-6.8c0-.4-.3-.7-.7-.7h-3.2c-.4 0-.7.3-.7.7v6.8h-3.2c-.6 0-.8.4-.4.8l5 5.3c.5.7 1 .5 1.5 0l5-5.3c.7-.5.5-.8-.1-.8z"></path></svg></a>
+                                    @if(!disableInput($status))
+                                    <a wire:click="actionConfirmation({{$file->id}})" class="cursor-pointer"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"> <path stroke-linecap="round" stroke-linejoin="round" d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" /> </svg></a>
+                                    @endif
+                                </div>
+                            </td>
                         </tr>
                     @empty
                         <tr><td>No Files Uploaded</td></tr>
@@ -29,7 +40,7 @@
                 </table>
             </div>
 
-            @if(!disableInput($status) || $status=='unpaid')
+            @if($uploadAble)
             <div class="mb-0 pb-6">
                 <form wire:submit.prevent="save" enctype="multipart/form-data">
                     <div class="mb-3">
@@ -45,5 +56,25 @@
             @endif
 
         </div>
+        <!-- Form Action Modal -->
+        <x-jet-dialog-modal wire:model="deleteConfirmation">
+            <x-slot name="title">
+                {{ __('Delete File Attachment') }}
+            </x-slot>
+
+            <x-slot name="content">
+                {{ __('Are you sure you want to delete this Document?') }}
+            </x-slot>
+
+            <x-slot name="footer">
+                <x-jet-secondary-button wire:click="$toggle('deleteConfirmation')" wire:loading.attr="disabled">
+                    {{ __('Cancel') }}
+                </x-jet-secondary-button>
+
+                <x-jet-danger-button class="ml-2" wire:click="remove" wire:loading.attr="disabled">
+                    {{ __('Delete File') }}
+                </x-jet-danger-button>
+            </x-slot>
+        </x-jet-dialog-modal>
     </div>
 </div>

@@ -22,6 +22,7 @@ class Quotation extends Model
         'quote_no',
         'commerce_id',
         'source_id',
+        'client_id',
         'model',
         'model_id',
         'terms',

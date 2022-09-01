@@ -46,7 +46,7 @@
 
                     <div class="flex1 items-start my-2" wire:poll>
                         <div class="col-span-12 grid grid-cols-1">
-                            <x-jet-label for="name" value="{{ __('Address') }}" />
+                            <x-jet-label for="name" value="{{ __('Email Address') }}" />
                             <textarea
                                     {{disableInput($project->status)?'disabled':''}}
                                     wire:model="customer_address"

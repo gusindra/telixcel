@@ -25,8 +25,7 @@ class AttachmentObserver
                 'user_id' => 0,
                 'status' => 'unread'
             ]);
-        }
-        if($request->model=='invoice'){
+        }elseif($request->model=='invoice'){
             Notification::create([
                 'type' => 'App',
                 'model' => 'Invoice',
@@ -37,6 +36,8 @@ class AttachmentObserver
             ]);
 
             Billing::find($request->model_id)->update(['status'=>'paid']);
+        }elseif($request->model=='contract'){
+            
         }
     }
 

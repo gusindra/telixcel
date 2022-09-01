@@ -46,17 +46,23 @@
                                 <p class="mt-0 text-sm font-semibolde text-gray-900 dark:text-gray-300 capitalize">{{$approval->status}}</p>
                             </div>
                             @if($approval->status!=null)
-                            <div>
+                                <div class="flex justify-end">
+                                    @if($approval->user_id)
+                                    <p class="mb-2 mt-2 text-xs font-bold leading-none text-gray-400 dark:text-gray-500 flex justify-between">
+                                        <img class="h-4 w-4 rounded-full object-cover" src="{{ $approval->user->profile_photo_url }}" alt="{{ $approval->user->name }}" />
+                                        <span class="mx-1">{{$approval->user_id ? $approval->user->name : ''}}</span>
+                                    </p>
+                                    @endif
+                                    <p class="text-right flex justify-around">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-gray-400 mt-2 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                        <time class="mb-3 mt-2 text-xs font-thin leading-none text-gray-400 dark:text-gray-500">{{$approval->updated_at->format('dM-y H:i')}}</time>
+                                    </p>
+                                </div>
                                 @if($approval->comment!='')
                                 <p class="text-xs font-normal text-gray-500 dark:text-gray-400 bg-gray-300 rounded-sm px-2 py-1">{{$approval->comment}}</p>
                                 @endif
-                                <p class="text-right flex">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-gray-400 mt-2 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                    </svg>
-                                    <time class="mb-4 mt-2 text-xs font-normal leading-none text-gray-400 dark:text-gray-500">{{$approval->updated_at->format('d M Y H:i')}}</time>
-                                </p>
-                            </div>
                             @endif
                         </li>
                     @endforeach
@@ -145,17 +151,23 @@
                                                     <p class="mt-0 text-sm font-semibolde text-gray-900 dark:text-gray-500 capitalize">{{$approval->status}}</p>
                                                 </div>
                                                 @if($approval->status!=null)
-                                                <div>
+                                                    <div class="flex justify-end">
+                                                        @if($approval->user_id)
+                                                        <p class="mb-2 mt-2 text-xs font-bold leading-none text-gray-400 dark:text-gray-500 flex justify-between">
+                                                            <img class="h-4 w-4 rounded-full object-cover" src="{{ $approval->user->profile_photo_url }}" alt="{{ $approval->user->name }}" />
+                                                            <span class="mx-1">{{$approval->user_id ? $approval->user->name : ''}}</span>
+                                                        </p>
+                                                        @endif
+                                                        <p class="text-right flex justify-around">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-gray-400 mt-2 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                            </svg>
+                                                            <time class="mb-3 mt-2 text-xs font-thin leading-none text-gray-400 dark:text-gray-500">{{$approval->updated_at->format('dM-y H:i')}}</time>
+                                                        </p>
+                                                    </div>
                                                     @if($approval->comment!='')
                                                     <p class="text-xs font-normal text-gray-500 dark:text-gray-400 bg-gray-300 rounded-sm px-2 py-1">{{$approval->comment}}</p>
                                                     @endif
-                                                    <p class="text-right flex">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-gray-400 mt-2 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                                        </svg>
-                                                        <time class="mb-4 mt-2 text-xs font-normal leading-none text-gray-400 dark:text-gray-500">{{$approval->updated_at->format('d M Y H:i')}}</time>
-                                                    </p>
-                                                </div>
                                                 @endif
                                             </li>
                                         @endforeach
@@ -169,7 +181,9 @@
                                                 <div>
                                                     <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Notified</h3>
                                                     <ul class="text-left">
-                                                        <li class="mb-4 mt-2 text-xs font-normal leading-none text-gray-400 dark:text-gray-500">ola</li>
+                                                        @foreach ($approvals->groupBy('user_id') as $approval)
+                                                            <li class="mb-2 mt-1 text-xs font-normal leading-none text-gray-400 dark:text-gray-300 capitalize">{{$approval[0]->user->name}}</li>
+                                                        @endforeach
                                                     </ul>
                                                 </div>
                                             </li>

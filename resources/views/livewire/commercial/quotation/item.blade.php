@@ -149,7 +149,7 @@
                         <select
                             name="selectedProduct"
                             id="selectedProduct"
-                            class="border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full"
+                            class="border-gray-300 dark:bg-slate-800 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full"
                             wire:model.debunce.800ms="selectedProduct"
                             >
                             <option selected>-- Select Product --</option>

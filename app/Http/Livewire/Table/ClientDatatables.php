@@ -13,6 +13,7 @@ use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
 class ClientDatatables extends LivewireDatatable
 {
     public $model = Client::class;
+    public $export_name = 'DATA_CLIENT';
 
     public function builder()
     {

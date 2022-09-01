@@ -174,23 +174,27 @@
         <div class="mt-0 md:mt-0 md:col-span-4">
             <div class="bg-white dark:bg-slate-600 shadow sm:rounded-md">
                 <div class="p-4">
-                    @if(disableInput($contract->status))
+
+                    @if($contract->status=='approved' || $contract->status=='approve')
                         <table class="table w-full border m-2">
                             <tr>
+                                <td>No</td>
                                 <td>Uploaded at</td>
                                 <td>File</td>
                                 <td>Action</td>
                             </tr>
                             @foreach($contract->attachments as $file)
                                 <tr>
+                                    <td class="border border-gray-300 p-2">{{$loop->iteration}}</td>
                                     <td class="border border-gray-300 p-2">{{$file->created_at->format('d F Y - H:i')}}</td>
                                     <td class="border border-gray-300 p-2"><div><img src="{{url('/backend/img/'.substr(strrchr($file->file, '.'), 1).'.png')}}" class="h-8" title="{{substr(strrchr($file->file, '/'), 1)}}" /></div></td>
-                                    <td class="border border-gray-300 p-2"><div><a href="https://telixcel.s3.ap-southeast-1.amazonaws.com/{{$file->file}}" title="download"><svg viewBox="0 0 34 34" width="34" height="34" class="ml-2"><path fill="currentColor" d="M17 2c8.3 0 15 6.7 15 15s-6.7 15-15 15S2 25.3 2 17 8.7 2 17 2m0-1C8.2 1 1 8.2 1 17s7.2 16 16 16 16-7.2 16-16S25.8 1 17 1z"></path><path fill="currentColor" d="M22.4 17.5h-3.2v-6.8c0-.4-.3-.7-.7-.7h-3.2c-.4 0-.7.3-.7.7v6.8h-3.2c-.6 0-.8.4-.4.8l5 5.3c.5.7 1 .5 1.5 0l5-5.3c.7-.5.5-.8-.1-.8z"></path></svg></a></div></td>
+                                    <td class="border border-gray-300 p-2"><div><a target="_blank" href="https://telixcel.s3.ap-southeast-1.amazonaws.com/{{$file->file}}" title="download"><svg viewBox="0 0 34 34" width="34" height="34" class="ml-2"><path fill="currentColor" d="M17 2c8.3 0 15 6.7 15 15s-6.7 15-15 15S2 25.3 2 17 8.7 2 17 2m0-1C8.2 1 1 8.2 1 17s7.2 16 16 16 16-7.2 16-16S25.8 1 17 1z"></path><path fill="currentColor" d="M22.4 17.5h-3.2v-6.8c0-.4-.3-.7-.7-.7h-3.2c-.4 0-.7.3-.7.7v6.8h-3.2c-.6 0-.8.4-.4.8l5 5.3c.5.7 1 .5 1.5 0l5-5.3c.7-.5.5-.8-.1-.8z"></path></svg></a></div></td>
                                 </tr>
                             @endforeach
                         </table>
-                    @else
-                        @livewire('file-upload', ['model'=> 'contract', 'model_id'=>$contract->id])
+                    @endif
+                    @if ($contract->status=='submit' || $contract->status=='new' || $contract->status=='draft')
+                        @livewire('file-upload', ['model'=> 'contract', 'model_id'=>$contract->id, $contract->status])
                     @endif
                 </div>
             </div>

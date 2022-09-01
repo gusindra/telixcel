@@ -32,6 +32,7 @@ class Approval extends LivewireDatatable
     public function columns()
     {
         return [
+            Column::index($this),
             DateColumn::name('created_at')->label('Created at')->format('d F Y H:i')->filterable(),
     		Column::callback(['model', 'model_id'], function ($m, $id) {
                 $m = strtolower($m);

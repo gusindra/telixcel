@@ -19,7 +19,8 @@ class Attachment extends Model
         'model',
         'model_id',
         'request_id',
-        'file'
+        'file',
+        'uploaded_by'
     ];
 }
 

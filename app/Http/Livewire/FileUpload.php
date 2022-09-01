@@ -15,6 +15,9 @@ class FileUpload extends Component
     public $model;
     public $model_id;
     public $status;
+    public $deleteConfirmation = false;
+    public $deleteSelection;
+    public $uploadAble = true;
 
     public function mount($model, $model_id, $status = null)
     {
@@ -22,6 +25,22 @@ class FileUpload extends Component
         $this->model_id = $model_id;
         if($status){
             $this->status = $status;
+        }
+        $count = Attachment::where('model', $model)->where('model_id',$model_id)->count();
+        if($this->model=='contract' ){
+            if($count>=1 && $this->status=='draft'){
+                $this->uploadAble = false;
+            }elseif($count>=2 && $this->status=='submit'){
+                $this->uploadAble = false;
+            }
+        }elseif($this->model=='order' || $this->model=='invoice'){
+            if($this->status=='paid'){
+                $this->uploadAble = false;
+            }
+        }elseif($this->status=='approved'){
+            $this->uploadAble = false;
+        }else{
+            $this->uploadAble = !disableInput($status);
         }
     }
 
@@ -47,6 +66,31 @@ class FileUpload extends Component
 
         session()->flash('message', 'The file is successfully uploaded! ' );
     }
+
+    /**
+     * delete confirmation
+     *
+     * @return void
+     */
+    public function actionConfirmation($id)
+    {
+        $this->deleteSelection = $id;
+        $this->deleteConfirmation = true;
+    }
+    /**
+     * delete file
+     *
+     * @return void
+     */
+    public function remove(){
+        $attch = Attachment::find($this->deleteSelection);
+        Storage::disk('s3')->delete($attch->file);
+        $attch->delete();
+        $this->deleteSelection = null;
+        $this->emit('deleted');
+    }
+
+
 
     /**
      * The read function.

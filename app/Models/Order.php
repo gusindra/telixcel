@@ -62,6 +62,10 @@ class Order extends Model
     	return $this->belongsTo('App\Models\Company', 'entity_party');
     }
 
+    public function project(){
+    	return $this->belongsTo('App\Models\Project', 'source_id');
+    }
+
     /**
      * detail order
      *

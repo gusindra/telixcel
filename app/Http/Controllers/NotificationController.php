@@ -38,6 +38,8 @@ class NotificationController extends Controller
                     return redirect()->to("/order/".$flow->model_id);
                 }elseif($flow->model=='COMMISSION'){
                     return redirect()->to("/commission/".$flow->model_id);
+                }elseif($flow->model=='INVOICE'){
+                    return redirect()->to("/invoice-order/". $flow->model_id);
                 }
             }
         }else{

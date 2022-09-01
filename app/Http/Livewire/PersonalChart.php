@@ -113,7 +113,7 @@ class PersonalChart extends Component
         //         ->setAnimated($this->firstRun)
         //         ->withOnPointClickEvent('onPointClick')
         // );
-        dd($expenses);
+        // dd($expenses);
         $multiLineChartModel = $expenses->reduce(function ($multiLineChartModel, $data) use ($expenses) {
             // $index = $expenses->search($data);
             // $date = $data->first()->created_at->format("d M Y");

@@ -19,8 +19,8 @@ class Add extends Component
         return [
             'type' => 'required',
             'name' => 'required',
-            'sku' => 'required',
-            'price' => 'required',
+            'sku' => 'required|unique:commerce_items',
+            'price' => 'required|numeric',
         ];
     }
 

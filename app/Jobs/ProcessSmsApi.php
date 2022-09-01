@@ -145,24 +145,28 @@ class ProcessSmsApi implements ShouldQueue
                 }
 
                 foreach ($array_res as $msg_msis){
-                    //check client
-                    $modelData = [
-                        'msg_id'    => preg_replace('/\s+/', '', $msg_msis[1]),
-                        'user_id'   => $this->user->id,
-                        'client_id' => $this->chechClient("200", $msg_msis[0]),
-                        'sender_id' => $this->request['from'],
-                        'type'      => $this->request['type'],
-                        'otp'       => $this->request['otp'],
-                        'status'    => "PROCESSED",
-                        'code'      => $msg_msis[2],
-                        'message_content'  => $this->request['text'],
-                        'currency'  => $msg_msis[3],
-                        'price'     => $msg_msis[4],
-                        'balance'   => $balance,
-                        'msisdn'    => preg_replace('/\s+/', '', $msg_msis[0]),
-                    ];
-                    // Log::debug($modelData);
-                    BlastMessage::create($modelData);
+                    //check client && array
+                    if(is_array($msg_msis)){
+                        if (array_key_exists("1",$msg_msis) || array_key_exists("0",$msg_msis) || array_key_exists("2",$msg_msis) || array_key_exists("3",$msg_msis) || array_key_exists("4",$msg_msis)){
+                            $modelData = [
+                                'msg_id'    => preg_replace('/\s+/', '', $msg_msis[1]),
+                                'user_id'   => $this->user->id,
+                                'client_id' => $this->chechClient("200", $msg_msis[0]),
+                                'sender_id' => $this->request['from'],
+                                'type'      => $this->request['type'],
+                                'otp'       => $this->request['otp'],
+                                'status'    => "PROCESSED",
+                                'code'      => $msg_msis[2],
+                                'message_content'  => $this->request['text'],
+                                'currency'  => $msg_msis[3],
+                                'price'     => $msg_msis[4],
+                                'balance'   => $balance,
+                                'msisdn'    => preg_replace('/\s+/', '', $msg_msis[0]),
+                            ];
+                            // Log::debug($modelData);
+                            BlastMessage::create($modelData);
+                        }
+                    }
                 }
             }
 

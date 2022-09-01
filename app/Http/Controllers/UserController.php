@@ -45,9 +45,9 @@ class UserController extends Controller
 
     public function balance(User $user, Request $request)
     {
-        if($user->name != 'Admin'){
+        // if($user->name != 'Admin'){
             return view('user.user-balance', ['user'=>$user, 'team'=>$request->has('team')?$request->team:0]);
-        }
-        return redirect('user');
+        // }
+        // return redirect('user');
     }
 }

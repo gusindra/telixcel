@@ -11,6 +11,7 @@ use Mediconesystems\LivewireDatatables\NumberColumn;
 class ProjectTable extends LivewireDatatable
 {
     public $model = Project::class;
+    public $export_name = 'DATA_PROJECT';
 
     public function builder()
     {
@@ -20,7 +21,10 @@ class ProjectTable extends LivewireDatatable
     public function columns()
     {
         return [
-    		Column::name('name')->label('Name')->filterable(),
+    		Column::name('name')->label('Name')->filterable()->exportCallback(function ($value) {
+                return (string) $value ?? '-';
+            }),
+    		Column::name('id')->label('ID')->filterable(),
     		Column::name('customer_name')->label('Customer')->filterable(),
     		Column::callback(['type'], function ($type) {
                 return view('label.type', ['type' => $type]);

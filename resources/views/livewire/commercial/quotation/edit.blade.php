@@ -48,7 +48,7 @@
                     <x-input.date-picker disabled="{{disableInput($quote->status)}}" wire:model="date" :error="$errors->first('date')"/>
                     <x-jet-input-error for="date" class="mt-2" />
                 </div>
-                <div class="col-span-12 sm:col-span-1 mx-4">
+                <div class="col-span-12 sm:col-span-1 md:mx-4">
                     <x-jet-label for="price" value="{{ __('Duration') }}" />
                     <select
                         {{disableInput($quote->status)?'disabled':''}}
@@ -85,7 +85,7 @@
                     </select>
                     <x-jet-input-error for="model" class="mt-2" />
                 </div>
-                <div class="col-span-12 sm:col-span-1 mx-4">
+                <div class="col-span-12 sm:col-span-1 md:mx-4">
                     <x-jet-label for="model_id" value="{{ __('Source ID') }}" />
                     <select
                         {{disableInput($quote->status)?'disabled':''}}
@@ -136,7 +136,7 @@
                         <p class="border rounded-md shadow-sm mt-1 block w-full p-2">{{$quote->project->customer_name}}</p>
                     </div>
 
-                    <div class="col-span-12 sm:col-span-1 mx-4">
+                    <div class="col-span-12 sm:col-span-1 md:mx-4">
                         <x-jet-label for="type" value="{{ __('Client Address') }}" />
                         <p class="border rounded-md shadow-sm mt-1 block w-full p-2">{{$quote->project->customer_address}}</p>
                     </div>
@@ -157,7 +157,7 @@
                         @endif
                     </div>
 
-                    <div class="col-span-12 sm:col-span-1 mx-4">
+                    <div class="col-span-12 sm:col-span-1 md:mx-4">
                         <x-jet-label for="type" value="{{ __('Client') }}" />
 
                         <select
@@ -276,7 +276,7 @@
         <x-slot name="form">
             <!-- Description -->
             <div class="col-span-6 grid grid-cols-2">
-                <div class="col-span-12 sm:col-span-1 mx-4">
+                <div class="col-span-12 sm:col-span-1 md:mx-4">
                     <x-jet-label for="created_by" value="{{ __('Prepare By') }}" />
                     <x-jet-input id="created_by"
                         disabled="{{disableInput($quote->status)}}"
@@ -295,7 +295,7 @@
                     <x-jet-input-error for="created_role" class="mt-2" />
                 </div>
 
-                <div class="col-span-12 sm:col-span-1 mx-4">
+                <div class="col-span-12 sm:col-span-1 md:mx-4">
                     <x-jet-label for="addressed_name" value="{{ __('Addressed To') }}" />
                     <x-jet-input id="addressed_name"
                         disabled="{{disableInput($quote->status)}}"

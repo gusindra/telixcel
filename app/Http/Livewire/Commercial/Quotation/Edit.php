@@ -6,6 +6,7 @@ use App\Models\Client;
 use App\Models\Company;
 use App\Models\Project;
 use App\Models\Quotation;
+use App\Models\User;
 use Livewire\Component;
 
 class Edit extends Component
@@ -72,7 +73,7 @@ class Edit extends Component
 
     public function modelData()
     {
-        return [
+        $data = [
             'title'             => $this->name,
             'status'            => $this->status,
             'quote_no'          => $this->quoteNo,
@@ -88,6 +89,15 @@ class Edit extends Component
             'addressed_name'    => $this->addressed_name,
             'addressed_role'    => $this->addressed_role,
         ];
+
+        if($this->source=='project'){
+            $client = User::where('email', $this->quote->project->customer_address)->first();
+            if($client){
+                $data['client_id'] = $client->id;
+            }
+        }
+
+        return $data;
     }
 
     public function update($id)

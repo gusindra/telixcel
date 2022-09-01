@@ -2,10 +2,12 @@
 
 namespace App\Actions\Fortify;
 
+use App\Models\Attachment;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Laravel\Fortify\Contracts\UpdatesUserProfileInformation;
+use Illuminate\Support\Facades\Storage;
 
 class UpdateUserProfileInformation implements UpdatesUserProfileInformation
 {
@@ -25,7 +27,26 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
         ])->validateWithBag('updateProfileInformation');
 
         if (isset($input['photo'])) {
-            $user->updateProfilePhoto($input['photo']);
+            // $user->updateProfilePhoto($input['photo']);
+            $path = 'images/profile/'.date('F');
+            if($user->photo){
+                $delFile = Storage::disk('s3')->delete($user->photo->file);
+                if($delFile){
+                    $file = Storage::disk('s3')->put($path, $input['photo']);
+                    Attachment::find($user->photo->id)->update([
+                        'file'  => $file
+                    ]);
+                }
+            }else{
+                $file = Storage::disk('s3')->put($path, $input['photo']);
+                Attachment::create([
+                    'model'         => 'user',
+                    'model_id'      => $user->id,
+                    'uploaded_by'   => auth()->user()->id,
+                    'request_id'    => null,
+                    'file'          => $file
+                ]);
+            }
         }
 
         if ($input['email'] !== $user->email &&

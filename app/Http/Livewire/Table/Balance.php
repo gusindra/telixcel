@@ -12,9 +12,13 @@ class Balance extends LivewireDatatable
 {
     public $model = SaldoUser::class;
     public $user;
+    public $export_name = 'DEPOSIT';
 
     public function builder()
     {
+        if(auth()->user()->super && auth()->user()->super->first() && auth()->user()->super->first()->role == 'superadmin'){
+            return SaldoUser::query();
+        }
         return SaldoUser::query()->where('user_id', $this->user);
     }
 

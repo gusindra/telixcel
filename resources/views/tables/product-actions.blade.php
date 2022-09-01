@@ -3,6 +3,7 @@
         Edit
     </a>
 
+    @if($source)
     <x-modal :value="$id">
         <x-slot name="trigger">
             <button class="p-1 text-blue-600 dark:text-slate-300 border bg-gray-300 dark:bg-slate-800 hover:bg-blue-600 hover:text-white rounded text-xs">
@@ -17,6 +18,7 @@
             Update to Ginee
         </a>
     </x-modal>
+    @endif
 
     <!-- @include('datatables::delete', ['value' => $id]) -->
 </div>

@@ -189,4 +189,18 @@ class User extends Authenticatable
     public function userBilling(){
     	return $this->hasOne('App\Models\BillingUser', 'user_id');
     }
+
+    public function photo(){
+    	return $this->hasOne('App\Models\Attachment', 'model_id')->where('model', 'user');
+    }
+
+    public function getProfilePhotoUrlAttribute(){
+        if($this->photo)
+            return 'https://telixcel.s3.ap-southeast-1.amazonaws.com/'.$this->photo->file;
+        $name = trim(collect(explode(' ', $this->name))->map(function ($segment) {
+            return mb_substr($segment, 0, 1);
+        })->join(' '));
+
+        return 'https://ui-avatars.com/api/?name='.urlencode($name).'&color=7F9CF5&background=EBF4FF';
+    }
 }

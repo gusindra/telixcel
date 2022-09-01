@@ -110,13 +110,18 @@
             <div class="col-span-6 sm:col-span-4">
                 <div class="col-span-12 sm:col-span-1">
                     <x-jet-label for="no" value="{{ __('Order No') }}" />
-                    <x-jet-input id="no"
-                        disabled="{{disableInput($order->status)}}"
-                                type="text"
-                                class="mt-1 block w-full"
-                                wire:model="input.no"
-                                wire:model.defer="input.no"
-                                wire:model.debunce.800ms="input.no" />
+                    <div class="flex justify-between">
+                        <x-jet-input id="no"
+                            disabled="{{disableInput($order->status)}}"
+                                    type="text"
+                                    class="mt-1 block w-full"
+                                    wire:model="input.no"
+                                    wire:model.defer="input.no"
+                                    wire:model.debunce.800ms="input.no" />
+                        @if(!disableInput($order->status))
+                            <a href="#" class="ml-4 mt-3 text-sm underline" wire:click="generateNo">Generate</a>
+                        @endif
+                    </div>
                     <x-jet-input-error for="no" class="mt-2" />
                 </div>
             </div>

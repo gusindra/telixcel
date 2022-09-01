@@ -9,6 +9,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 
 class ProcessSmsStatus implements ShouldQueue
 {
@@ -37,10 +38,12 @@ class ProcessSmsStatus implements ShouldQueue
             BlastMessage::where("msg_id", $this->request['msgID'])->where("msisdn", $this->request['msisdn'])->first()->update([
                 'status' => $this->request['status']
             ]);
-        }else{
+        }elseif(array_key_exists('msgid',$this->request)){
             BlastMessage::where("msg_id", $this->request['msgid'])->where("msisdn", $this->request['msisdn'])->first()->update([
                 'status' => $this->request['status']
             ]);
+        }else{
+            Log::debug($this->request);
         }
     }
 }

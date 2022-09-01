@@ -79,7 +79,7 @@
                 <p class="font-bold capitalize">{{$order->status}}</p>
             </div>
             @endif
-            @if($order->status=='unpaid' || $invoice->status=='paid')
+            @if($invoice->status=='released')
                 <div class="md:grid md:grid-cols-5 md:gap-4">
                     <div class="md:col-span-1 flex justify-between">
                         <div class="px-4 sm:px-0">

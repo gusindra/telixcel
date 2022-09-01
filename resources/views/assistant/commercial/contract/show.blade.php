@@ -93,6 +93,11 @@
         <div class="max-w-7xl mx-auto pt-4 pb-10 sm:px-6 lg:px-8">
             <div class="{{$contract->status=='approved'?'bg-green-100':'bg-gray-200'}} border sm:rounded {{$contract->status=='approved'?'border-green-500':'border-gray-500'}} {{$contract->status=='approved'?'text-green-700':'text-gray-700'}} px-4 py-3 mb-4" role="alert">
                 <p class="font-bold capitalize">{{$contract->status}}</p>
+                @if($contract->status=='draft' && is_null($contract->original_attachment))
+                <p>Please upload final draft contract..!</p>
+                @elseif($contract->status=='submit' && is_null($contract->result_attachment))
+                <p>Please upload signing final contract..!</p>
+                @endif
             </div>
             <div class="md:grid md:grid-cols-5 md:gap-6 mt-8 sm:mt-0">
                 <div class="md:col-span-4">

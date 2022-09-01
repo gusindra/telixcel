@@ -43,7 +43,7 @@ class OrderObserver
      */
     public function updated(Order $request)
     {
-        Log::debug($request->status);
+        //Log::debug($request->status);
         if($request->status=='unpaid'){
             $bill = Billing::where('order_id', $request->id)->get();
             if(count($bill)==0){
