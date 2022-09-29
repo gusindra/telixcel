@@ -18,6 +18,7 @@
             <div class="col-span-6 sm:col-span-4 p-3">
                 <x-jet-input wire:keydown.enter="search" placeholder="Press enter to search" id="keyword" type="text" class="mt-1 block w-full" wire:model.debunce.800ms="keyword" autofocus />
                 <x-jet-input-error for="keyword" class="mt-2" />
+                <p class="text-right text-xs p-2 text-slate-400">Press Enter to Search</p>
             </div>
             <div class="text-center">
                 <p wire:loading>Loading...</p>

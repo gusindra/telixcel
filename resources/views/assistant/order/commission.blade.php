@@ -13,7 +13,7 @@
 
                 <div class="mx-auto">
                     <div class="px-4 py-2">
-                        <livewire:table.commission searchable="name" exportable/>
+                        <livewire:table.commission exportable/>
                     </div>
                 </div>
             </div>

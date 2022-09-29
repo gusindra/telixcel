@@ -5,8 +5,10 @@ namespace App\Http\Livewire\Table;
 use App\Models\Billing;
 use App\Models\Contract;
 use App\Models\FlowProcess;
+use App\Models\Order;
 use App\Models\Project;
 use App\Models\Quotation;
+use App\Models\Role;
 use Mediconesystems\LivewireDatatables\BooleanColumn;
 use Mediconesystems\LivewireDatatables\Column;
 use Mediconesystems\LivewireDatatables\DateColumn;
@@ -21,10 +23,10 @@ class Approval extends LivewireDatatable
     public function builder()
     {
         if(auth()->user()->super && auth()->user()->super->first() && auth()->user()->super->first()->role == 'superadmin'){
-            return FlowProcess::query()->orderBy('created_at', 'desc')->whereNull('user_id')->whereNull('status');
+            return FlowProcess::query()->orderBy('created_at', 'asc')->whereNull('user_id')->whereNull('status');
         }else{
             // filter by role
-            return FlowProcess::query()->whereNull('user_id')->whereNull('status')->whereIn('role_id', auth()->user()->role->pluck('role_id'))->orderBy('created_at', 'desc');
+            return FlowProcess::query()->whereNull('user_id')->whereNull('status')->whereIn('role_id', auth()->user()->role->pluck('role_id'))->orderBy('created_at', 'asc');
         }
         // return FlowProcess::query()->where('user_id', $this->user);
     }
@@ -45,29 +47,31 @@ class Approval extends LivewireDatatable
                     $slot = Project::find($id);
                     return view('datatables::link', [
                         'href' => "/project/" . $id,
-                        'slot' => $slot->name
+                        'slot' => 'Project: '.$slot->name
                     ]);
                 }elseif($m=='order'){
+                    $slot = Order::find($id);
                     return view('datatables::link', [
                         'href' => "/order/" . $id,
-                        'slot' => $m
+                        'slot' => 'Order: '.$slot->name
                     ]);
                 }elseif($m=='quotation'){
                     $slot = Quotation::find($id);
                     return view('datatables::link', [
                         'href' => "/commercial/quotation/" . $id,
-                        'slot' => $slot->title
+                        'slot' => 'Quotation: '.$slot->title
                     ]);
                 }elseif($m=='contract'){
                     $slot = Contract::find($id);
                     return view('datatables::link', [
                         'href' => "/commercial/contract/" . $id,
-                        'slot' => $slot->title
+                        'slot' => 'Contract: '.$slot->title
                     ]);
                 }elseif($m=='order'){
+                    $slot = Order::find($id);
                     return view('datatables::link', [
                         'href' => "/order/" . $id,
-                        'slot' => $m
+                        'slot' => 'Order: '.$slot->name
                     ]);
                 }elseif($m=='commission'){
                     return view('datatables::link', [
@@ -78,12 +82,18 @@ class Approval extends LivewireDatatable
                     $slot = Billing::find($id);
                     return view('datatables::link', [
                         'href' => "/invoice-order/" . $id,
-                        'slot' => $m.' '.$slot->code
+                        'slot' => 'Invoice: '.$slot->code
                     ]);
                 }
             })->label('Data'),
     		Column::name('task')->label('Task')->filterable(),
-            // Column::name('comment')->label('Comment')->filterable(),
+            Column::callback(['role_id'], function ($id) {
+                $role = Role::find($id);
+                if($role){
+                    return $role->name;
+                }
+                return '-';
+            })->label('Role'),
     		// Column::callback(['status'], function ($status) {
             //     return view('label.label', ['type' => $status]);
             // })->label('Status')->filterable([NULL, 'DECLINE', 'APPROVED', 'SUBMIT']),

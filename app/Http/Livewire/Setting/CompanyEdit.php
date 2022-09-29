@@ -42,7 +42,10 @@ class CompanyEdit extends Component
     public function modelData()
     {
         return [
-            'name'  => $this->input['name']
+            'name'  => $this->input['name'],
+            'code'  => $this->input['code'],
+            'tax_id'  => $this->input['tax_id'],
+            'person_in_charge'  => $this->input['person_in_charge']
         ];
     }
 

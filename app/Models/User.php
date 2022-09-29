@@ -161,6 +161,15 @@ class User extends Authenticatable
     }
 
     /**
+     * User Has many Role
+     *
+     * @return void
+     */
+    public function activeRole(){
+    	return $this->hasOne('App\Models\RoleUser','user_id')->where('active', 1);
+    }
+
+    /**
      * User Has many Balance
      *
      * @return void
@@ -190,10 +199,20 @@ class User extends Authenticatable
     	return $this->hasOne('App\Models\BillingUser', 'user_id');
     }
 
+    /**
+     * photo
+     *
+     * @return void
+     */
     public function photo(){
     	return $this->hasOne('App\Models\Attachment', 'model_id')->where('model', 'user');
     }
 
+    /**
+     * getProfilePhotoUrlAttribute
+     *
+     * @return void
+     */
     public function getProfilePhotoUrlAttribute(){
         if($this->photo)
             return 'https://telixcel.s3.ap-southeast-1.amazonaws.com/'.$this->photo->file;

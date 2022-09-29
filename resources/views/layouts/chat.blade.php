@@ -17,11 +17,14 @@
         <!-- Styles -->
         <link rel="stylesheet" href="{{ url('css/app.css') }}">
         <link rel="stylesheet" href="{{ url('css/tail.css') }}">
+        <link rel="stylesheet" href="{{ url('js/emoji/docs/assets/css/style.css') }}">
         @trixassets
         @livewireStyles
 
         <!-- Scripts -->
         <script src="{{ url('js/app.js') }}" defer></script>
+        <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+        <script type="module" src="{{ url('js/emoji/docs/assets/js/jquery.emojiarea.min.js') }}"></script>
     </head>
     <body class="font-sans antialiased">
         <x-jet-banner />
@@ -49,7 +52,13 @@
         @livewireScripts
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
         <script src="{{ url('backend/js/socket.js')}}"></script>
-        @stack('chat-websocket')
+        <!-- @stack('chat-websocket') -->
+        <script>
+            $('#input1').on('input', function() {
+                $('#value1').text($('#input1').val());
+            });
+            $('#value1').text($('#input1').val());
+        </script>
 
     </body>
 </html>

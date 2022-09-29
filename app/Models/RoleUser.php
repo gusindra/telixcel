@@ -21,6 +21,7 @@ class RoleUser extends Model
         'user_id',
         'team_id',
         'status',
+        'active',
         'working_id'
     ];
 
@@ -45,4 +46,16 @@ class RoleUser extends Model
     {
         return $this->belongsTo('App\Models\Role');
     }
+
+    /**
+     * Scope a query to only with active true.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('active', 1);
+    }
+
 }

@@ -1,5 +1,6 @@
 <?php
 
+use App\Logging\ApiFormatter;
 use Monolog\Handler\NullHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Handler\SyslogUdpHandler;
@@ -100,6 +101,13 @@ return [
         'emergency' => [
             'path' => storage_path('logs/laravel.log'),
         ],
+
+        'apilog' => [
+            'driver' => 'single',
+            'tap' => [ApiFormatter::class],
+            'path' => storage_path('logs/apilog.log'),
+            'level' => 'debug',
+        ]
     ],
 
 ];

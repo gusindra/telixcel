@@ -98,6 +98,15 @@ class Progress extends Component
         $this->emit('saved');
     }
 
+    public function revise(){
+        $this->model->update([
+            'status' => 'draft'
+        ]);
+        $flow = FlowProcess::find($this->model->approval->id);
+        FlowProcess::where('model', $flow->model)->where('model_id', $flow->model_id)->delete();
+        return redirect(request()->header('Referer'));
+    }
+
     public function render()
     {
         return view('livewire.commercial.progress', [

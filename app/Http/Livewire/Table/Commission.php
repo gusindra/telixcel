@@ -6,6 +6,7 @@ use App\Models\Commision;
 use Mediconesystems\LivewireDatatables\Column;
 use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
 use Mediconesystems\LivewireDatatables\NumberColumn;
+use Mediconesystems\LivewireDatatables\DateColumn;
 
 class Commission extends LivewireDatatable
 {
@@ -43,12 +44,12 @@ class Commission extends LivewireDatatable
                             'href' => "/user/" . $id,
                             'slot' => $slot
                         ]);
-            })->label('Agent'),
+            })->label('Agent')->filterable(),
     		Column::name('total')->label('Total'),
-    		Column::name('created_at')->label('Created_at'),
+    		DateColumn::name('created_at')->label('Created_at')->filterable(),
     		Column::callback(['status'], function ($y) {
                 return view('label.label', ['type' => $y]);
-            })->label('Status'),
+            })->label('Status')->filterable(['DRAFT', 'SUBMITED', 'APPROVED', 'RELEASED']),
             NumberColumn::name('id')->label('Detail')->sortBy('id')->callback('id', function ($value) {
                 return view('datatables::link', [
                     'href' => "/commission/" . $value,

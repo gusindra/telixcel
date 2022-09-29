@@ -22,6 +22,7 @@ class Order extends Model
         'customer_type',
         'referrer_id',
         'commision_ratio',
+        'vat',
         'total',
         'customer_id',
         'user_id',
@@ -64,6 +65,14 @@ class Order extends Model
 
     public function project(){
     	return $this->belongsTo('App\Models\Project', 'source_id');
+    }
+
+    public function invoice(){
+        return $this->hasMany('App\Models\Billing', 'order_id');
+    }
+
+    public function lastInvoice(){
+        return $this->hasOne('App\Models\Billing', 'order_id')->orderBy('period', 'desc');
     }
 
     /**

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\RoleInvitation;
 use App\Models\RoleUser;
 use App\Models\User;
+use App\Models\TeamUser;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -23,11 +24,21 @@ class RoleInvitationController extends Controller
     {
         $newTeamMember = User::where('email', $invitation->email)->first();
         if($newTeamMember){
-            $role = RoleUser::where('user_id', $newTeamMember->id)->count();
-            if($role>0){
-                return redirect('login')->banner(
-                    __('Sorry! You already have role in Telixcel team.'),
-                );
+            $roles = RoleUser::where('user_id', $newTeamMember->id)->get();
+            //CHECK IF HAVE SAME ROLE NAME IN SAME TEAM
+            if(count($roles)>0){
+                foreach($roles as $role){
+                    if($role->role_id == $invitation->role_id && $role->team_id == $invitation->team_id){
+                        return redirect('login')->banner(
+                            __('Sorry! You already have this role in the same team.')
+                        );
+                    }
+                }
+            }
+
+            $roleUser = RoleUser::where('user_id', $newTeamMember->id)->get();
+            if($roleUser){
+                RoleUser::where('user_id', $newTeamMember->id)->update(['active'=>NULL]);
             }
 
             RoleUser::create([
@@ -36,16 +47,28 @@ class RoleInvitationController extends Controller
                 'team_id' => $invitation->team_id
             ]);
 
+            $teamUser = TeamUser::firstOrCreate(
+                ['user_id' =>  $newTeamMember->id],
+                ['team_id' => $invitation->team_id],
+                ['role' => 'member']
+            );
+
+            // TeamUser::create([
+            //     'user_id'   => $newTeamMember->id,
+            //     'role'      => 'member',
+            //     'team_id'   => $invitation->team_id
+            // ]);
+
             $invitation->delete();
 
             $newTeamMember->update(['current_team_id'=>$invitation->team_id]);
 
             return redirect('login')->banner(
-                __('Great! You have accepted the invitation to join Telixcel team.'),
+                __('Great! You have accepted the invitation to join Telixcel team.')
             );
         }
         return redirect('register?email='.$invitation->email)->banner(
-            __('Opss! Before accepted the invitation to please signup first to continue login.'),
+            __('Opss! Before accepted the invitation to please signup first to continue login.')
         );
     }
 

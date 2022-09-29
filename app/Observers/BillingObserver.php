@@ -18,21 +18,23 @@ class BillingObserver
      */
     public function created(Billing $request)
     {
-        FlowProcess::create([
-            'model'     => 'INVOICE',
-            'model_id'  => $request->id,
-            'user_id'   => auth()->user()->id,
-            'status'    => 'submited'
-        ]);
-
-        $flow = FlowSetting::where('model', 'INVOICE')->where('team_id', auth()->user()->currentTeam->id)->get();
-        foreach($flow as $key => $value){
+        if(auth()){
             FlowProcess::create([
-                'model'     => $value->model,
+                'model'     => 'INVOICE',
                 'model_id'  => $request->id,
-                'role_id'   => $value->role_id,
-                'task'      => $value->description,
+                'user_id'   => auth()->user()->id,
+                'status'    => 'submited'
             ]);
+
+            $flow = FlowSetting::where('model', 'INVOICE')->where('team_id', auth()->user()->currentTeam->id)->get();
+            foreach($flow as $key => $value){
+                FlowProcess::create([
+                    'model'     => $value->model,
+                    'model_id'  => $request->id,
+                    'role_id'   => $value->role_id,
+                    'task'      => $value->description,
+                ]);
+            }
         }
     }
 

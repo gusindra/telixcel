@@ -80,7 +80,9 @@ class ApiSmsController extends Controller
 
         try{
             //$userCredention = ApiCredential::where("user_id", auth()->user()->id)->where("client", "api_sms_mk")->where("is_enabled", 1)->first();
-            //Log::debug('call sms api');
+            Log::channel('apilog')->info($request, [
+                'auth' => auth()->user()->name,
+            ]);
             // ProcessSmsApi::dispatch($request->all(), auth()->user());
             //auto check otp / non otp type base on text
             $checkString = $request->text;
@@ -101,7 +103,7 @@ class ApiSmsController extends Controller
 
             $phones = explode(",", $request->to);
             $balance = (int)balance(auth()->user());
-            if($balance>500 && count($phones)<$balance/500){
+            if($balance>500 && count($phones)<$balance/520){
                 ProcessSmsApi::dispatch($request->all(), auth()->user());
             }else{
                 return response()->json([
@@ -131,9 +133,37 @@ class ApiSmsController extends Controller
      */
     public function sendBulk(Request $request)
     {
+        Log::channel('apilog')->info($request, [
+            'auth' => auth()->user()->name,
+        ]);
         try{
             foreach($request->all() as $sms){
-                ProcessSmsApi::dispatch($sms, auth()->user());
+                $checkString = $sms->text;
+                $otpWord = ['Angka Rahasia', 'Authorisation', 'Authorise', 'Authorization', 'Authorized', 'Code', 'Harap masukkan', 'Kata Sandi', 'Kode',' Kode aktivasi', 'konfirmasi', 'otentikasi', 'Otorisasi', 'Rahasia', 'Sandi', 'trx', 'unik', 'Venfikasi', 'KodeOTP', 'NewOtp', 'One-Time Password', 'Otorisasi', 'OTP', 'Pass', 'Passcode', 'PassKey', 'Password', 'PIN', 'verifikasi', 'insert current code', 'Security', 'This code is valid', 'Token', 'Passcode', 'Valid OTP', 'verification','Verification', 'login code', 'registration code', 'secunty code'];
+                if($sms->otp){
+                    $sms->merge([
+                        'otp' => 1
+                    ]);
+                }elseif(Str::contains($checkString, $otpWord)){
+                    $sms->merge([
+                        'otp' => 1
+                    ]);
+                }else{
+                    $sms->merge([
+                        'otp' => 0
+                    ]);
+                }
+
+                $phones = explode(",", $sms->to);
+                $balance = (int)balance(auth()->user());
+                if($balance>500 && count($phones)<$balance/520){
+                    ProcessSmsApi::dispatch($sms, auth()->user());
+                }else{
+                    return response()->json([
+                        'message' => "Insufficient Balance",
+                        'code' => 405
+                    ]);
+                }
             }
         }catch(\Exception $e){
             return response()->json([

@@ -13,7 +13,7 @@
 
                 <div class="mx-auto">
                     <div class="px-4 py-2">
-                        <livewire:all-billing-table searchable="name, email, gender" exportable />
+                        <livewire:all-billing-table searchable="code, description" exportable />
                     </div>
                 </div>
             </div>

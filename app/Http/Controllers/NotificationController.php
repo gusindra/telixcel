@@ -25,6 +25,8 @@ class NotificationController extends Controller
             return redirect()->to("/invoice-order/". $notification->model_id);
         }elseif($notification->model=='Balance'){
             return redirect()->to("/payment/deposit/");
+        }elseif($notification->model=='Contract'){
+            return redirect()->to("/commercial/contract/".$notification->model_id);
         }elseif($notification->model=='FlowProcess'){
             $flow = FlowProcess::find($notification->model_id);
             if($flow){
@@ -46,5 +48,12 @@ class NotificationController extends Controller
             return redirect()->to("/message/?id=" . Hashids::encode($notification->id));
         }
         return redirect('dashboard');
+    }
+
+    public function readAll(){
+        $notification = Notification::where('user_id', auth()->user()->id)->where('status', 'unread')->update([
+            'status' => 'read'
+        ]);
+        return redirect()->back();
     }
 }

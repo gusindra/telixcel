@@ -133,7 +133,6 @@ class ChatBox extends Component
 
     public function actionShowModal()
     {
-
         $this->modalAttachment = true;
     }
 

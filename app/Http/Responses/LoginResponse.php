@@ -2,6 +2,7 @@
 
 namespace App\Http\Responses;
 
+use App\Models\RoleUser;
 use App\Models\TeamUser;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
@@ -27,7 +28,14 @@ class LoginResponse implements LoginResponseContract
                 'status' => 'Online'
             ]);
 
-            
+            if(auth()->user()->role){
+                $role = RoleUser::where('user_id', auth()->user()->id)->where('team_id', auth()->user()->currentTeam->id)->first();
+                if($role){
+                    $role->update([
+                        'active' => 1
+                    ]);
+                }
+            }
         }
 
         return $request->wantsJson()

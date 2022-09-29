@@ -22,6 +22,7 @@ class OrderProduct extends Model
         'qty',
         'unit',
         'price',
+        'total_percentage',
         'note',
         'user_id',
     ];

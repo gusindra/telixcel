@@ -283,6 +283,8 @@ class RequestObserver
                     $this->sendToWhatsapp($request);
                 }
             }
+        }else{
+            Log::debug($request." [fail to find Team]");
         }
     }
 

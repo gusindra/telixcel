@@ -9,6 +9,7 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-12">
             <div class="bg-white dark:bg-slate-600 overflow-hidden shadow-xl sm:rounded-lg">
                 <div class="container mx-auto">
+                    <a href="{{route('notification.read.all')}}" class="p-2 text-xs">Read All Notification</a>
                     <div>
                         <livewire:table.notification-table searchable="id" exportable />
                     </div>

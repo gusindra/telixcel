@@ -1,4 +1,4 @@
-<div wire:poll>
+<div wire:poll.visible>
     @if($model->status=='draft' || ($model->status=='unpaid' && $model_type == 'commission'))
         <div class="px-4 py-5 bg-white dark:bg-slate-600 sm:p-6 shadow sm:rounded-md">
             <div class="sm:px-0">
@@ -198,36 +198,48 @@
         </div>
     @endif
 
-    @if($model->status!='draft' && $approval && $model->approval && empty($approval->status) && checkRoles($model->approval->role_id))
-        <div class="px-4 py-5 bg-white dark:bg-slate-600 sm:p-6 shadow sm:rounded-tl-md sm:rounded-tr-md mt-4">
-            <div class="sm:px-0">
-                <h3 class="text-base font-medium text-gray-900 dark:text-slate-300">{{$model->approval->task != '' ? $model->approval->task : 'Next Process'}}</h3>
+    @if($model->status!='expired')
+        @if($model->status!='draft' && $approval && $model->approval && empty($approval->status) && checkRoles($model->approval->role_id))
+            <div class="px-4 py-5 bg-white dark:bg-slate-600 sm:p-6 shadow sm:rounded-tl-md sm:rounded-tr-md mt-4">
+                <div class="sm:px-0">
+                    <h3 class="text-base font-medium text-gray-900 dark:text-slate-300">{{$model->approval->task != '' ? $model->approval->task : 'Next Process'}}</h3>
+                </div>
+                <div class="col-span-12 sm:col-span-1">
+                    <x-jet-label for="remark" value="{{ __('Remark') }}" />
+                    <x-jet-input
+                        id="remark"
+                        type="text"
+                        class="mt-1 block w-full text-xs"
+                        wire:model="remark"  />
+                    <x-jet-input-error for="remark" class="mt-2" />
+                </div>
+                <div class="w-auto text-center mt-4 flex gap-2">
+                    <button type="submit" wire:click="decline" class="inline-flex items-center px-2 py-2 border border-transparent rounded-md font-semibold text-xs uppercase tracking-widest active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:shadow-outline-gray disabled:opacity-25 transition hover:bg-red-400 bg-red-300" wire:click="submit">
+                        {{ __('Decline') }}
+                    </button>
+                    @if($model->approval->task=='Releasor' || $model->approval->task=='Releasing')
+                    <x-jet-button wire:click="next('released')" class="hover:bg-green-700 bg-green-500 px-2">
+                        {{ __('Approve') }}
+                    </x-jet-button>
+                    @else
+                    <x-jet-button wire:click="next('approved')" class="hover:bg-green-700 bg-green-500 px-2">
+                        {{ __('Approve') }}
+                    </x-jet-button>
+                    @endif
+                </div>
             </div>
-            <div class="col-span-12 sm:col-span-1">
-                <x-jet-label for="remark" value="{{ __('Remark') }}" />
-                <x-jet-input
-                    id="remark"
-                    type="text"
-                    class="mt-1 block w-full text-xs"
-                    wire:model="remark"  />
-                <x-jet-input-error for="remark" class="mt-2" />
-            </div>
-            <div class="w-auto text-center mt-4 flex gap-2">
-                <button type="submit" wire:click="decline" class="inline-flex items-center px-2 py-2 border border-transparent rounded-md font-semibold text-xs uppercase tracking-widest active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:shadow-outline-gray disabled:opacity-25 transition hover:bg-red-400 bg-red-300" wire:click="submit">
-                    {{ __('Decline') }}
-                </button>
-                @if($model->approval->task=='Releasor' || $model->approval->task=='Releasing')
-                <x-jet-button wire:click="next('released')" class="hover:bg-green-700 bg-green-500 px-2">
-                    {{ __('Approve') }}
-                </x-jet-button>
-                @else
-                <x-jet-button wire:click="next('approved')" class="hover:bg-green-700 bg-green-500 px-2">
-                    {{ __('Approve') }}
-                </x-jet-button>
-                @endif
-            </div>
-        </div>
+        @endif
     @endif
+
+    @foreach ($approvals as $key => $rev)
+        @if($key == 0 && $model->status=='submit' && $rev->user_id == auth()->user()->id)
+            <div class="px-4 py-5 mt-4 bg-white dark:bg-slate-600 sm:p-6 shadow sm:rounded-md">
+                <x-jet-button wire:click="revise" class="hover:bg-yellow-700 bg-yellow-700">
+                    Revise
+                </x-jet-button>
+            </div>
+        @endif
+    @endforeach
 
 </div>
 

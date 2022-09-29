@@ -14,6 +14,9 @@
                     <x-jet-nav-link href="{{ route('report.show', ['sms']) }}" :active="request()->routeIs('order')">
                         {{ __('Log SMS') }}
                     </x-jet-nav-link>
+                    <x-jet-nav-link href="{{ route('report.show', ['log']) }}">
+                        {{ __('Log API Request') }}
+                    </x-jet-nav-link>
                 </div>
             </div>
         </div>

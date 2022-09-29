@@ -32,12 +32,12 @@ class switchableStatus extends Component
      */
     public function updateStatus()
     {
-        dd(1);
-        // TeamUser::find(auth()->user()->currentTeam->id)->update([
-        //     'status' => $status
-        // ]);
+        // dd(1);
+        TeamUser::find(auth()->user()->currentTeam->id)->update([
+            'status' => $status
+        ]);
 
-        // $this->status = $status;
+        $this->status = $status;
     }
 
     /**

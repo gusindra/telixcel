@@ -19,10 +19,13 @@ class OrderProductObserver
     public function created(OrderProduct $request)
     {
         $order = Order::find($request->model_id);
-
-        $order->update([
-            'total' => $order->total + ($request->price * $request->qty)
-        ]);
+        if($order){
+            $amount = $request->price * $request->qty * $request->total_percentage / 100;
+            $order->update([
+                'total' => $order->total + $amount
+            ]);
+            // Log::info($request->price.$request->qty.$request->total_percentage);
+        }
     }
 
     /**
@@ -34,16 +37,23 @@ class OrderProductObserver
     public function deleted(OrderProduct $request)
     {
         $order = Order::find($request->model_id);
-        if(count($order->items)==0){
-            $order->update([
-                'total' => 0
-            ]);
-        }else{
-            $total = $order->total - ($request->price * $request->qty);
-            $order->update([
-                'total' => $total >0 ? $total : 0
-            ]);
+        if($order){
+            // $amount = $request->price * $request->qty * $request->total_percentage / 100;
+            if(count($order->items)==0){
+                $order->update([
+                    'total' => 0
+                ]);
+            }else{
+                $total = 0;
+                foreach($order->items as $item){
+                    $total = $total + ($item->price * $item->qty * $item->total_percentage /100);
+                }
+                $order->update([
+                    'total' => $total
+                ]);
+            }
         }
+
     }
 }
 

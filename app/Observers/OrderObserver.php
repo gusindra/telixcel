@@ -55,7 +55,7 @@ class OrderObserver
                     'amount'        => $request->total,
                     'user_id'       => $request->user_id,
                     'order_id'      => $request->id,
-                    'period'        => $request->date->format('m/Y')
+                    'period'        => $request->date->format('Y-m-d')
                 ]);
             }
         }elseif($request->status=='paid'){
@@ -111,6 +111,8 @@ class OrderObserver
                 'status'    => 'unpaid'
             ]);
         }
+
+
     }
 
     /**

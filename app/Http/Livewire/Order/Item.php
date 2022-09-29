@@ -21,6 +21,9 @@ class Item extends Component
     public $qty;
     public $description;
     public $selectedProduct;
+    public $tax = 0;
+    public $total;
+    public $percentage = 100;
     public $modalVisible = false;
     public $modalProductVisible = false;
     public $confirmingModalRemoval = false;
@@ -29,6 +32,7 @@ class Item extends Component
     {
         $this->data = $data;
         $this->products = CommerceItem::where('user_id', $data->user_id)->get();
+        $this->tax = $data->vat;
     }
 
     public function rules()
@@ -37,6 +41,7 @@ class Item extends Component
             'name' => 'required',
             'price' => 'required',
             'qty' => 'required',
+            'percentage' => 'required',
         ];
     }
 
@@ -47,8 +52,9 @@ class Item extends Component
             'model'         => 'Order',
             'name'          => $this->name,
             'unit'          => $this->unit,
-            'qty'          => $this->qty,
+            'qty'           => $this->qty,
             'price'         => $this->price,
+            'total_percentage'  => $this->percentage,
             'note'          => $this->description,
             'user_id'       => Auth::user()->id
         ];
@@ -83,6 +89,13 @@ class Item extends Component
         $this->emit('added');
     }
 
+    public function updateTax()
+    {
+        // dd($this->tax);
+        $order = Order::find($this->data->id);
+        $order->update(['vat'=>$this->tax]);
+    }
+
     /**
      * The update function.
      *
@@ -99,7 +112,6 @@ class Item extends Component
             'note' => $this->description
         ]);
         $this->modalVisible = false;
-
         $this->emit('saved');
     }
 
@@ -174,6 +186,7 @@ class Item extends Component
         $this->unit = null;
         $this->description = null;
         $this->selectedProduct = null;
+        $this->percentage = 100;
     }
 
     /**
@@ -185,10 +198,10 @@ class Item extends Component
     public function read()
     {
         $items = OrderProduct::orderBy('id', 'asc')->where('model', 'Order')->where('model_id', $this->data->id)->get();
-        $total = Order::find($this->data->id)->total;
+        $this->total = Order::find($this->data->id)->total;
         return [
             'items' => $items,
-            'total' => $total
+            'total' => $this->total
         ];
     }
 

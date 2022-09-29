@@ -5,6 +5,7 @@ namespace App\Observers;
 use App\Models\Contract;
 use App\Models\FlowProcess;
 use App\Models\FlowSetting;
+use App\Models\Project;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
@@ -54,21 +55,30 @@ class ContractObserver
         }
 
         if($request->status == 'approve'){
-
             $contract = Contract::find($request->id);
             $contract->update([
                 'result_attachment' => $contract->attachments->sortByDesc('id')->first()->id
             ]);
         }
-        // if($request->status == 'approved')
-        // {
-        //     //Releaser
-        //     FlowProcess::create([
-        //         'model'     => 'CONTRACT',
-        //         'model_id'  => $request->id,
-        //         'role_id'   => 1,
-        //         'task'      => 'Releasor'
-        //     ]);
-        // }
+
+        if($request->status == 'approved')
+        {
+            //check if contract have project
+            if($request->model=='PROJECT'){
+                Project::find($request->model_id)->update([
+                    'status' => 'active'
+                ]);
+            }
+        }
+
+        if($request->status == 'expired')
+        {
+            //check if contract have project
+            if($request->model=='PROJECT'){
+                Project::find($request->model_id)->update([
+                    'status' => 'inactive'
+                ]);
+            }
+        }
     }
 }

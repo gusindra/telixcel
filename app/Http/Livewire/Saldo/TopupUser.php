@@ -38,7 +38,7 @@ class TopupUser extends Component
             'no'                => 'TCI'.date("YmdHis"),
             'type'              => 'selling',
             'entity_party'      => '1',
-            'total'             => 0,
+            'total'             => $this->nominal + ($this->nominal*(11/100)),
             'status'            => 'unpaid',
             'customer_id'       => $this->chechClient(),
             'user_id'           => 0,

@@ -67,7 +67,9 @@ class Contract extends Model
     public function approval(){
     	return $this->hasOne('App\Models\FlowProcess', 'model_id')->where('model', 'CONTRACT')->whereNull('status');
     }
-
+    public function userApproval(){
+    	return $this->hasMany('App\Models\FlowProcess', 'model_id')->where('model', 'CONTRACT')->whereNotNull('user_id')->groupBy('user_id');
+    }
     /**
      * attachment order
      *

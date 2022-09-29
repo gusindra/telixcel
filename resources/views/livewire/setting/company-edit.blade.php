@@ -21,7 +21,7 @@
 
             <div class="col-span-6 sm:col-span-4">
                 <div class="col-span-12 sm:col-span-1">
-                    <x-jet-label for="name" value="{{ __('Name') }}" />
+                    <x-jet-label for="name" value="{{ __('Company Name') }}" />
                     <x-jet-input id="name" type="text" class="mt-1 block w-full" wire:model="input.name" wire:model.defer="input.name" wire:model.debunce.800ms="input.name" />
                     <x-jet-input-error for="name" class="mt-2" />
                 </div>
@@ -40,6 +40,14 @@
                     <x-jet-label for="tax_id" value="{{ __('NPWP') }}" />
                     <x-jet-input id="tax_id" type="text" class="mt-1 block w-full" wire:model="input.tax_id" wire:model.defer="input.tax_id" wire:model.debunce.800ms="input.tax_id" />
                     <x-jet-input-error for="tax_id" class="mt-2" />
+                </div>
+            </div>
+
+            <div class="col-span-6 sm:col-span-4">
+                <div class="col-span-12 sm:col-span-1">
+                    <x-jet-label for="person_in_charge" value="{{ __('Person in Charge') }}" />
+                    <x-jet-input id="person_in_charge" type="text" class="mt-1 block w-full" wire:model="input.person_in_charge" wire:model.defer="input.person_in_charge" wire:model.debunce.800ms="input.tax_id" />
+                    <x-jet-input-error for="person_in_charge" class="mt-2" />
                 </div>
             </div>
         </x-slot>

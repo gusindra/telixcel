@@ -16,7 +16,10 @@ class ReportController extends Controller
             return view('report.request');
         }elseif($key=='sms'){
             return view('report.sms_blast');
+        }elseif($key=='billing'){
+            return view('report.billing');
+        }else{
+            return view('report.log');
         }
-        return view('report.billing');
     }
 }

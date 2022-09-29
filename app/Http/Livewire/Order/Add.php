@@ -68,7 +68,7 @@ class Add extends Component
 
     private function readCompany()
     {
-        if(Auth::user()->super->first() && Auth::user()->super->first()->role == 'superadmin'){
+        if((Auth::user()->super->first() && Auth::user()->super->first()->role == 'superadmin') || (Auth::user()->activeRole)){
             return Company::where('user_id', 0)->get();
         }
         return Company::where('user_id', Auth::user()->id)->get();

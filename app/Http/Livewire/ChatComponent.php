@@ -2,14 +2,18 @@
 
 namespace App\Http\Livewire;
 
+use App\Models\Attachment;
 use Livewire\Component;
 use App\Models\Client;
+use App\Models\HandlingSession;
 use App\Models\Ticket;
 use App\Models\Request;
+use App\Models\Template;
 use Illuminate\Support\Str;
 use App\Models\WaWeb as ModelsWaWeb;
 use Carbon\Carbon;
 use Vinkla\Hashids\Facades\Hashids;
+use Illuminate\Support\Facades\Storage;
 
 class ChatComponent extends Component
 {
@@ -31,6 +35,12 @@ class ChatComponent extends Component
     public $ticket_status;
     public $ticket_reason;
     public $ticket_solution;
+    public $handling_session = null;
+    public $modalAttachment = false;
+    public $link_attachment;
+    public $type;
+    public $photo;
+    public $quick_reply;
 
     public function mount(){
         $this->user_id = auth()->user()->id;
@@ -40,6 +50,8 @@ class ChatComponent extends Component
         }
         $this->filter = "active";
         $this->search = "";
+        $this->handling_session = $this->checkSession();
+        $this->quick_reply = Template::where('user_id', $this->owner)->where('type', 'helper')->get();
     }
 
     /**
@@ -60,8 +72,6 @@ class ChatComponent extends Component
         $this->message = null;
         $this->emit('note.updated.' . $this->client_id);
         session(['key' => 'value']);
-
-        // update handling agent
     }
 
     public function dispatchEvent(){
@@ -125,19 +135,23 @@ class ChatComponent extends Component
             // dd($forward);
             $sorted = $sorted->filter(function($client) use ($wait, $forward){
                 //template waiting || forward ticket
-                if(in_array($client->newestRequest->template_id, $wait) || in_array($client->uuid, $forward)){
-                    return $client;
-                }elseif($client->newestRequest->created_at <= Carbon::now()->subMinutes(15)->toDateTimeString() && $client->active && !$client->newestRequest->is_closed){
-                    return $client;
+                if($client->newestRequest){
+                    if(in_array($client->newestRequest->template_id, $wait) || in_array($client->uuid, $forward)){
+                        return $client;
+                    }elseif($client->newestRequest->created_at <= Carbon::now()->subMinutes(15)->toDateTimeString() && $client->active && !$client->newestRequest->is_closed){
+                        return $client;
+                    }
                 }
             });
         }elseif($this->filter=='active'){
             $sorted  = $sorted->filter(function($client) {
-                if($client->newestRequest->from != 'bot' && $client->newestRequest->from != 'api'){
-                    if($client->newestRequest->created_at >= Carbon::now()->subMinutes(15)->toDateTimeString() && !$client->newestRequest->is_closed){
-                        return $client;
-                    }elseif(@auth()->user()->chatsession->client_id==$client->id){
-                        return $client;
+                if($client->newestRequest){
+                    if($client->newestRequest->from != 'bot' && $client->newestRequest->from != 'api'){
+                        if($client->newestRequest->created_at >= Carbon::now()->subMinutes(15)->toDateTimeString() && !$client->newestRequest->is_closed){
+                            return $client;
+                        }elseif(@auth()->user()->chatsession->client_id==$client->id){
+                            return $client;
+                        }
                     }
                 }
             });
@@ -230,11 +244,141 @@ class ChatComponent extends Component
         ]);
     }
 
+    public function sendMessage(){
+        // Check long of word if > will store to message
+        Request::create([
+            'reply'     => $this->message,
+            'from'      => auth()->user()->id,
+            'client_id' => $this->client->uuid,
+            'user_id'   => $this->owner,
+            'type'      => 'text'
+        ]);
+
+        $this->message = null;
+    }
+
+    /**
+     * joinChat
+     *
+     * @return void
+     */
+    public function joinChat()
+    {
+        if(!$this->checkSession()){
+            $this->handling_session = HandlingSession::create([
+                'client_id'     => $this->client_id,
+                'agent_id'      => $this->user_id,
+                'user_id'       => $this->owner,
+            ]);
+            Request::where('client_id', $this->client->uuid)->where('is_read', 0)->update(['is_read' => 1]);
+        }else{
+            if($this->handling_session->client_id == $this->client_id){
+                $this->emit('handled');
+            }else{
+                $this->emit('exist');
+            }
+        }
+    }
+
+    private function checkSession()
+    {
+        $session = HandlingSession::where('agent_id', $this->user_id)->first();
+        if(!$session)
+            $session = HandlingSession::where('client_id', $this->client_id)->where('user_id', $this->owner)->first();
+
+        return $session;
+    }
+
+    /**
+     * sendAttachment
+     * image : jpg, jpeg, png
+     * audio : aac, mp4, amr, mpeg, ogg
+     * video : mp4, 3gp
+     * document : pdf, word, powerpoint, excel, txt, valid Mime
+     * stickers : webp
+     *
+     * @return void
+     */
+    public function sendAttachment(){
+        if($this->photo){
+            $this->validate([
+                'photo' => 'image|max:1024',
+            ]);
+
+            $file = Storage::disk('s3')->put('images', $this->photo);
+
+            $this->link_attachment = 'https://telixcel.s3.ap-southeast-1.amazonaws.com/'.$file;
+            $this->type = 'image';
+        }else{
+            $this->type = attachmentExt($this->link_attachment);
+        }
+
+        if($this->type){
+            $request = Request::create([
+                'reply'     => $this->message,
+                'media'     => $this->link_attachment,
+                'from'      => auth()->user()->id,
+                'user_id'   => $this->owner,
+                'client_id' => $this->client->uuid,
+                'type'      => $this->type
+            ]);
+            $this->message = null;
+            $this->modalAttachment = false;
+
+            Attachment::create([
+                'request_id'    => $request->id,
+                'file'          => $this->link_attachment
+            ]);
+        }else{
+            dd('Format link false');
+        }
+    }
+
+    public function actionShowModal()
+    {
+        $this->modalAttachment = true;
+    }
+
+    public function quickReply(){
+        $data = [];
+
+        if(substr($this->message,0, 1)=='/'){
+            $keyword = substr($this->message, 1);
+            $data['quick'] = Template::where('user_id', $this->owner)->where('type', 'helper')->where('name','LIKE',"%{$keyword}%")->get();
+        }else{
+            $data['quick'] = [];
+        }
+        return $data;
+    }
+
+     /**
+     * showQuickModal
+     *
+     * @param  mixed $id
+     * @return void
+     */
+    public function showQuickModal($id)
+    {
+        $template = Template::find($id);
+        $message = '';
+        foreach($template->actions as $key => $action){
+            if($key==0){
+                $message = $action->message;
+            }else{
+                $message = $message.' '.$action->message;
+            }
+        }
+        $this->message = $message;
+    }
+
     public function render()
     {
         return view('livewire.chat-component', [
             'data' => $this->read(),
             'filter' => $this->filter,
+            'handlingSession' => $this->checkSession(),
+            'dataTemplate' => $this->quickReply(),
+            'quick_template' => $this->quick_reply->pluck('name','id'),
         ]);
     }
 }

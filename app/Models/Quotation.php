@@ -76,6 +76,9 @@ class Quotation extends Model
     public function approval(){
     	return $this->hasOne('App\Models\FlowProcess', 'model_id')->where('model', 'quotation')->whereNull('status');
     }
+    public function userApproval(){
+    	return $this->hasMany('App\Models\FlowProcess', 'model_id')->where('model', 'quotation')->whereNotNull('user_id')->groupBy('user_id');
+    }
 
     // source model
     public function company()

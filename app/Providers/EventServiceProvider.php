@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Listeners\UpdateCurrentRole;
 use App\Models\ApiCredential;
 use App\Models\Attachment;
 use App\Models\Billing;
@@ -38,6 +39,7 @@ use App\Observers\QuotationObserver;
 use App\Observers\SaldoUserObserver;
 use App\Observers\SmsBlastObserver;
 use App\Observers\CommissionObserver;
+use Laravel\Jetstream\Events\TeamUpdated;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -50,6 +52,9 @@ class EventServiceProvider extends ServiceProvider
         Registered::class => [
             SendEmailVerificationNotification::class,
         ],
+        TeamUpdated::class => [
+            UpdateCurrentRole::class,
+        ]
     ];
 
     /**

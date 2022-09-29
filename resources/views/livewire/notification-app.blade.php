@@ -1,4 +1,4 @@
-<div wire:poll>
+<div wire:poll.visible>
     <div class="relative">
         <x-jet-dropdown align="right" width="60">
             <x-slot name="trigger">

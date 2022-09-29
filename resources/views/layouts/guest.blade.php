@@ -17,6 +17,8 @@
         <script src="{{ url('backend/js/app.js') }}" defer></script>
     </head>
     <body>
+        <x-jet-banner />
+
         <div class="font-sans text-gray-900 antialiased">
             {{ $slot }}
         </div>

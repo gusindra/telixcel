@@ -1,6 +1,6 @@
 <div>
     <!-- Header Box -->
-    <div class="bg-gray-400 h-10 lg:static md:static sm:fixed sm:inset-x-0 sm:top-0 shadow-md">
+    <div class="bg-gray-400 dark:bg-slate-800 h-10 lg:static md:static sm:fixed sm:inset-x-0 sm:top-0 shadow-md">
         <div class="w-full mx-auto">
             <div class="flex items-center justify-between flex-wrap">
                 <div class="w-0 flex-1 flex items-center">
@@ -17,11 +17,6 @@
                 </div>
                 @if(@$handling_session)
                     @if($handling_session->agent_id == $user_id && $handling_session->client_id == $client_id)
-                    <button class="mr-2 p-1 border-transparent {{$transcript ? 'bg-gray-600 text-gray-100' : 'bg-gray-200 text-gray-800'}} " title="Show/Hide Transcript" wire:click="showTransript">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                    </button>
                     <button class="mr-2 p-1 border-transparent bg-red-500 hover:bg-red-800 text-white" title="Close Session" wire:click="showModalConfirmation">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -34,51 +29,54 @@
     </div>
 
     <!-- Chat Log -->
-    <div id="messageArea" class="lg:max-h-96">
-        <div id="messageBox" wire:poll class="overflow-auto h-96 bg-green-50 py-0" style="display: flex;flex-direction: column;;overflow: auto;">
+    <div id="messageArea" class="h-1/2">
+        @if(@$handling_session && $handling_session->agent_id == $user_id && $handling_session->client_id == $client_id)
+        <p class="text-center dark:bg-slate-300 {{$transcript ? 'bg-gray-600 text-gray-100' : 'bg-gray-200 text-gray-800'}}">
+            <a class="text-xs p-4 underline" href="#" wire:click="showTransript">{{$transcript ? 'Show less':'See transcript'}}</a>
+        </p>
+        @endif
+        <div id="messageBox" wire:poll.visible class="overflow-auto h-screen bg-green-50 dark:bg-slate-700 py-0" style="display: flex;flex-direction: column;;overflow: auto;">
             @foreach($data['request'] as $item)
-                <div class="p-4 sm:p-4 sm:px-6 buble-chat object-left group {{preg_match("/[a-z]/i", $item->source_id)?'':'text-right right-0'}}">
-                    <small class="text-gray-500 font-medium">{{preg_match("/[a-z]/i", $item->source_id)?$client->name:($item->from=='bot' || $item->from=='api'?'Bot':@$item->agent->name)}}</small>
+                <div class="px-4 sm:px-4 buble-chat object-left group {{preg_match("/[a-z]/i", $item->source_id)?'':'text-right1 right-0'}}">
+                    <p class="{{preg_match("/[a-z]/i", $item->source_id)?'':'text-right right-0'}}"><small class="text-gray-500 dark:text-slate-300 font-medium">{{preg_match("/[a-z]/i", $item->source_id)?$client->name:($item->from=='bot' || $item->from=='api'?'Bot':@$item->agent->name)}}</small></p>
                     <div class="flex justify-between">
-                        <div class="text-sm flex-auto z-10 p-2 xl:p-3 bg-gradient-to-br {{preg_match("/[a-z]/i", $item->source_id)?'items-start':'order-last text-right'}} {{preg_match("/[a-z]/i", $item->source_id)?'from-green-100 to-green-200 rounded-tr-lg rounded-b-lg':'from-indigo-100 to-indigo-200 rounded-b-lg rounded-tl-lg right-0'}}">
+                        <div class="text-sm flex-auto z-9 p-2 xl:p-3 bg-gradient-to-br {{preg_match("/[a-z]/i", $item->source_id)?'items-start':'order-last text-right1'}} {{preg_match("/[a-z]/i", $item->source_id)?'from-green-100 to-green-200 rounded-tr-lg rounded-b-lg':'from-indigo-100 to-indigo-200 rounded-b-lg rounded-tl-lg right-0'}}">
                             @if($item->type=='image')
-                            <div class="flex justify-between">
+                            <div class="flex justify-center">
                                 <div class="order-last">
-                                    <img src="{{$item->media}}" class="" width="300" />
+                                    <img src="{{$item->media}}" class="shadow-lg" width="300" />
                                 </div>
                                 <div></div>
                             </div>
                             @endif
-                            <div class="{{$item->source_id?($item->type!=='text'?'bg-green-300 rounded-tr-lg rounded-b-lg':''):($item->type!=='text'?'bg-indigo-300 rounded-sm right-0 p-4':'')}} flex items-stretch justify-between w-100 whitespace-pre-wrap">
+                            <div class="{{$item->source_id?($item->type!=='text'?'rounded-tr-lg rounded-b-lg':''):($item->type!=='text'?'from-indigo-100 to-indigo-200 rounded-sm right-0 p-4':'')}} mb-1 flex items-stretch justify-between w-100 whitespace-pre-wrap">
                                 <div class="flex flex-row">
                                     @if($item->type=='document')
                                         <img src="{{url('/backend/img/'.substr(strrchr($item->media, '.'), 1).'.png')}}" class="h-8" />
                                     @endif
-                                    <span class="{{$item->type=='document' ? 'ml-2 mt-2':''}}">{{$item->reply}}</span>
+                                    <span class="{{$item->type=='document' ? 'ml-2 mt-2':''}} dark:text-slate-600">{{$item->reply}}</span>
                                 </div>
                                 @if($item->media!='')
                                     @if($item->type=='document')
-                                    <a href="{{$item->media}}" data-testid="audio-download" data-icon="audio-download" class=""><svg viewBox="0 0 34 34" width="34" height="34" class=""><path fill="currentColor" d="M17 2c8.3 0 15 6.7 15 15s-6.7 15-15 15S2 25.3 2 17 8.7 2 17 2m0-1C8.2 1 1 8.2 1 17s7.2 16 16 16 16-7.2 16-16S25.8 1 17 1z"></path><path fill="currentColor" d="M22.4 17.5h-3.2v-6.8c0-.4-.3-.7-.7-.7h-3.2c-.4 0-.7.3-.7.7v6.8h-3.2c-.6 0-.8.4-.4.8l5 5.3c.5.7 1 .5 1.5 0l5-5.3c.7-.5.5-.8-.1-.8z"></path></svg></a>
+                                        <a href="{{$item->media}}" data-testid="audio-download" data-icon="audio-download" class=""><svg viewBox="0 0 34 34" width="34" height="34" class=""><path fill="currentColor" d="M17 2c8.3 0 15 6.7 15 15s-6.7 15-15 15S2 25.3 2 17 8.7 2 17 2m0-1C8.2 1 1 8.2 1 17s7.2 16 16 16 16-7.2 16-16S25.8 1 17 1z"></path><path fill="currentColor" d="M22.4 17.5h-3.2v-6.8c0-.4-.3-.7-.7-.7h-3.2c-.4 0-.7.3-.7.7v6.8h-3.2c-.6 0-.8.4-.4.8l5 5.3c.5.7 1 .5 1.5 0l5-5.3c.7-.5.5-.8-.1-.8z"></path></svg></a>
                                     @endif
                                     @if($item->type=='video')
-                                    <video width="320" height="240" controls>
-                                        <source src="{{$item->media}}" type="video/mp4">
-                                        <source src="{{$item->media}}" type="video/ogg">
-                                        Your browser does not support the video tag.
-                                    </video>
+                                        <video width="320" height="240" controls>
+                                            <source src="{{$item->media}}" type="video/mp4">
+                                            <source src="{{$item->media}}" type="video/ogg">
+                                            Your browser does not support the video tag.
+                                        </video>
                                     @endif
                                     @if($item->type=='audio')
-                                    <audio controls>
-                                        <source src="{{$item->media}}" type="audio/ogg">
-                                        <source src="{{$item->media}}" type="audio/mpeg">
-                                        Your browser does not support the audio element.
-                                    </audio>
+                                        <audio controls>
+                                            <source src="{{$item->media}}" type="audio/ogg">
+                                            <source src="{{$item->media}}" type="audio/mpeg">
+                                            Your browser does not support the audio element.
+                                        </audio>
                                     @endif
                                 @endif
                             </div>
-
-                            <br>
-                            <p class="px-3 text-xs font-thin text-gray-400 {{$item->source_id?'text-right right-0':'text-left left-0'}}">{{$item->date}}</p>
+                            <p class="px-3 text-xs font-thin text-gray-400 {{$item->source_id?'text-right right-0':'text-left left-0'}} dark:text-slate-500">{{$item->date}}</p>
 
                         </div>
                         <div class="flex-1">
@@ -86,9 +84,9 @@
                             @if($handling_session->agent_id == $user_id && $handling_session->client_id == $client_id)
                                 @if($item->activeTickets->count()==0 && $item->source_id)
                                 <section class="max-w-sm mx-auto rounded-lg shadow-sm flex flex-row items-center ml-2">
-                                    <aside class="invisible group-hover:visible h-full text-center flex-grow flex flex-col text-sm ml-auto divide-y relative">
-                                        <a class="text-blue-500 hover:text-blue-700 h-1/2 flex items-center text-left text-xs" href="#" wire:click="ticketShowModal({{ $item->id }}, '{{ $item->reply }}')">Convert Ticket</a>
-                                        <a class="text-blue-500 hover:text-blue-700 h-1/2 flex items-center text-left text-xs" href="#" wire:click="forwardShowModal({{ $item->id }}, '{{ $item->reply }}')">Forward</a>
+                                    <aside class="invisible group-hover:visible h-full text-center flex-grow flex flex-col text-sm ml-auto divide-y relative rounded-md">
+                                        <a class="text-blue-500 hover:text-blue-700 h-1/2 flex items-center text-left text-xs dark:bg-slate-800 w-1/2 p-1" href="#" wire:click="ticketShowModal({{ $item->id }}, '{{ $item->reply }}')">Convert Ticket</a>
+                                        <a class="text-blue-500 hover:text-blue-700 h-1/2 flex items-center text-left text-xs dark:bg-slate-800 w-1/2 p-1" href="#" wire:click="forwardShowModal({{ $item->id }}, '{{ $item->reply }}')">Forward</a>
                                         <!-- <a class="text-red-500 hover:text-red-700 h-1/2  flex items-center text-left text-xs" href="#">Forward</a> -->
                                     </aside>
                                 </section>
@@ -146,6 +144,10 @@
                 </div>
                 @endif
             @endforeach
+            <br>
+            <div class="hidden md:block">
+                <br><br><br><br><br><br><br>
+            </div>
         </div>
         @if($client)
             <div class="{{count($data['quick'])==0?'hidden':''}} lg:absolute lg:bottom-24 bottom-1 lg:w-2/4 w-100">
@@ -165,7 +167,7 @@
                 </div>
             </div>
 
-            <div class="bg-gray-200 py-1 grid grid-cols-6 lg:static md:static sm:fixed sm:inset-x-0 sm:bottom-0">
+            <div class="py-3 grid grid-cols-8 z-10 md:static sm:fixed sm:inset-x-0 sm:bottom-0 lg:fixed lg:bottom-0 dark:bg-slate-800">
                 @if(@$handling_session)
                     @if($handling_session->agent_id == $user_id && $handling_session->client_id == $client_id)
                     <div class="flex items-center justify-center col-span-1 align-text-bottom">
@@ -175,7 +177,14 @@
                             </svg>
                         </button>
                     </div>
-                    <div class="md:flex pl-2 py-2 col-span-4">
+                    <div data-emojiarea data-type="unicode" data-global-picker="false" class="flex py-2 col-span-6 pr-2" >
+                        <div class="flex items-center col-span-1 align-text-bottom emoji-button cursor-pointer text-sm text-grey-500 dark:text-slate-300 p-1">
+                            <button class="cursor-pointer text-sm text-grey-500 dark:text-slate-300 p-1" >
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.182 15.182a4.5 4.5 0 01-6.364 0M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75zm-.375 0h.008v.015h-.008V9.75zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75zm-.375 0h.008v.015h-.008V9.75z" />
+                                </svg>
+                            </button>
+                        </div>
                         <x-textarea
                             id="message"
                             class="mt-1 block w-full h-full text-sm"
@@ -185,17 +194,17 @@
                     </div>
                     <div class="flex items-center justify-center col-span-1 align-text-bottom">
                         <button class="p-2 sm:p-2 md:p-4 lg:p-4 bg-green-600 text-white rounded-full" wire:click="sendMessage">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 rotate-90" viewBox="0 0 20 20" fill="currentColor">
-                                <path style="transform: rotate(90deg);transform-origin: 50% 50%;" d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 rotate-30" viewBox="0 0 20 20" fill="currentColor">
+                                    <path style="transform: rotate(90deg);transform-origin: 50% 50%;" d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
                             </svg>
                         </button>
                     </div>
                     @elseif($handling_session->agent_id == $user_id)
-                    <div class="flex w-full items-center justify-center col-span-12 mt-6 text-sm text-gray-400">
-                        <p class="px-4">Please close handling Active Chat first before join New Conversation</p>
+                    <div class="flex w-full items-center justify-center col-span-12 my-6 text-sm text-gray-400">
+                        <p class="px-4">You still have active conversation. Please end last chat before join new conversation</p>
                     </div>
                     @else
-                    <div class="flex w-full items-center justify-center col-span-12 mt-6 text-sm text-gray-400">
+                    <div class="flex w-full items-center justify-center col-span-12 my-6 text-sm text-gray-400">
                         <p class="px-4">This conversation already handle by other Agent.</p>
                     </div>
                     @endif
@@ -215,9 +224,7 @@
                     </div>
                 @endif
             </div>
-
         @endif
-
     </div>
 
     <!-- Attachment Modal -->
@@ -259,7 +266,7 @@
                 </div>
                 @if(!$photo)
                 <x-jet-label for="photo" value="{{ __('Link') }}" />
-                <input class="border-gray-300 focus:border-indigo-300 w-full my-1 text-sm" type="text" placeholder="{{ __('Link Attachment') }}"
+                <input class="border-gray-300 dark:bg-slate-800 focus:border-indigo-300 w-full my-1 text-sm" type="text" placeholder="{{ __('Link Attachment') }}"
                             x-ref="link_attachment"
                             wire:model.defer="link_attachment">
                 @endif
@@ -363,7 +370,7 @@
                 <select
                     name="forward_to"
                     id="forward_to"
-                    class="border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full"
+                    class="border-gray-300 focus:border-indigo-300 focus:ring dark:bg-slate-800 focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full"
                     wire:model.debunce.800ms="forward_to"
                     >
                     <option selected>-- Select agent --</option>
@@ -402,7 +409,7 @@
         </x-slot>
 
         <x-slot name="footer">
-            <x-jet-secondary-button  wire:click="closeChat(0)" wire:loading.attr="disabled">
+            <x-jet-secondary-button wire:click="$toggle('closeModal')" wire:loading.attr="disabled">
                 {{ __('later') }}
             </x-jet-secondary-button>
 
@@ -422,5 +429,6 @@
             }
         }, 100)
     </script>
+    <script type="module" src="{{ url('js/emoji/docs/assets/js/jquery.emojiarea.min.js') }}"></script>
 
 </div>

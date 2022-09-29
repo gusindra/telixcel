@@ -28,7 +28,7 @@
                         </x-jet-nav-link>
                     @else
                         @if (@Auth::user()->role || Auth::user()->super->first())
-                            @if(@Auth::user()->super->first()->role == 'superadmin')
+                            @if((Auth::user()->activeRole && str_contains(Auth::user()->activeRole->role->name, "Admin")))
                                 <x-jet-nav-link href="{{ route('user.index') }}" :active="request()->routeIs('user.index')">
                                     {{ __('Users') }}
                                 </x-jet-nav-link>
@@ -38,25 +38,18 @@
                                 <x-jet-nav-link href="{{ route('billing') }}" :active="request()->routeIs('billing')">
                                     {{ __('Billing') }}
                                 </x-jet-nav-link>
-                                <x-jet-nav-link href="{{ route('assistant') }}" :active="request()->routeIs('assistant')">
-                                    {{ __('Assistant') }}
-                                </x-jet-nav-link>
-                                <x-jet-nav-link href="{{ route('settings') }}" :active="request()->routeIs('settings')">
-                                    {{ __('Settings') }}
-                                </x-jet-nav-link>
                             @endif
-                            @if(Auth::user()->role->first() && Auth::user()->role->first()->role)
-                                <x-jet-nav-link href="{{ route('assistant') }}" :active="request()->routeIs('assistant')">
-                                    {{ __('Assistant') }}
-                                </x-jet-nav-link>
-                            @endif
-                        @else
-                            <x-jet-nav-link href="{{ route('message') }}" :active="request()->routeIs('message')">
-                                {{ __('Chat Area') }}
-                            </x-jet-nav-link>
                         @endif
 
-                        @if (Auth::user()->hasTeamRole(Auth::user()->currentTeam, 'admin') && @Auth::user()->super->first()->role != 'superadmin')
+                        <x-jet-nav-link href="{{ route('message') }}" :active="request()->routeIs('message')">
+                            {{ __('Chat Area') }}
+                        </x-jet-nav-link>
+
+                        @if (Auth::user()->activeRole)
+                            <x-jet-nav-link href="{{ route('assistant') }}" :active="request()->routeIs('assistant')">
+                                {{ __('Assistant') }}
+                            </x-jet-nav-link>
+                        @else
                             <x-jet-nav-link href="{{ route('client') }}" :active="request()->routeIs('client')">
                                 {{ __('Customers') }}
                             </x-jet-nav-link>
@@ -64,10 +57,16 @@
                                 {{ __('Templates') }}
                             </x-jet-nav-link>
                             @if ( Auth::user()->currentTeam && Auth::user()->currentTeam->user_id == Auth::user()->id )
-                            <x-jet-nav-link href="{{ route('billing') }}" :active="request()->routeIs('billing')">
-                                {{ __('Report') }}
-                            </x-jet-nav-link>
+                                <x-jet-nav-link href="{{ route('billing') }}" :active="request()->routeIs('billing')">
+                                    {{ __('Report') }}
+                                </x-jet-nav-link>
                             @endif
+                        @endif
+
+                        @if((Auth::user()->activeRole && str_contains(Auth::user()->activeRole->role->name, "Super Admin")))
+                            <x-jet-nav-link href="{{ route('settings') }}" :active="request()->routeIs('settings')">
+                                {{ __('Settings') }}
+                            </x-jet-nav-link>
                         @endif
                     @endif
                 </div>
@@ -115,18 +114,7 @@
 
                                     <div class="border-t border-gray-100"></div>
 
-                                    @if(Auth::user()->allTeams()->count() > 1)
-                                        <!-- Team Switcher -->
-                                        <div class="block px-4 py-2 text-xs text-gray-400">
-                                            {{ __('Switch Teams') }}
-                                        </div>
-
-                                        @foreach (Auth::user()->allTeams() as $team)
-                                            @if($team->id !== 1)
-                                                <x-jet-switchable-team :team="$team" />
-                                            @endif
-                                        @endforeach
-                                    @endif
+                                    @livewire('switch-team')
                                 </div>
                             </x-slot>
                         </x-jet-dropdown>
@@ -140,8 +128,8 @@
                             @if (Laravel\Jetstream\Jetstream::managesProfilePhotos())
                                 <button class="flex text-sm border-2 border-transparent rounded-full focus:outline-none focus:border-gray-300 dark:bg-slate-700 transition">
                                     <img class="h-8 w-8 rounded-full object-cover" src="{{ Auth::user()->profile_photo_url }}" alt="{{ Auth::user()->name }}" />
-                                    @if(count(Auth::user()->role)>0)
-                                    <span class="m-2 text-xs">{{Auth::user()->role->first()->role->name}}</span>
+                                    @if(Auth::user()->activeRole)
+                                    <span class="m-2 text-xs">{{Auth::user()->activeRole->role->name}}</span>
                                     @endif
                                 </button>
                             @else
@@ -158,6 +146,8 @@
                         </x-slot>
 
                         <x-slot name="content">
+                            @livewire('switch-role')
+
                             <!-- Account Management -->
                             <div class="block px-4 py-2 text-xs text-gray-400">
                                 {{ __('Manage Account') }}

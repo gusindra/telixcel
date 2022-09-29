@@ -2,6 +2,7 @@
 
 use App\Console\Commands\ProjectAssistance;
 use App\Models\Contract;
+use App\Models\Order;
 use App\Models\TeamUser;
 use Carbon\Carbon;
 use Illuminate\Foundation\Inspiring;
@@ -36,5 +37,14 @@ Artisan::command('reset-login', function () {
     }
 })->purpose('Reset user status who is not logout');
 
+Artisan::command('test', function(){
+    $reflection = Order::find(36);
+    $lastInvoice = Carbon::parse($reflection->lastInvoice->period)->format('m-Y');
+    if($lastInvoice != date('m-Y')){
+        $this->comment($lastInvoice." : ".date('m-Y'));
+    }else{
+        $this->comment('Same');
+    }
+})->purpose('test');
 
 // Artisan::command('assistance:project', ProjectAssistance::class)->purpose('Display an expired project');

@@ -168,10 +168,11 @@
                                             <thead>
                                                 <tr class="text-center">
                                                     <th class="px-3 py-2 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider w-1">No</th>
-                                                    <th class="px-3 py-2 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider w-1/2">Description</th>
+                                                    <th class="px-3 py-2 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider w-1/3">Description</th>
                                                     <th class="px-3 py-2 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider w-1">Price (IDR)</th>
-                                                    <th class="px-3 py-2 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider w-2">Qty</th>
-                                                    <th class="px-3 py-2 bg-gray-50 text-right text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider w-1/4">Sub Total</th>
+                                                    <th class="px-3 py-2 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider w-1">Qty</th>
+                                                    <th class="w-1"></th>
+                                                    <th class="px-3 py-2 bg-gray-50 text-right text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider w-1/4">Amount</th>
                                                 </tr>
                                             </thead>
                                             <tbody class="bg-white divide-y divide-gray-200 text-xs">
@@ -181,15 +182,31 @@
                                                         <td class="px-3 py-1 whitespace-no-wrap"> {{$item->name}}<br><small>{{$item->note}}</small> </td>
                                                         <td class="px-3 py-1 whitespace-no-wrap text-right"> {{number_format($item->price)}} </td>
                                                         <td class="px-3 py-1 whitespace-no-wrap"> {{number_format($item->qty)}} {{$item->unit}} </td>
-                                                        <td class="px-3 py-1 whitespace-no-wrap text-right"> {{number_format($item->qty*$item->price)}} </td>
+                                                        <td class="px-3 py-1 whitespace-no-wrap text-center"> {{$item->total_percentage==100?'':'('.$item->total_percentage.'%)'}}</td>
+                                                        <td class="px-3 py-1 whitespace-no-wrap text-right"> {{$item->total_percentage==100?number_format($item->qty*$item->price):number_format($item->qty*$item->price*$item->total_percentage/100)}} </td>
                                                     </tr>
                                                 @endforeach
                                             </tbody>
                                             <tfoot>
                                                 <tr class="bg-gray-100">
-                                                    <td class="px-1 py-2 text-xl whitespace-no-wrap text-right" colspan="4" align="center">Total</td>
+                                                    <td class="px-1 py-2 text-sm whitespace-no-wrap text-right" colspan="5" align="center">Sub Total</td>
+                                                    <td class="px-2 py-2 text-sm whitespace-no-wrap text-right"><span class="uppercase">{{$data->bill->currency ?? 'IDR'}}</span> {{number_format($data->total)}}</td>
+                                                </tr>
+                                                @if($data->vat>0)
+                                                <tr class="bg-gray-100">
+                                                    <td class="px-1 py-2 text-xs whitespace-no-wrap text-right" colspan="5" align="center">VAT {{'('.$data->vat.'%)'}}</td>
+                                                    <td class="px-2 py-2 text-xs whitespace-no-wrap text-right"><span class="uppercase">{{$data->bill->currency ?? 'IDR'}}</span> {{number_format($data->bill->amount*($data->vat/100))}}</td>
+                                                </tr>
+                                                <tr class="bg-gray-100">
+                                                    <td class="px-1 py-2 text-xl whitespace-no-wrap text-right" colspan="5" align="center">Total</td>
+                                                    <td class="px-2 py-2 text-xl whitespace-no-wrap text-right"><span class="uppercase">{{$data->bill->currency ?? 'IDR'}}</span> {{number_format($data->bill->amount + $data->bill->amount*($data->vat/100))}}</td>
+                                                </tr>
+                                                @else
+                                                <tr class="bg-gray-100">
+                                                    <td class="px-1 py-2 text-xl whitespace-no-wrap text-right" colspan="5" align="center">Total</td>
                                                     <td class="px-2 py-2 text-xl whitespace-no-wrap text-right"><span class="uppercase">{{$data->bill->currency ?? 'IDR'}}</span> {{number_format($data->bill->amount)}}</td>
                                                 </tr>
+                                                @endif
                                             </tfoot>
                                         </table>
                                     </div>

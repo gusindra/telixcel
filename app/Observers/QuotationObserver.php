@@ -18,7 +18,6 @@ class QuotationObserver
      */
     public function updated(Quotation $request)
     {
-        $flow = FlowSetting::where('model', 'QUOTATION')->where('team_id', auth()->user()->currentTeam->id)->get();
         if($request->status == 'submit')
         {
             FlowProcess::create([
@@ -36,6 +35,7 @@ class QuotationObserver
             // ]);
 
             // APPROVAL
+            $flow = FlowSetting::where('model', 'QUOTATION')->where('team_id', auth()->user()->currentTeam->id)->get();
             foreach($flow as $key => $value){
                 FlowProcess::create([
                     'model'     => $value->model,

@@ -212,14 +212,22 @@ function checkRoles($role_id){
             return true;
         }
     }
+    if($user->activeRole && $user->activeRole->role->name=='Super Admin'){
+        return true;
+    }
     if(count($user->role)>0){
-        foreach($user->role as $role){
-            // return $role;
-            if ( $role->role_id == $role_id ){
-                return true;
-            }
+        if ( $user->activeRole->role_id == $role_id ){
+            return true;
         }
     }
+    // if(count($user->role)>0){
+    //     foreach($user->role as $role){
+    //         // return $role;
+    //         if ( $role->role_id == $role_id ){
+    //             return true;
+    //         }
+    //     }
+    // }
     return false;
 }
 

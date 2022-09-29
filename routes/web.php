@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminSmsController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DevhookController;
 use App\Http\Controllers\WebhookController;
@@ -29,6 +30,7 @@ use App\Models\Client;
 use App\Models\Contract;
 use App\Models\FlowSetting;
 use App\Models\Notification;
+use App\Models\OperatorPhoneNumber;
 use App\Models\OrderProduct;
 use App\Models\Template;
 use App\Models\Request;
@@ -100,6 +102,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     Route::get('/notif-center', [NotificationController::class, 'index'])->name('notification');
     Route::get('/notif-center/{notification}', [NotificationController::class, 'show'])->name('notification.read');
+    Route::get('/notif-center/read/all', [NotificationController::class, 'readAll'])->name('notification.read.all');
 
     Route::get('/user', [UserController::class, 'index'])->name('user.index');
     Route::get('/user/{user}', [UserController::class, 'show'])->name('user.show');
@@ -168,6 +171,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/payment/deposit', [PaymentController::class, 'index'])->name('payment.deposit');
     Route::get('/payment/topup', [PaymentController::class, 'topup'])->name('payment.topup');
     Route::get('/payment/invoice/{id}', [PaymentController::class, 'invoice'])->name('invoice.topup');
+
+    Route::get('/update-sms/{id}/{status}', [AdminSmsController::class, 'updateStatus'])->name('admin.update.sms.status');
 });
 
 Route::get('/role-invitations/{invitation}', [RoleInvitationController::class, 'accept'])->middleware(['signed'])->name('role-invitations.accept');
@@ -192,6 +197,9 @@ Route::post('/logout', [AuthController::class, 'destroy'])->name('logout');
 Route::get('cache/{id}', function ($id){
     if($id=="clear"){
         \Artisan::call('cache:clear');
+    }
+    if($id=="view-clear"){
+        \Artisan::call('view:clear');
     }
     dd("Job is done");
 });
@@ -282,8 +290,15 @@ Route::get('/restart-service', function(){
 
 // TESTING
 Route::get('/testing', function(){
-    $contract = Contract::find(10);
-    return $contract->attachments->sortByDesc('id')->first();
+    // return 1;
+    $phoneNo = '6281339668556';
+    $phoneNo = substr($phoneNo, 0, 5);
+    return OperatorPhoneNumber::where('code', $phoneNo)->first();
+
+    return storage_path();
+    // \Log::channel('apilog')->info('Data SMS is');
+    // $contract = Contract::find(10);
+    // return $contract->attachments->sortByDesc('id')->first();
     // return base64_encode('SITC01'.':'.'92f70cad-1fa4-40de-bbd8-39dbfd6a7242');
     // $request = Request::find(244);
     // return $request->client->team->detail;

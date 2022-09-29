@@ -8,9 +8,6 @@
             <div class="bg-white dark:bg-slate-600 overflow-hidden shadow-xl sm:rounded-lg">
                 <div class="container mx-auto">
                     <div class="flex justify-between">
-                        <div class="p-4">
-                            @livewire('commercial.quotation.add')
-                        </div>
                         @include('assistant.commercial.table-list', ['active'=>'quotation'])
                     </div>
 
