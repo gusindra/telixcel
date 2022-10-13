@@ -18,6 +18,7 @@ class HandlingSession extends Model
         'client_id',
         'agent_id',
         'user_id',
+        'view_transcript',
         'updated_at'
     ];
 

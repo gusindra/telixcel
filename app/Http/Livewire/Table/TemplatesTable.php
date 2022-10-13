@@ -19,7 +19,7 @@ class TemplatesTable extends LivewireDatatable
                 $query->where([
                     'teams.id' => auth()->user()->currentTeam->id
                 ]);
-            })->where('user_id', auth()->user()->currentTeam->user_id);
+            }); //->where('user_id', auth()->user()->currentTeam->user_id);
     }
 
     public function columns()

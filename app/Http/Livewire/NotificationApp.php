@@ -8,6 +8,8 @@ use Livewire\Component;
 class NotificationApp extends Component
 {
     public $client_id;
+    public $modalActionVisible = false;
+    public $currentMessage;
 
     /**
      * mount
@@ -51,6 +53,20 @@ class NotificationApp extends Component
             return [];
         }
 
+    }
+
+    /**
+     * createShowModal
+     *
+     * @return void
+     */
+    public function actionShowModal($id)
+    {
+        $notif = Notification::find($id);
+        $this->currentMessage = $notif->notification;
+        $this->modalActionVisible = true;
+        $notif->status = 'read';
+        $notif->save();
     }
 
     /**

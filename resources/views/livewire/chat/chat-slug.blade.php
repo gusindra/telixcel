@@ -48,17 +48,17 @@
                     id="phone" class="block mt-1 w-full" type="text" name="phone" required autocomplete="current-phone" />
                 </div>
 
-                <div class="items-center py-3 content-center">
-                    <x-jet-button wire:click="checkClient" class="px-4 py-3">
+                <div class="items-center py-3 text-center mt-4">
+                    <button type="submit" class="inline-flex1 w-full items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:shadow-outline-gray disabled:opacity-25 transition px-4 py-3" wire:click="checkClient">
                         {{ __('Message') }}
-                    </x-jet-button>
+                    </button>
                 </div>
             </div>
         @endif
         <div wire:poll.visible>
             <div class="{{$data && $data->id?'block':'hidden'}}">
-                <div class="bg-gray-400 dark:bg-slate-700 h-15 lg:h-14 lg:static md:static sm:fixed sm:inset-x-0 sm:top-0 shadow-md">
-                    <div class="w-full mx-auto p-3 px-3">
+                <div class="bg-gray-400 dark:bg-slate-700 h-12 lg:h-14 lg:static md:static sm:fixed sm:inset-x-0 sm:top-0 shadow-md">
+                    <div class="w-full mx-auto p-1">
                         <div class="flex items-center justify-between flex-wrap">
                             <div class="w-0 flex-1 flex items-center">
                             @if($client)
@@ -81,6 +81,17 @@
 
                 <div id="messageArea" class="lg:max-h-screen">
                     <div id="messageBox" wire:poll class="overflow-auto h-96 bg-green-50 dark:bg-slate-600 py-4" style="display: flex;flex-direction: column;height: 80vh;overflow: auto;">
+                        @if(!$transcript && count($messages)>2)
+                        <p class="text-center dark:bg-slate-300 {{$requestTransript ? 'bg-gray-600 text-gray-100' : 'bg-gray-200 text-gray-800'}}">
+                            @if(is_null($requestTransript))
+                                <a class="text-xs p-4 underline cursor-pointer" wire:click="requestTransript">See transcript</a>
+                            @elseif($requestTransript=='requested')
+                                <a class="text-xs p-4 underline cursor-pointer" wire:click="requestTransript">Your request was submited, click to recheck status!</a>
+                            @elseif($requestTransript=='reject')
+                                <a class="text-xs p-4 underline">Your request was rejected</a>
+                            @endif
+                        </p>
+                        @endif
                         @foreach($messages as $item)
                         <div class="pb-1 px-4 sm:p-2 sm:px-3 buble-chat object-left {{$item->source_id?'':'text-right right-0'}}">
                             <small class="text-gray-500 dark:text-slate-300 font-medium">{{$item->source_id?$client->name:($item->from=='bot' || $item->from=='api'?'Bot':$item->agent->name)}}</small>
@@ -107,7 +118,7 @@
                                             Your browser does not support the audio element.
                                         </audio>
                                     @else
-                                        <span class="whitespace-pre-wrap dark:text-slate-600 text-base">{{$item->reply}}</span><br>
+                                        <span class="whitespace-pre-wrap dark:text-slate-600 text-base">{!!chatRender($item)!!}</span><br>
                                     @endif
                                     <p class="px-1 text-xs font-thin text-gray-400 dark:text-slate-500 {{$item->source_id?'text-right right-0':'text-left left-0'}}">{{$item->date}}</p>
                                 </div>

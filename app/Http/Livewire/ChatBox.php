@@ -42,8 +42,9 @@ class ChatBox extends Component
     public $modalTicket = false;
     public $modalForward= false;
     public $modalUpdateTicket = false;
-    public $transcript = false;
+    public $transcript = 0;
     public $closeModal = false;
+    public $session;
 
     public function mount($client_id)
     {
@@ -302,12 +303,18 @@ class ChatBox extends Component
         if(!$session)
             $session = HandlingSession::where('client_id', $this->client_id)->where('user_id', $this->owner)->first();
 
+        $this->session = $session;
         return $session;
     }
 
     public function showTransript()
     {
         $this->transcript = !$this->transcript;
+    }
+
+    public function updateTransript($selected){
+        $status = $selected == 'yes' ? 'approve':'reject';
+        $this->session->update(['view_transcript'=>$status]);
     }
 
     /**
@@ -323,11 +330,13 @@ class ChatBox extends Component
                 $data['request'] = Request::with('client','agent')->where('client_id', $this->client->uuid)->get();
             }else{
                 $closed = Request::where('client_id', $this->client->uuid)->where('is_closed', 1)->orderBy('id', 'desc')->first();
-                $data['request'] = Request::with('client','agent')->where('client_id', $this->client->uuid)->where('id', '>', $closed->id ?? 0)->get();
+                $data['request'] = Request::with('client','agent')->where('client_id', $this->client->uuid)->where('id', '>=', $closed ? $closed->id : 0)->get();
             }
         }else{
             $data['request'] = [];
         }
+
+        $data['count'] = count($data['request']);
 
         if(substr($this->message,0, 1)=='/'){
             $keyword = substr($this->message, 1);

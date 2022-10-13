@@ -314,3 +314,30 @@ function get_my_companies(){
 function list_online(){
     return TeamUser::where('status', '!=', NULL)->get();
 }
+
+function chatRender($request)
+{
+    $text = $request->reply;
+    $link = [$request->client->name];
+    $url = ["{name}"];
+    $text = str_replace($url, $link, $text);
+
+    if (strpos($text, 'http') === FALSE) {
+        return $text;
+    }else{
+        $pattern = '!(https?://[^\s]+)!';
+        preg_match_all($pattern, $text, $out);
+        foreach($out[0] as $key => $t){
+            // return print_r($t);
+            $rs = explode(" ",$t);
+            if(empty($rs)){
+                $result = $t;
+            }else{
+                $result = $rs[0];
+            }
+            $url[] = $result;
+            $link[] = "<a href='".$result."' target='_blank'>".$result."</a>";
+        }
+        return str_replace($url, $link, $text);
+    }
+}

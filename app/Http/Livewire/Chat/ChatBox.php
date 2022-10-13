@@ -21,6 +21,7 @@ class ChatBox extends Component
     public $type;
     public $photo;
     public $team;
+    public $transcript = false;
     public $modalAttachment = false;
 
     public function mount($client_id=null)
@@ -86,7 +87,7 @@ class ChatBox extends Component
      */
     public function read()
     {
-        if($this->client){
+        if($this->client && $this->transcript){
             return Request::with('client','agent')->where('client_id', $this->client->uuid)->get();
         }
         return [];

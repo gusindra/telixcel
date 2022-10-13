@@ -10,6 +10,9 @@
                     <x-jet-nav-link href="{{ route('settings.show', 'company') }}" :active="$page == 'company'">
                         {{ __('Company') }}
                     </x-jet-nav-link>
+                    <x-jet-nav-link href="{{ route('notification') }}" :active="$page == 'notification'">
+                        {{ __('Notification') }}
+                    </x-jet-nav-link>
                     <!-- <x-jet-nav-link href="{{ route('settings.show', 'omni') }}" :active="$page =='omni'">
                         {{ __('Omni-Channel API') }}
                     </x-jet-nav-link>

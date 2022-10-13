@@ -37,28 +37,46 @@
                 </div>
                 <div class="overflow-auto md:h-3/4 sm:h-1/2">
                     <input class="w-full dark:bg-slate-800" type="text" placeholder="search" name="search" id="search" wire:model="search">
-                    @foreach ($data as $item)
-                        <a x-on:click="window.scrollBy(0, $refs.blue.getBoundingClientRect().top - 50" wire:click="chatCustomer('{{ Hashids::encode($item->id) }}')" class="cursor-pointer client-click">
-                            <div class="text-sm whitespace-no-wrap {{auth()->user()->chatsession && auth()->user()->chatsession->client_id==$item->id?'border-l-8 border-green-600':''}}">
-                                <div class="md:flex px-2 py-2 {{$client_id!=0 && $client_id==$item->id?'bg-gray-300 dark:bg-slate-800':'bg-white dark:bg-slate-700'}} hover:bg-gray-200 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-gray-100 focus:ring-opacity-50">
-                                    <div class="md:h-auto text-sm border-2 border-transparent rounded-full focus:outline-none focus:border-gray-300 transition">
-                                        <img class="h-8 w-8 rounded-full object-cover" src="{{ $item->profile_photo_url }}" alt="{{ $item->name }}" />
-                                    </div>
-                                    <div class="sm:max-w-sm sm:flex-none md:w-auto md:flex-auto flex-col items-start relative z-10 p-2 xl:p-2">
-                                        <div class="flex">
-                                            <div class="flex-grow">{{ $item->name }}</div>
-                                            @if($item->active && countMsg($item)>0)
-                                            <div class="flex w-auto text-center">
-                                                <div class="px-1 w-auto h-4 m-1 rounded-full bg-red-500 text-xs text-gray-50 text-center">{{countMsg($item)}}</div>
+                    <div wire:poll.visible>
+                        <!-- //TICKET -->
+                        @foreach ($tickets as $ticket)
+                            <a x-on:click="window.scrollBy(0, $refs.blue.getBoundingClientRect().top - 50" wire:click="chatCustomer('{{ Hashids::encode($ticket->request->client->id) }}')" class="cursor-pointer client-click">
+                                <div class="text-sm whitespace-no-wrap border-l-8 border-red-600">
+                                    <div class="md:flex px-2 py-1 hover:bg-gray-200 border-b-2 border-gray-400 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-gray-100 focus:ring-opacity-50">
+                                        <div class="sm:max-w-sm sm:flex-none md:w-auto md:flex-auto flex-col items-start relative z-10 p-1">
+                                            <div class="flex">
+                                                <div class="flex-grow">Ticket #{{$ticket->request_id}}<br><small>{{$ticket->reasons}}</small></div>
                                             </div>
-                                            @endif
                                         </div>
-                                        <p class="text-right text-xs">{{$item->date->diffForHumans()}}</p>
                                     </div>
                                 </div>
-                            </div>
-                        </a>
-                    @endforeach
+                            </a>
+                        @endforeach
+
+                        <!-- //CHAT -->
+                        @foreach ($data as $item)
+                            <a x-on:click="window.scrollBy(0, $refs.blue.getBoundingClientRect().top - 50" wire:click="chatCustomer('{{ Hashids::encode($item->id) }}')" class="cursor-pointer client-click">
+                                <div class="text-sm whitespace-no-wrap {{auth()->user()->chatsession && auth()->user()->chatsession->client_id==$item->id?'border-l-8 border-green-600':''}}">
+                                    <div class="md:flex px-2 py-2 {{$client_id!=0 && $client_id==$item->id?'bg-gray-300 dark:bg-slate-800':'bg-white dark:bg-slate-700'}} hover:bg-gray-200 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-gray-100 focus:ring-opacity-50">
+                                        <div class="md:h-auto text-sm border-2 border-transparent rounded-full focus:outline-none focus:border-gray-300 transition">
+                                            <img class="h-8 w-8 rounded-full object-cover" src="{{ $item->profile_photo_url }}" alt="{{ $item->name }}" />
+                                        </div>
+                                        <div class="sm:max-w-sm sm:flex-none md:w-auto md:flex-auto flex-col items-start relative z-10 p-2 xl:p-2">
+                                            <div class="flex">
+                                                <div class="flex-grow">{{ $item->name }}</div>
+                                                @if($item->active && countMsg($item)>0)
+                                                <div class="flex w-auto text-center">
+                                                    <div class="px-1 w-auto h-4 m-1 rounded-full bg-red-500 text-xs text-gray-50 text-center">{{countMsg($item)}}</div>
+                                                </div>
+                                                @endif
+                                            </div>
+                                            <p class="text-right text-xs">{{$item->date->diffForHumans()}}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        @endforeach
+                    </div>
                 </div>
                 <!-- <x-jet-nav-link href="#close">
                     {{ __('Closed') }}
@@ -489,5 +507,4 @@
         </script>
     @endpush
     <link rel="stylesheet" href="{{ url('js/emoji/docs/assets/css/style.css') }}">
-
 </div>

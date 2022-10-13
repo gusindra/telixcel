@@ -44,9 +44,9 @@
         </x-slot>
 
         <x-slot name="form">
-            <div class="col-span-6 grid grid-cols-2">
+            <div class="col-span-6 grid grid-cols-5">
                 <!-- Type Information -->
-                <div class="col-span-1">
+                <div class="col-span-2">
                     <x-jet-label class="capitalize" value="{{ $template->type }}" />
 
                     <div class="flex items-center mt-1">
@@ -71,19 +71,54 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- Template Name -->
-                <div class="col-span-1 sm:col-span-1">
-                    <x-jet-label for="name" value="{{ __('Name') }}" />
-                    <x-jet-input id="name"
-                                type="text"
-                                class="mt-1 block w-full"
-                                wire:model="name"
-                                wire:model.defer="name"
-                                wire:model.debunce.800ms="name"
-                                :disabled="! Gate::check('update', $template)" />
-                    <x-jet-input-error for="name" class="mt-2" />
+                <div class="col-span-1">
+                    <x-jet-label for="name" value="{{ __('Created By') }}" />
+                    <div class="flex items-center mt-1">
+                        <div class="p-3 pl-0 pt-0">
+                            <div class="p-1 rounded-lg">
+                                <div class="text-gray-700 dark:text-slate-300 text-sm capitalize">
+                                    {{$template->createdBy->name}}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+                <div class="col-span-1">
+                    <x-jet-label for="name" value="{{ __('Created At') }}" />
+                    <div class="flex items-center mt-1">
+                        <div class="p-3 pl-0 pt-0">
+                            <div class="p-1 rounded-lg">
+                                <div class="text-gray-700 dark:text-slate-300 text-sm ">
+                                    {{$template->created_at->format('d F Y')}}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-span-1">
+                    <x-jet-label for="name" value="{{ __('Updated At') }}" />
+                    <div class="flex items-center mt-1">
+                        <div class="p-3 pl-0 pt-0">
+                            <div class="p-1 rounded-lg">
+                                <div class="text-gray-700 dark:text-slate-300 text-sm ">
+                                {{$template->updated_at->format('d F Y')}}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Template Name -->
+            <div class="col-span-6 sm:col-span-6">
+                <x-jet-label for="name" value="{{ __('Name') }}" />
+                <x-jet-input id="name"
+                            type="text"
+                            class="mt-1 block w-full"
+                            wire:model="name"
+                            wire:model.defer="name"
+                            wire:model.debunce.800ms="name"
+                            :disabled="! Gate::check('update', $template)" />
+                <x-jet-input-error for="name" class="mt-2" />
             </div>
 
             <!-- Template Description -->

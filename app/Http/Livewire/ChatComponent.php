@@ -158,7 +158,7 @@ class ChatComponent extends Component
         }
 
         if($this->search!=""){
-            $sorted  = $sorted->filter(function($client){
+            $sorted = $sorted->filter(function($client){
                 if(str_contains(strtolower($client->name), strtolower($this->search))){
                     return $client;
                 }
@@ -250,6 +250,7 @@ class ChatComponent extends Component
             'reply'     => $this->message,
             'from'      => auth()->user()->id,
             'client_id' => $this->client->uuid,
+            'team_id'   => auth()->user()->currentTeam->id,
             'user_id'   => $this->owner,
             'type'      => 'text'
         ]);
@@ -371,10 +372,23 @@ class ChatComponent extends Component
         $this->message = $message;
     }
 
+    public function getTicket()
+    {
+        $data = Ticket::with('request')->get();
+        $sorted = $data->filter(function($ticket){
+            if($ticket->request->team_id == auth()->user()->currentTeam->id){
+                return $ticket;
+            }
+        });
+        return $sorted->values()->all();
+
+    }
+
     public function render()
     {
         return view('livewire.chat-component', [
             'data' => $this->read(),
+            'tickets' => $this->getTicket(),
             'filter' => $this->filter,
             'handlingSession' => $this->checkSession(),
             'dataTemplate' => $this->quickReply(),

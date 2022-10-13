@@ -18,11 +18,11 @@ class EditTemplate extends Component
     public function mount($uuid)
     {
         $this->template = Template::with('question')->where('uuid', $uuid)->first();
-        $this->name = $this->template->name;
-        $this->description = $this->template->description;
-        $this->is_enabled = $this->template->is_enabled;
-        $this->is_waiting = $this->template->is_wait_for_chat;
-        $this->templateId = $this->template->id;
+        $this->name = $this->template ? $this->template->name :'';
+        $this->description = $this->template ?$this->template->description:'';
+        $this->is_enabled = $this->template ?$this->template->is_enabled:'';
+        $this->is_waiting = $this->template ?$this->template->is_wait_for_chat:'';
+        $this->templateId = $this->template ?$this->template->id:'';
     }
 
     public function rules()

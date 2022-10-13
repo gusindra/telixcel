@@ -67,6 +67,9 @@ class Template extends Model
     public function question(){
     	return $this->belongsTo('App\Models\Template', 'template_id', 'id');
     }
+    public function children(){
+    	return $this->belongsTo('App\Models\Template', 'template_id', 'id')->select('template_');
+    }
 
     /**
      * Template has one Error Template
@@ -97,6 +100,16 @@ class Template extends Model
     public function teams()
     {
         return $this->morphToMany('App\Models\Team', 'teamable');
+    }
+
+    /**
+     * This template created by
+     * to know what the template
+     *
+     * @return void
+     */
+    public function createdBy(){
+    	return $this->belongsTo('App\Models\User', 'user_id');
     }
 
     /**

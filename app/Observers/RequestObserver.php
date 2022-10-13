@@ -239,7 +239,7 @@ class RequestObserver
                 if(!$this->replyed){
                     //check if trigger contain reply if not a question
                     //Log::debug('trigger contain reply if not a question '.$request->reply);
-                    $template = Template::where('is_enabled', 1)->whereNull('template_id')->where('trigger_condition', 'like', '%equal%')->where('trigger', $request->reply)->where('user_id', $request->user_id)->with('teams')
+                    $template = Template::where('is_enabled', 1)->whereNull('template_id')->where('trigger_condition', 'like', '%equal%')->where('trigger', $request->reply)->with('teams')
                         ->whereHas('teams', function ($query) use($request) {
                             $query->where([
                                 'teams.id' => $request->team_id
@@ -247,9 +247,14 @@ class RequestObserver
                         })->first();
                     // Log::debug($template);
                     if(!$template){
-                        $contains = Template::where('is_enabled', 1)->whereNull('template_id')->where('trigger_condition', 'contain')->where('user_id', $request->user_id)->pluck('trigger','id');
+                        $contains = Template::where('is_enabled', 1)->whereNull('template_id')->where('trigger_condition', 'contain')->whereHas('teams', function ($query) use($request) {
+                            $query->where([
+                                'teams.id' => $request->team_id
+                            ]);
+                        })->pluck('trigger','id');
 
                         foreach($contains as $key => $contain) {
+                            Log::debug($contain);
                             $place = strpos($request->reply, $contain);
                             if (!empty($place)) {
                                 $template = Template::find($key);
@@ -273,8 +278,10 @@ class RequestObserver
                                 $this->addRespond($action, $request, $template);
                             }
                         }
+                        Log::debug('done sending template ');
+                    }else{
+                        Log::debug('no response template ');
                     }
-                    Log::debug('done check template');
                 }
             }
             else
@@ -283,8 +290,6 @@ class RequestObserver
                     $this->sendToWhatsapp($request);
                 }
             }
-        }else{
-            Log::debug($request." [fail to find Team]");
         }
     }
 

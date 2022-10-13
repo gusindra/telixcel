@@ -23,6 +23,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\RoleInvitationController;
+use App\Http\Controllers\TemplateController;
 use App\Jobs\ProcessEmail;
 use App\Models\ApiCredential;
 use App\Models\BlastMessage;
@@ -84,9 +85,10 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         return view('template.form-template');
     })->name('create.template');
 
-    Route::get('/template/{uuid}', function ($uuid) {
-        return view('template.show', ['uuid'=> $uuid]);
-    })->name('show.template');
+    Route::get('/template/tree/view', [TemplateController::class, 'view'])->name('view.template');
+
+    Route::get('/template/{uuid}', [TemplateController::class, 'show'])->name('show.template');
+    Route::get('/template/{template}/edit', [TemplateController::class, 'edit'])->name('edit.template');
 
     // Route::get('/template/{uuid}', ShowTemplate::class);
 
@@ -190,6 +192,7 @@ Route::get('/chat/{slug}', function ($slug) {
 });
 
 Route::get('/chating/{slug}', [ChatController::class, 'show'])->name('chat.slug');
+Route::get('/chat-me', [ChatController::class, 'chatme'])->name('chatme');
 Route::get('/upload', [UploadController::class, 'index']);
 Route::get('/logout', [AuthController::class, 'destroy'])->name('logout');
 Route::post('/logout', [AuthController::class, 'destroy'])->name('logout');
@@ -371,19 +374,19 @@ Route::get('/testing', function(){
 
 Route::get('/tester', function(HttpRequest $request){
     // return auth()->user()->super->first()->role;
-    $sms = BlastMessage::find(435);
-    if($quote = App\Models\Quotation::where('client_id', 1)->whereIn('status', ['reviewed'])->orderBy('id', 'desc')->first()){
-        $items = OrderProduct::orderBy('id', 'asc')->where('model', 'Quotation')->where('model_id', $quote->id)->get();
-        foreach($items as $product){
-            echo $product;
-            if(Str::contains($product->name, 'SMS NON OTP') && $sms->otp == 0){
-                return $product->price.' NONOTP '.$sms->id;
-            }elseif(Str::contains($product->name, 'SMS OTP') && $sms->otp == 1){
-                return $product->price.' OTP '.$sms->id;
-            }
-        }
-    }
-    return 0;
+    // $sms = BlastMessage::find(435);
+    // if($quote = App\Models\Quotation::where('client_id', 1)->whereIn('status', ['reviewed'])->orderBy('id', 'desc')->first()){
+    //     $items = OrderProduct::orderBy('id', 'asc')->where('model', 'Quotation')->where('model_id', $quote->id)->get();
+    //     foreach($items as $product){
+    //         echo $product;
+    //         if(Str::contains($product->name, 'SMS NON OTP') && $sms->otp == 0){
+    //             return $product->price.' NONOTP '.$sms->id;
+    //         }elseif(Str::contains($product->name, 'SMS OTP') && $sms->otp == 1){
+    //             return $product->price.' OTP '.$sms->id;
+    //         }
+    //     }
+    // }
+    // return 0;
     // return $request;
     $url = $request->url;
     $secretkey = $request->key;

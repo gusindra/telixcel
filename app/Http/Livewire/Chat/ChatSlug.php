@@ -5,12 +5,14 @@ namespace App\Http\Livewire\Chat;
 use App\Models\Attachment;
 use Livewire\Component;
 use App\Models\Client;
+use App\Models\HandlingSession;
 use App\Models\Request;
 use App\Models\Team;
 use Illuminate\Support\Str;
 use Livewire\WithFileUploads;
 use Vinkla\Hashids\Facades\Hashids;
 use Illuminate\Support\Facades\Storage;
+use Carbon\Carbon;
 
 class ChatSlug extends Component
 {
@@ -29,6 +31,8 @@ class ChatSlug extends Component
     public $photo;
     public $modalAttachment = false;
     public $link_attachment;
+    public $transcript = false;
+    public $requestTransript;
 
     public function mount($team)
     {
@@ -53,7 +57,7 @@ class ChatSlug extends Component
                 'phone'         => $this->number,
                 'user_id'       => $this->team->user_id,
             ]);
-            $team = auth()->user()->currentTeam;
+            $team = Team::find($this->team->id);
             $client->teams()->attach($team);
         }
         $this->client = $client;
@@ -79,12 +83,6 @@ class ChatSlug extends Component
             'team_id'   => $this->team->id
         ]);
         $this->message = null;
-        // dd($request->client->team->detail);
-        $this->dispatchBrowserEvent('chat-send-message', [
-            'from'      => $this->client->uuid,
-            'user_id'   => $this->owner,
-            'reply'     => $this->message,
-        ]);
     }
 
     /**
@@ -118,12 +116,15 @@ class ChatSlug extends Component
 
         if($this->type){
             $request = Request::create([
+                'source_id' => 'web_'.Hashids::encode($this->client->id),
                 'reply'     => $this->message,
                 'media'     => $this->link_attachment,
-                'from'      => auth()->user()->id,
+                'from'      => $this->client->id,
                 'user_id'   => $this->owner,
                 'client_id' => $this->client->uuid,
-                'type'      => $this->type
+                'type'      => $this->type,
+                'sent_at'   => date('Y-m-d H:i:s'),
+                'team_id'   => $this->team->id
             ]);
             $this->message = null;
             $this->modalAttachment = false;
@@ -134,6 +135,27 @@ class ChatSlug extends Component
             ]);
         }else{
             dd('Format link false');
+        }
+    }
+
+    /**
+     * Request to see transcript
+     *
+     * @return void
+     */
+    public function requestTransript(){
+        $session = HandlingSession::where('client_id', $this->client->id)->where('user_id', $this->owner)->first();
+        // dd($session);
+        if($session){
+            if(is_null($session->view_transcript)){
+                $session->view_transcript = 'requested';
+                $session->save();
+                $this->requestTransript = 'requested';
+            }else{
+                $this->requestTransript = $session->view_transcript;
+            }
+        }else{
+            $this->transcript = false;
         }
     }
 
@@ -156,9 +178,18 @@ class ChatSlug extends Component
     public function message()
     {
         if($this->client){
-            return Request::with('client','agent')->where('client_id', $this->client->uuid)->get();
+            if($this->transcript){
+                return Request::with('client','agent')->where('client_id', $this->client->uuid)->get();
+            }else{
+                return Request::with('client','agent')->where('client_id', $this->client->uuid)->whereDate('created_at', Carbon::today())->get();
+            }
         }
         return [];
+    }
+
+    public function actionShowModal()
+    {
+        $this->modalAttachment = true;
     }
 
     public function render()

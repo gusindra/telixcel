@@ -30,7 +30,16 @@
 
     <!-- Chat Log -->
     <div id="messageArea" class="h-1/2">
-        @if(@$handling_session && $handling_session->agent_id == $user_id && $handling_session->client_id == $client_id)
+        @if(@$handling_session && $handling_session->agent_id == $user_id && $handling_session->client_id == $client_id && $data['count']>2)
+            @if($handling_session->view_transcript=="requested")
+            <p class="text-center dark:bg-slate-300 bg-yellow-500 text-gray-100">
+                <span class="text-xs">Client want to see transcript, give the permission ?  </span>
+                <span class="text-right">
+                    <a class="text-xs p-4 underline" href="#" wire:click="updateTransript('no')">No</a>
+                    <a class="text-xs p-4 underline" href="#" wire:click="updateTransript('yes')">Yes</a>
+                </span>
+            </p>
+            @endif
         <p class="text-center dark:bg-slate-300 {{$transcript ? 'bg-gray-600 text-gray-100' : 'bg-gray-200 text-gray-800'}}">
             <a class="text-xs p-4 underline" href="#" wire:click="showTransript">{{$transcript ? 'Show less':'See transcript'}}</a>
         </p>
@@ -54,7 +63,7 @@
                                     @if($item->type=='document')
                                         <img src="{{url('/backend/img/'.substr(strrchr($item->media, '.'), 1).'.png')}}" class="h-8" />
                                     @endif
-                                    <span class="{{$item->type=='document' ? 'ml-2 mt-2':''}} dark:text-slate-600">{{$item->reply}}</span>
+                                    <span class="{{$item->type=='document' ? 'ml-2 mt-2':''}} dark:text-slate-600">{!!chatRender($item)!!}</span>
                                 </div>
                                 @if($item->media!='')
                                     @if($item->type=='document')
@@ -97,19 +106,19 @@
                     </div>
                 </div>
                 @if($item->tickets)
-                <div class="w-100 sticky top-0 z-40 bottom-0">
+                <div class="w-100 sticky top-0 z-9 bottom-0">
                     @foreach($item->tickets as $ticket)
                         @if(@$handling_session)
                             @if($handling_session->agent_id == $user_id && $handling_session->client_id == $client_id)
                                 @if ($ticket->status=='open')
-                                    <a class="flex justify-center gap-x-2 text-xs text-gray-100 px-10 py-1 mb-0 bg-red-600 hover:bg-red-800 cursor-pointer" wire:click="ticketUpdateModal({{$ticket->request_id}}, {{$ticket->id}}, '{{$ticket->reasons}}', '{{$ticket->status}}')">
+                                    <a class="mt-4 flex justify-center gap-x-2 text-xs text-gray-100 px-10 py-1 mb-0 bg-red-600 hover:bg-red-800 cursor-pointer" wire:click="ticketUpdateModal({{$ticket->request_id}}, {{$ticket->id}}, '{{$ticket->reasons}}', '{{$ticket->status}}')">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
                                         </svg>
                                         <span class="flex-initial"> Ticket #{{$ticket->request_id}}</span>
                                     </a>
                                 @elseif($ticket->status=='waiting')
-                                    <a class="flex justify-center gap-x-2 text-xs text-gray-100 px-10 py-1 mb-4 bg-blue-600 hover:bg-blue-800 cursor-pointer" wire:click="ticketUpdateModal({{$ticket->request_id}}, {{$ticket->id}}, '{{$ticket->reasons}}', '{{$ticket->status}}', '{{$ticket->forward_to}}')">
+                                    <a class="flex mt-4 justify-center gap-x-2 text-xs text-gray-100 px-10 py-1 mb-4 bg-blue-600 hover:bg-blue-800 cursor-pointer" wire:click="ticketUpdateModal({{$ticket->request_id}}, {{$ticket->id}}, '{{$ticket->reasons}}', '{{$ticket->status}}', '{{$ticket->forward_to}}')">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                                             <path fill-rule="evenodd" d="M18 3a1 1 0 00-1.447-.894L8.763 6H5a3 3 0 000 6h.28l1.771 5.316A1 1 0 008 18h1a1 1 0 001-1v-4.382l6.553 3.276A1 1 0 0018 15V3z" clip-rule="evenodd" />
                                         </svg>
@@ -122,14 +131,14 @@
                             @endif
                         @else
                             @if ($ticket->status=='open')
-                                    <a class="flex justify-center gap-x-2 text-xs text-gray-100 px-10 py-1 mb-0 bg-red-600">
+                                    <a class="flex mt-4 justify-center gap-x-2 text-xs text-gray-100 px-10 py-1 mb-0 bg-red-600">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
                                         </svg>
                                         <span class="flex-initial"> Ticket #{{$ticket->request_id}}</span>
                                     </a>
                                 @elseif($ticket->status=='waiting')
-                                    <a class="flex justify-center gap-x-2 text-xs text-gray-100 px-10 py-1 mb-4 bg-blue-600">
+                                    <a class="flex mt-4 justify-center gap-x-2 text-xs text-gray-100 px-10 py-1 mb-4 bg-blue-600">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                                             <path fill-rule="evenodd" d="M18 3a1 1 0 00-1.447-.894L8.763 6H5a3 3 0 000 6h.28l1.771 5.316A1 1 0 008 18h1a1 1 0 001-1v-4.382l6.553 3.276A1 1 0 0018 15V3z" clip-rule="evenodd" />
                                         </svg>
@@ -288,7 +297,7 @@
         </x-slot>
     </x-jet-dialog-modal>
 
-    <!-- Form Ticket Modal -->
+    <!-- Form Add Ticket Modal -->
     <x-jet-dialog-modal wire:model="modalTicket">
         <x-slot name="title">
             {{ __('Open Ticket') }}
@@ -322,13 +331,13 @@
         </x-slot>
         <x-slot name="content">
             <div class="col-span-6 sm:col-span-4 p-3">
-                <label for="no">Ticket No <input wire:model="request_id" wire:model.defer="request_id" value="request_id" readonly /></label>
+                <label for="no">Ticket No <input class="text-center" wire:model="request_id" wire:model.defer="request_id" value="request_id" readonly /></label>
 
                 <x-jet-label for="ticket_status" value="{{ $ticket_reason }}" />
                 <select
                     name="ticket_status"
                     id="ticket_status"
-                    class="border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full"
+                    class="border-gray-300 dark:bg-slate-800 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full"
                     wire:model.debunce.800ms="ticket_status"
                     >
                     <option selected>-- Select status --</option>

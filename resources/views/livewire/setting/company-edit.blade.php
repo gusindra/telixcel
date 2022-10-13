@@ -65,11 +65,11 @@
 
     <x-jet-section-border />
 
-    @livewire('setting.payment-company-add', ['data' => $company])
+    @livewire('setting.company.payment-company-add', ['data' => $company])
 
     <x-jet-section-border />
 
-    <div class="md:grid md:grid-cols-3 md:gap-6 mt-8 sm:mt-0">
+    <div class="md:grid md:grid-cols-5 md:gap-6 mt-8 sm:mt-0">
         <div class="md:col-span-1 flex justify-between">
             <div class="px-4 sm:px-0">
                 <h3 class="text-lg font-medium text-gray-900 dark:text-slate-300">3. Logo</h3>
@@ -79,22 +79,16 @@
                 </p>
             </div>
 
-            <div class="px-4 sm:px-0">
-
-            </div>
+            <div class="px-4 sm:px-0"></div>
         </div>
 
-        <div class="mt-2 md:mt-0 md:col-span-2">
-            <div class="px-4 py-5 bg-white dark:bg-slate-600 sm:p-6 shadow sm:rounded-tl-md sm:rounded-tr-md">
+        <div class="mt-2 md:mt-0 md:col-span-4">
+            <div class="px-4 bg-white dark:bg-slate-600 shadow sm:rounded-tl-md sm:rounded-tr-md">
                 <div>
                     @livewire('image-upload', ['model'=> 'company', 'model_id'=>$company->id])
                 </div>
             </div>
-
-            <div class="flex items-center justify-end px-4 py-3 bg-gray-50 dark:bg-slate-600 text-right sm:px-6 shadow sm:rounded-bl-md sm:rounded-br-md">
-
-            </div>
-
+            <div class="flex items-center justify-end px-4 py-3 bg-gray-50 dark:bg-slate-600 text-right sm:px-6 shadow sm:rounded-bl-md sm:rounded-br-md"></div>
         </div>
     </div>
 </div>

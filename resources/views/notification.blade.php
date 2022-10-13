@@ -10,6 +10,8 @@
             <div class="bg-white dark:bg-slate-600 overflow-hidden shadow-xl sm:rounded-lg">
                 <div class="container mx-auto">
                     <a href="{{route('notification.read.all')}}" class="p-2 text-xs">Read All Notification</a>
+                    @livewire('setting.notification.add')
+
                     <div>
                         <livewire:table.notification-table searchable="id" exportable />
                     </div>

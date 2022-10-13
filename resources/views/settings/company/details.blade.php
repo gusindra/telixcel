@@ -37,7 +37,7 @@
 
     <div>
         <div class="max-w-7xl mx-auto pt-4 pb-10 sm:px-6 lg:px-8">
-            @livewire('setting.company-edit', ['company'=>$company])
+            @livewire('setting.company.company-edit', ['company'=>$company])
         </div>
     </div>
 </x-app-layout>
