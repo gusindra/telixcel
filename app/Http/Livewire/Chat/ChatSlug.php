@@ -83,6 +83,8 @@ class ChatSlug extends Component
             'team_id'   => $this->team->id
         ]);
         $this->message = null;
+
+        $this->dispatchBrowserEvent('contentChanged', ['newName' => $request->id]);
     }
 
     /**

@@ -142,6 +142,10 @@ class User extends Authenticatable
     	return $this->hasMany('App\Models\TeamUser', 'user_id');
     }
 
+    public function team(){
+    	return $this->belongsTo('App\Models\TeamUser', 'current_team_id', 'team_id');
+    }
+
     /**
      * billings
      *

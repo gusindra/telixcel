@@ -256,6 +256,8 @@ class ChatComponent extends Component
         ]);
 
         $this->message = null;
+        $this->dispatchBrowserEvent('contentChanged', ['slide' => true]);
+
     }
 
     /**

@@ -257,14 +257,7 @@
         </x-slot>
     </x-jet-dialog-modal>
 
-    <script>
-        $(".client-click").click(function() {
-            alert(1);
-            $('html, body').animate({
-                scrollTop: $("#chatArea").offset().top
-            }, 2000);
-        });
-    </script>
+
 
     @push('chat-websocket')
         <script>
@@ -404,6 +397,7 @@
                 document.getElementById('chat-event').innerHTML = notificationMessage;
             }
         </script>
+
     @endpush
 
     @push('chat-waweb')

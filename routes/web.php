@@ -23,6 +23,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\RoleInvitationController;
+use App\Http\Controllers\TeamInvitationController;
 use App\Http\Controllers\TemplateController;
 use App\Jobs\ProcessEmail;
 use App\Models\ApiCredential;
@@ -178,6 +179,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 });
 
 Route::get('/role-invitations/{invitation}', [RoleInvitationController::class, 'accept'])->middleware(['signed'])->name('role-invitations.accept');
+Route::get('/team/invitations/{invitation}', [TeamInvitationController::class, 'accept'])->middleware(['signed'])->name('team.invitations.accept');
 
 Route::get('/devhook', [DevhookController::class, 'index']);
 

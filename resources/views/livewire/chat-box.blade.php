@@ -427,17 +427,11 @@
             </x-jet-danger-button>
         </x-slot>
     </x-jet-confirmation-modal>
-
     <script>
-        setTimeout(function (){
-            if($('#messageBox').is(':visible')){ //if the container is visible on the page
-                var d = $('#messageBox');
-                d.scrollTop(d.prop("scrollHeight"));
-            } else {
-                alert(2);
-            }
-        }, 100)
+        window.addEventListener('contentChanged', (e) => {
+            var out = document.getElementById("messageBox");
+            out.scrollTop = out.scrollHeight;
+            out.scrollTop = out.scrollHeight;
+        });
     </script>
-    <script type="module" src="{{ url('js/emoji/docs/assets/js/jquery.emojiarea.min.js') }}"></script>
-
 </div>

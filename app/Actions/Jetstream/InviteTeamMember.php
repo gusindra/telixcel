@@ -2,6 +2,7 @@
 
 namespace App\Actions\Jetstream;
 
+use App\Mail\TeamInvitation as MailTeamInvitation;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
@@ -36,7 +37,7 @@ class InviteTeamMember implements InvitesTeamMembers
             'role' => $role,
         ]);
 
-        Mail::to($email)->send(new TeamInvitation($invitation));
+        Mail::to($email)->send(new MailTeamInvitation($invitation));
     }
 
     /**
