@@ -141,9 +141,8 @@ class User extends Authenticatable
     public function listTeams(){
     	return $this->hasMany('App\Models\TeamUser', 'user_id');
     }
-
     public function team(){
-    	return $this->belongsTo('App\Models\TeamUser', 'current_team_id', 'team_id');
+    	return $this->belongsTo('App\Models\TeamUser', 'current_team_id', 'team_id')->where('user_id', $this->id);
     }
 
     /**
