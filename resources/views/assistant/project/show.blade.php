@@ -76,6 +76,11 @@
             <div class="md:grid md:grid-cols-5 md:gap-6">
                 <div class="md:col-span-12 lg:col-span-4">
                     @livewire('project.edit', ['uuid'=>$project->id])
+                    @livewire('project.add-customer', ['id' => $project->id])
+                    @livewire('project.edit-type', ['id' => $project->id, 'disabled' => disableInput($project->status)])
+                    @livewire('project.orders', ['id' => $project->id])
+                    @livewire('project.quotations', ['id' => $project->id])
+                    @livewire('project.contracts', ['id' => $project->id])
                 </div>
                 <div class="justify-between lg:visible md:invisible">
                     @livewire('project.progress', ['uuid'=>$project->id])

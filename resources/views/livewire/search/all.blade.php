@@ -37,7 +37,7 @@
                                     @foreach ($model as $data)
                                     <div class="focus:text-gray-200 hover:text-gray-200" @keydown.arrow-up.prevent="focusPreviousResult(index)" @keydown.arrow-down.prevent="focusNextResult(index)">
                                         &gt;
-                                        <a href="{{$data['url']}}">
+                                        <a href="{{$data['url']}}" class="dark:text-slate-300 focus:text-gray-200 hover:text-gray-200 dark:hover:text-slate-400">
                                             @foreach ($data['fields_formatted'] as $k => $res)
                                                 <span>{{$res}} : {{@$data[$k]}}</span>
                                             @endforeach

@@ -1,6 +1,6 @@
 <div>
     @if($project->status=='draft')
-        <div class="px-4 py-5 bg-white dark:bg-slate-600 sm:p-6 shadow sm:rounded-tl-md sm:rounded-tr-md">
+        <div class="px-4 py-5 sm:p-6 shadow sm:rounded-tl-md sm:rounded-tr-md">
             <div class="sm:px-0">
                 <h3 class="text-base font-bold text-gray-900 dark:text-slate-300">Submission Process</h3>
             </div>
@@ -13,7 +13,7 @@
         <br>
     @endif
     @if($approvals->count() > 0)
-        <div class="hidden sm:block px-4 py-5 bg-white dark:bg-slate-600 sm:p-6 shadow sm:rounded-tl-md sm:rounded-tr-md">
+        <div class="hidden sm:block px-4 py-5 sm:p-6 shadow sm:rounded-tl-md sm:rounded-tr-md">
             <div class="px-4 pb-6 sm:px-0">
                 <h3 class="text-sm font-bold text-gray-900 dark:text-slate-300">Approval Process</h3>
             </div>

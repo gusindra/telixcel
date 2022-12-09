@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Company;
 use App\Models\Project;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth as FacadesAuth;
 
 class ProjectController extends Controller
@@ -23,13 +25,27 @@ class ProjectController extends Controller
         });
     }
 
-    public function index()
+    public function index(Request $request)
     {
+        if($request->has('companyid') && $request->has('v')){
+            return view('main-side.user-project', [
+                'user' => Company::find($request->get('companyid'))
+            ]);
+        }
+        if($request->has('v')){
+            return view('main-side.project');
+        }
         return view('assistant.project.index');
     }
 
-    public function show(Project $project)
+    public function show(Request $request, Project $project)
     {
+        if($request->has('v')){
+            return view('main-side.project-details', [
+                'user' => Company::find($project->party_b),
+                'project'=>$project
+            ]);
+        }
         return view('assistant.project.show', ['project'=>$project]);
     }
 }

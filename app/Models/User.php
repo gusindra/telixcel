@@ -225,4 +225,13 @@ class User extends Authenticatable
 
         return 'https://ui-avatars.com/api/?name='.urlencode($name).'&color=7F9CF5&background=EBF4FF';
     }
+
+    /**
+     * Has Companies
+     *
+     * @return void
+     */
+    public function company(){
+    	return $this->hasOne('App\Models\Company', 'user_id');
+    }
 }

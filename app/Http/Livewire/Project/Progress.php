@@ -13,6 +13,7 @@ class Progress extends Component
     public $projectId;
     public $approval = false;
     public $remark;
+    public $theme;
 
     public function mount($uuid)
     {
@@ -70,6 +71,11 @@ class Progress extends Component
 
     public function render()
     {
+        if($this->theme==1){
+            return view('livewire.project.theme.progress', [
+                'approvals' => $this->read()
+            ]);
+        }
         return view('livewire.project.progress', [
             'approvals' => $this->read()
         ]);

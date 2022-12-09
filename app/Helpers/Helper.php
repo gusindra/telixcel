@@ -305,7 +305,7 @@ function masterOrder($status='draft'){
 }
 
 function get_my_companies(){
-    if(Auth::user()->super->first()->role == 'superadmin'){
+    if(auth()->user()->super && auth()->user()->super->first() && auth()->user()->super->first()->role == 'superadmin'){
         return Company::where('user_id', 0)->get();
     }
     return Company::where('user_id', auth()->user()->currentTeam->user_id)->get();

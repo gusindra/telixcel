@@ -9,6 +9,7 @@ use App\Http\Livewire\ShowTemplate;
 use App\Http\Controllers\ApiWaController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BillingController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\ProjectController;
@@ -18,6 +19,7 @@ use App\Http\Controllers\UserBillingController;
 use App\Http\Controllers\UploadController;
 use App\Http\Controllers\CommercialController;
 use App\Http\Controllers\CommissionController;
+use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\FlowController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\OrderController;
@@ -27,6 +29,7 @@ use App\Http\Controllers\RoleInvitationController;
 use App\Http\Controllers\SynProductController;
 use App\Http\Controllers\TeamInvitationController;
 use App\Http\Controllers\TemplateController;
+use App\Http\Controllers\DashboardController;
 use App\Jobs\ProcessEmail;
 use App\Models\ApiCredential;
 use App\Models\BlastMessage;
@@ -65,20 +68,26 @@ Route::group(['middleware' => 'web'], function () {
 });
 
 Route::middleware(['auth:sanctum', 'verified'])->group(function () {
-    Route::get('/dashboard', function () {
-        if(empty(auth()->user()->currentTeam)){
-            return redirect()->route('teams.create');
-        }
-        return view('dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    // Route::get('/dashboard', function () {
+    //     if(empty(auth()->user()->currentTeam)){
+    //         return redirect()->route('teams.create');
+    //     }
+    //     return view('dashboard');
+    // })->name('dashboard');
+
+    Route::get('/new', function () {
+        return view('new');
+    })->name('new');
 
     Route::get('/message', function () {
         return view('message');
     })->name('message');
 
-    Route::get('/client', function () {
-        return view('client');
-    })->name('client');
+    // Route::get('/client', function () {
+    //     return view('client');
+    // })->name('client');
+    Route::get('/client', [CustomerController::class, 'index'])->name('client');
 
     Route::get('/template', function () {
         return view('template.index');
@@ -95,9 +104,10 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     // Route::get('/template/{uuid}', ShowTemplate::class);
 
-    Route::get('/billing', function () {
-        return view('billing');
-    })->name('billing');
+    Route::get('/billing', [BillingController::class, 'index'])->name('billing');
+    // Route::get('/billing', function () {
+    //     return view('billing');
+    // })->name('billing');
 
     // Route::put('/agent', ShowTemplate::class)->name('current-agent.update');
 

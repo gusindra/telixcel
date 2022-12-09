@@ -1,8 +1,6 @@
 <div>
     <div class="flex items-center text-right">
-        <a wire:click="actionShowModal" class="inline-flex items-center px-2 py-1 dark:bg-slate-900 border border-green-700 text-green-500 cursor-pointer border-transparent rounded-sm font-normal text-xs  1g-widest hover:bg-green-300 active:bg-green-600 focus:outline-none focus:border-gray-900 focus:shadow-outline-gray disabled:opacity-25 transition" wire:click="actionShowModal">
-            {{__('+ User')}}
-        </a>
+        <a wire:click="actionShowModal" class="inline-block px-6 py-3 mb-4 font-bold text-center text-white uppercase align-middle transition-all border-0 rounded-lg cursor-pointer hover:scale-102 active:opacity-85 hover:shadow-soft-xs bg-gradient-to-tl from-gray-900 to-slate-800 leading-pro text-xs ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25">{{__('New User')}}</a>
     </div>
 
     <!-- Form Action Modal -->

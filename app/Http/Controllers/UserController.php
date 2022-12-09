@@ -22,13 +22,19 @@ class UserController extends Controller
         });
     }
 
-    public function index()
+    public function index(Request $request)
     {
+        if($request->has('v')){
+            return view('main-side.user');
+        }
         return view('user.user-table');
     }
 
-    public function show(User $user)
+    public function show(Request $request, User $user)
     {
+        if($request->has('v')){
+            return view('main-side.user-project');
+        }
         if($user->name != 'Admin1'){
             return view('user.user-detail', ['user'=>$user]);
         }

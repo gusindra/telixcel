@@ -28,11 +28,11 @@
                     <div class="z-40 left-0 mt-2 w-full">
                         <div class="py-1 text-sm rounded shadow-lg border border-gray-300">
                             @if(count($data['quick'])==0 && $product_line!="")
-                                <a wire:click="addProduct()" class="block py-1 px-5 cursor-pointer hover:bg-indigo-600 hover:text-white">Add
+                                <a wire:click="addProduct()" class="block py-1 px-5 cursor-pointer hover:bg-indigo-600 hover:text-white dark:text-slate-300">Add
                                         Product Line: "<span class="font-semibold" x-text="textInput">{{$product_line}}</span>"</a>
                             @else
                                 @foreach ($data['quick'] as $quick)
-                                    <a wire:click="selectProduct({{$quick->id}})" class="block py-1 px-5 cursor-pointer hover:bg-indigo-600 hover:text-white">Select
+                                    <a wire:click="selectProduct({{$quick->id}})" class="block py-1 px-5 cursor-pointer hover:bg-indigo-600 hover:text-white dark:text-slate-300">Select
                                         Product Line: "<span class="font-semibold" x-text="textInput">{{$quick->name}}</span>"</a>
                                 @endforeach
                             @endif

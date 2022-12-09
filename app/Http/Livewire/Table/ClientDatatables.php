@@ -29,7 +29,10 @@ class ClientDatatables extends LivewireDatatable
     function columns()
     {
     	return [
-    		Column::name('uuid')->label('ID')->sortBy('id')->searchable(),
+            Column::callback(['uuid'], function ($x) {
+                return $x;
+            })->label('Type')->label('ID')->sortBy('id')->searchable(),
+    		// Column::name('uuid')->label('ID')->sortBy('id')->searchable(),
     		Column::name('name')->label('Name')->searchable(),
     		Column::name('phone')->label('Phone Number')->searchable(),
     		DateColumn::name('created_at')->label('Register')->format('d F Y')

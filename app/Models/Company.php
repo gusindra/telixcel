@@ -58,4 +58,13 @@ class Company extends Model
     public function payable(){
     	return $this->hasMany(CompanyPayment::class, 'company_id');
     }
+
+    /**
+     * Get the action that Client has manny Request .
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function projects(){
+    	return $this->hasMany(Project::class, 'party_b');
+    }
 }

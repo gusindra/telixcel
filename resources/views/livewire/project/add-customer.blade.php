@@ -51,7 +51,7 @@
                                     {{disableInput($project->status)?'disabled':''}}
                                     wire:model="customer_address"
                                     wire:model.defer="customer_address"
-                                    wire:model.debunce.800ms="customer_address"  class="border-gray-300 dark:bg-slate-800 focus:border-indigo-300focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full" x-bind:autofocus="isSet"></textarea>
+                                    wire:model.debunce.800ms="customer_address"  class="border p-2 border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm dark:bg-slate-800 dark:text-slate-300 mt-1 block w-full" x-bind:autofocus="isSet"></textarea>
                             <x-jet-input-error for="name" class="mt-2" />
                         </div>
 

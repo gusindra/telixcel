@@ -50,7 +50,7 @@
                         {{disableInput($project->status)?'disabled':''}}
                         name="entity"
                         id="entity"
-                        class="border-gray-300 dark:bg-slate-800 focus:border-indigo-300 focus:ring focus:ring-indigo-200focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full"
+                        class="border p-2 border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm dark:bg-slate-800 dark:text-slate-300 mt-1 block w-full"
                         wire:model.debunce.800ms="entity"
                         >
                         <option selected>-- Select Party --</option>
@@ -67,7 +67,7 @@
                         {{disableInput($project->status)?'disabled':''}}
                         name="type"
                         id="type"
-                        class="border-gray-300 dark:bg-slate-800 focus:border-indigo-300 focus:ring focus:ring-indigo-200focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full"
+                        class="border p-2 border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm dark:bg-slate-800 dark:text-slate-300 mt-1 block w-full"
                         wire:model.debunce.800ms="type"
                         >
                         <option selected>-- Select Type --</option>
@@ -82,7 +82,7 @@
         </x-slot>
 
         <x-slot name="actions">
-            <x-jet-action-message class="mr-3" on="saved">
+            <x-jet-action-message class="mr-3 xs-text" on="saved">
                 {{ __('Project saved.') }}
             </x-jet-action-message>
 
@@ -92,9 +92,4 @@
         </x-slot>
     </x-jet-form-section>
 
-    @livewire('project.add-customer', ['id' => $project->id])
-    @livewire('project.edit-type', ['id' => $project->id, 'disabled' => disableInput($project->status)])
-    @livewire('project.orders', ['id' => $project->id])
-    @livewire('project.quotations', ['id' => $project->id])
-    @livewire('project.contracts', ['id' => $project->id])
 </div>

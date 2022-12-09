@@ -27,7 +27,7 @@
     <script src="{{ url('js/app.js') }}" defer></script>
 </head>
 
-<body class="font-sans antialiased">
+<body class="font-sans antialiased m-0 font-normal text-base leading-default bg-gray-50 text-slate-500">
     <x-jet-banner />
 
     <div class="min-h-screen bg-gray-100 dark:bg-slate-900">
@@ -70,42 +70,7 @@
     @stack('charts')
     @stack('chat-box')
     @stack('chat-waweb')
-    <script>
-        // Initial load of the page
-        window.addEventListener("load", function() {
-            var mode = 'false';
-            //Check if User Has Set Pref from Application
-            if (('dark' in localStorage)) {
-                switchMode(localStorage.dark)
-            } else {
-                // User Has No Preference, So Get the Browser Mode ( set in Computer settings )
-                if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                    mode = 'false';
-                } else {
-                    mode = 'false';
-                }
-                localStorage.dark = mode;
-                // Inform Livewire of the Mode so that It toggles the DarkMode set  in Tailwind.config.js
-                Livewire.emitTo('dark', 'ModeView', localStorage.dark)
-                switchMode(mode)
-            }
-        });
 
-        function switchMode(mode) {
-            if (localStorage.dark === 'true') {
-                document.documentElement.classList.add('dark')
-            } else {
-                document.documentElement.classList.remove('dark')
-            }
-            Livewire.emitTo('dark', 'ModeView', mode)
-        }
-
-        // this emitted from Livewire to change the Class DarkMoe on and Off.
-        window.addEventListener('view-mode', event => {
-            localStorage.dark = event.detail.newMode;
-            switchMode(event.detail.newMode);
-        });
-    </script>
     <audio id="sound" class="hidden" controls>
         <source src="{{url('/assets/sound/notif.wav')}}" type="audio/wav">
         Your browser does not support the audio element.

@@ -8,7 +8,7 @@
                 <div class="container mx-auto">
                     @livewire('project.add')
                     <div class="px-4 py-2">
-                        <livewire:table.project-table searchable="name" exportable/>
+                        <livewire:table.project-table searchable="name" companyid="{{request ()->get('companyid')}}" exportable/>
                     </div>
                 </div>
             </div>
