@@ -13,14 +13,13 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('role_user', function (Blueprint $table) {
+        Schema::create('attachments', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id', 50);
-            $table->foreignId('role_id', 50);
-            $table->foreignId('team_id', 50);
-            $table->string('status');
-            $table->tinyInteger('active')->nullable();
-            $table->string('working_id');
+            $table->unsignedBigInteger('request_id')->nullable();
+            $table->string('model', 50)->nullable();
+            $table->bigInteger('model_id')->nullable();
+            $table->string('uploaded_by', 50)->nullable();
+            $table->string('file', 255)->nullable();
             $table->timestamps();
         });
     }
@@ -32,6 +31,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('role_user');
+        Schema::dropIfExists('attachments');
     }
 };

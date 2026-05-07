@@ -13,11 +13,11 @@ class AddRolePermisionsTable extends Migration
      */
     public function up()
     {
-        // Schema::create('permission_role', function (Blueprint $table) {
-        //     $table->bigIncrements('id');
-        //     $table->unsignedInteger('role_id');
-        //     $table->unsignedInteger('permission_id');
-        // });
+        Schema::create('permission_role', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->unsignedInteger('role_id');
+            $table->unsignedInteger('permission_id');
+        });
     }
 
     /**

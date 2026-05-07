@@ -13,15 +13,15 @@ class AddRolesTable extends Migration
      */
     public function up()
     {
-        // Schema::create('roles', function (Blueprint $table) {
-        //     $table->bigIncrements('id');
-        //     $table->string('name');
-        //     $table->string('role_for', 50);
-        //     $table->string('type', 100)->nullable();
-        //     $table->text('description');
-        //     $table->string('status', 100)->default('active')->comment('active, disabled');
-        //     $table->timestamps();
-        // });
+        Schema::create('roles', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->string('name');
+            $table->string('role_for', 50);
+            $table->string('type', 100)->nullable();
+            $table->text('description');
+            $table->string('status', 100)->default('active')->comment('active, disabled');
+            $table->timestamps();
+        });
     }
 
     /**

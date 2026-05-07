@@ -13,21 +13,21 @@ class AddProjectTable extends Migration
      */
     public function up()
     {
-        // Schema::create('projects', function (Blueprint $table) {
-        //     $table->bigIncrements('id');
-        //     $table->string('name');
-        //     $table->string('type')->comment('Selling Produc, SAAS Service, Referral');
-        //     $table->string('entity_party');
-        //     $table->string('customer_name');
-        //     $table->string('customer_address');
-        //     $table->string('customer_type');
-        //     $table->string('contact_id');
-        //     $table->string('referrer_id');
-        //     $table->string('commision_ratio');
-        //     $table->foreignId('user_id');
-        //     $table->timestamps();
-        //     $table->softDeletes();
-        // });
+        Schema::create('projects', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->string('name');
+            $table->string('type')->comment('Selling Produc, SAAS Service, Referral');
+            $table->string('entity_party');
+            $table->string('customer_name');
+            $table->string('customer_address');
+            $table->string('customer_type');
+            $table->string('contact_id');
+            $table->string('referrer_id');
+            $table->string('commision_ratio');
+            $table->foreignId('user_id');
+            $table->timestamps();
+            $table->softDeletes();
+        });
     }
 
     /**
