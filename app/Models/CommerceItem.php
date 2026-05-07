@@ -47,4 +47,13 @@ class CommerceItem extends Model
     {
         return $this->belongsTo('App\Models\ProductLine');
     }
+
+    /**
+     * Get the all that stock
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function stock(){
+        return $this->hasOne('App\Models\Stock', 'product_id');
+    }
 }

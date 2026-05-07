@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminSmsController;
+use App\Http\Controllers\ApiBulkSmsController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DevhookController;
 use App\Http\Controllers\WebhookController;
@@ -23,6 +24,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\RoleInvitationController;
+use App\Http\Controllers\SynProductController;
 use App\Http\Controllers\TeamInvitationController;
 use App\Http\Controllers\TemplateController;
 use App\Jobs\ProcessEmail;
@@ -170,6 +172,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     Route::get('commercial/{key}/{id}', [CommercialController::class, 'edit'])->name('commercial.edit.show');
     Route::get('commercial/{id}/{type}/print', [CommercialController::class, 'template'])->name('commercial.print');
+    Route::get('product/commercial/syn', [CommercialController::class, 'sync'])->name('commercial.sync');
+    Route::post('product/commercial/syn', [CommercialController::class, 'syncPost'])->name('commercial.sync.post');
 
     Route::get('/payment/deposit', [PaymentController::class, 'index'])->name('payment.deposit');
     Route::get('/payment/topup', [PaymentController::class, 'topup'])->name('payment.topup');
@@ -296,11 +300,22 @@ Route::get('/restart-service', function(){
 // TESTING
 Route::get('/testing', function(){
     // return 1;
-    $phoneNo = '6281339668556';
-    $phoneNo = substr($phoneNo, 0, 5);
-    return OperatorPhoneNumber::where('code', $phoneNo)->first();
+    $lastError = SaldoUser::find(63);
+    $errors = SaldoUser::where('balance', '<', 0)->where('user_id', '=', 1)->orderBy('id', 'asc')->get();
 
-    return storage_path();
+    foreach($errors as $er){
+        $lastError = SaldoUser::find($er->id-1);
+        SaldoUser::find($er->id)->update([
+            "balance" => $lastError->balance - $er->amount
+        ]);
+    }
+
+    return "done";
+    // $phoneNo = '6281339668556';
+    // $phoneNo = substr($phoneNo, 0, 5);
+    // return OperatorPhoneNumber::where('code', $phoneNo)->first();
+
+    // return storage_path();
     // \Log::channel('apilog')->info('Data SMS is');
     // $contract = Contract::find(10);
     // return $contract->attachments->sortByDesc('id')->first();
@@ -390,7 +405,7 @@ Route::get('/tester', function(HttpRequest $request){
     // }
     // return 0;
     // return $request;
-    $url = $request->url;
+    $url = $request->url ?? '';
     $secretkey = $request->key;
     $accesskey = 'd20254aee13cc156';
     $POSTFIELDS = array();
@@ -515,11 +530,29 @@ Route::get('/tester', function(HttpRequest $request){
         // }';
         $POSTFIELDS = json_encode($POSTFIELDS);
     }elseif($request->format == 'show_variation'){
+        $url = '/openapi/product/variation/v1/list-price';
         $POSTFIELDS = array(
             'masterVariationIds' => array("MV62C51CC789701100017EA5A6"),
             'page' => 0,
             'size' => 5
         );
+        $POSTFIELDS = json_encode($POSTFIELDS);
+    }elseif($request->format == 'list_product'){
+        $url = '/openapi/product/master/v1/list';
+        $POSTFIELDS = array(
+            'page' => 0,
+            'size' => 5
+        );
+        $POSTFIELDS = json_encode($POSTFIELDS);
+    }elseif($request->format == 'list_shop'){
+        $url = '/openapi/shop/v1/list';
+        $POSTFIELDS = array(
+            'page' => 0,
+            'size' => 100
+        );
+        $POSTFIELDS = json_encode($POSTFIELDS);
+    }elseif($request->format == 'list_categories'){
+        $url = '/openapi/shop/v1/categories/list';
         $POSTFIELDS = json_encode($POSTFIELDS);
     }else{
         if($request->has('post')){
@@ -592,7 +625,7 @@ Route::get('/tester', function(HttpRequest $request){
     echo '"'.$ginee_url.$url.'" <br>';
     //END CURL
     echo '<br><br>';
-    // echo $signature.'<br>';
+    echo $signature.'<br>';
     // echo $url.'<br><br>';
     echo $response;
 
@@ -626,6 +659,51 @@ Route::get('/tester', function(HttpRequest $request){
     //     echo 'Error:' . curl_error($ch);
     // }
     // curl_close($ch);
+});
+
+Route::get('test1', function(HttpRequest $request){
+    // $request_host = 'https://api.ginee.com';
+    $request_host = 'https://genie-sandbox.advai.net';
+    $http_method = 'POST';
+
+    $access_key = 'd20254aee13cc156';
+    $secret_key = 'b3436f168a4402b7';
+
+    if($request->format=='ListMasterProduct'){
+        $request_uri = '/openapi/product/master/v1/list';
+        $param_json = '{"page":0,"size":2,"productName":"Test 0125001"}';
+    }elseif($request->format=='ListInventorySku'){
+        $request_uri = '/openapi/inventory/v1/sku/list';
+        $param_json = '{"page":0,"size":20}';
+    }elseif($request->format=='GetInventorySku'){
+        $request_uri = '/openapi/inventory/v1/sku/get';
+        $param_json = '{"inventoryId":"IN605AA65352FAFF0001A6A2F7"}';
+    }else{
+        $request_uri = '/openapi/shop/v1/list';
+        $param_json = '{"page":0,"size":2}';
+    }
+
+
+    $newline = '$';
+    $sign_str = $http_method . $newline . $request_uri . $newline;
+    $authorization = sprintf('%s:%s', $access_key, base64_encode(hash_hmac('sha256', $sign_str, $secret_key, TRUE)));
+    // echo sprintf('signature string is:%s', $sign_str . PHP_EOL);
+
+
+    $header_array = array(
+        'Authorization: ' . $authorization,
+        'Content-Type: ' . 'application/json',
+        'X-Advai-Country: ' . 'ID'
+    );
+
+    var_dump($header_array);
+
+    $http_header = array(
+        'http' => array('method' => $http_method, 'header' => $header_array, 'content' => $param_json)
+    );
+
+    $context = stream_context_create($http_header);
+    return file_get_contents($request_host . $request_uri, false, $context, 0);
 });
 
 Route::get('/email', function (){
@@ -685,3 +763,9 @@ Route::get('/email', function (){
 // Route::middleware(['auth:sanctum', 'verified'])->get('/billing', function () {
 //     return view('billing');
 // })->name('billing');
+
+//retrive json and save to db
+Route::get('/get-from-ginee', [SynProductController::class, 'index']);
+
+// testing response json format\
+Route::get('/json', [ApiBulkSmsController::class, 'ginee']);

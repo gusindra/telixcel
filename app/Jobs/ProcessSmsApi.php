@@ -39,7 +39,7 @@ class ProcessSmsApi implements ShouldQueue
      */
     public function handle()
     {
-        //Log::debug($this->service);
+        Log::debug($this->request['to']);
         //filter OTP & Non OTP
         if($this->request['otp']==false){
             $user   = env('MK_NON_OTP_USER');
@@ -192,7 +192,7 @@ class ProcessSmsApi implements ShouldQueue
             'price'             => 0,
             'balance'           => 0,
             'otp'               => $this->request['otp'],
-            'msisdn'            => 0,
+            'msisdn'            => $this->request['to'],
         ];
         BlastMessage::create($modelData);
     }
