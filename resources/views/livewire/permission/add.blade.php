@@ -3,7 +3,7 @@
         {{ __('Create') }}
     </a> -->
     <div class="flex items-center justify-end">
-        <x-jet-button wire:click="actionShowModal">
+        <x-jet-button type="button" wire:click="actionShowModal">
             {{__('Add Menu')}}
         </x-jet-button>
     </div>

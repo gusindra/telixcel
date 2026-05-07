@@ -3,9 +3,24 @@
 ])
 
 <div
-    x-data="{ value: @entangle($attributes->wire('model')),show:'{{ $attributes['show']}}' }"
+    x-data="{
+        value: @entangle($attributes->wire('model')),
+        show: '{{ $attributes['show']}}',
+        formatDate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+    }"
+    x-on:input="value = $event.target.value"
     x-on:change="value = $event.target.value"
-    x-init="new Pikaday({ field: $refs.input, 'format': 'd M Y' });"
+    x-init="new Pikaday({
+        field: $refs.input,
+        format: 'YYYY-MM-DD',
+        toString: date => formatDate(date),
+        onSelect: date => value = formatDate(date)
+    });"
 >
     <input
         {{ $attributes->whereDoesntStartWith('wire:model') }}

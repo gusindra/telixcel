@@ -20,11 +20,11 @@ class Companies extends LivewireDatatable
     {
         return [
     		Column::name('id')->label('ID'),
-    		Column::name('logo')->callback('logo, name', function ($value, $name) {
+    		Column::callback(['logo'], function ($value) {
                 if($value){
                     return '<img src="https://telixcel.s3.ap-southeast-1.amazonaws.com/'.$value.'" />';
                 }
-                return $name;
+                return '-';
             })->label('Logo'),
     		Column::name('name')->label('Name'),
     		Column::name('person_in_charge')->label('PIC'),
@@ -35,6 +35,13 @@ class Companies extends LivewireDatatable
                     'slot' => 'View'
                 ]);
             }),
+            Column::callback(['id'], function ($id) {
+                return view('tables.delete-action', [
+                    'type' => 'company',
+                    'id' => $id,
+                    'label' => 'company',
+                ]);
+            })->label('Delete'),
 
     	];
     }

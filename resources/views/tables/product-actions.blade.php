@@ -3,6 +3,8 @@
         Edit
     </a>
 
+    @include('tables.delete-action', ['type' => 'commerce-item', 'id' => $id, 'label' => 'item'])
+
     @if($source)
     <x-modal :value="$id">
         <x-slot name="trigger">

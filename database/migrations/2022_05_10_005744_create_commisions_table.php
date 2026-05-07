@@ -17,9 +17,11 @@ return new class extends Migration
             $table->id();
             $table->string('model', 100)->nullable()->comment('base on ext: project or manual');
             $table->string('model_id', 50)->nullable()->comment('address to id');
-            $table->string('client_id');
-            $table->string('ratio');
-            $table->string('status');
+            $table->string('client_id')->nullable();
+            $table->string('type')->nullable();
+            $table->string('ratio')->nullable();
+            $table->float('total')->default(0);
+            $table->string('status')->default('draft');
             $table->timestamps();
         });
     }

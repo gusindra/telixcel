@@ -45,7 +45,7 @@ class CommerceItem extends Model
      */
     public function productLine()
     {
-        return $this->belongsTo('App\Models\ProductLine');
+        return $this->belongsTo('App\Models\ProductLine', 'product_line');
     }
 
     /**

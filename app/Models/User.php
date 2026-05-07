@@ -125,15 +125,6 @@ class User extends Authenticatable
     }
 
     /**
-     * teams
-     *
-     * @return void
-     */
-    public function teams(){
-    	return $this->hasMany('App\Models\Team', 'user_id');
-    }
-
-    /**
      * list teams
      *
      * @return void

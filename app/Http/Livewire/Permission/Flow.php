@@ -26,7 +26,7 @@ class Flow extends Component
     public function mount($model)
     {
         $this->model = $model;
-        $this->role = Role::whereIn('team_id', [0, auth()->user()->currentTeam->id])->get();
+        $this->role = Role::orderBy('name')->get();
         $this->team = Team::whereIn('user_id', [auth()->user()->currentTeam->user_id])->get();
     }
 

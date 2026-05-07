@@ -2,14 +2,10 @@
 
 namespace App\Http\Responses;
 
-use App\Models\RoleUser;
-use App\Models\TeamUser;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-use Laravel\Jetstream\Contracts\CurentTeamResponse;
+use Illuminate\Contracts\Support\Responsable;
 
-class UpdateTeamResponse implements CurentTeamResponse
+class UpdateTeamResponse implements Responsable
 {
     /**
      * @param  $request

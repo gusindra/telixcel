@@ -42,6 +42,7 @@ class CompanyAdd extends Component
             'province'  => $this->input['province'],
             'city'  => $this->input['city'],
             'address'  => $this->input['address'],
+            'logo'  => $this->input['logo'] ?? '',
             'person_in_charge'  => $this->input['person_in_charge'],
             'user_id'  => $this->user,
         ]);

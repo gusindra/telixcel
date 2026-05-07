@@ -31,6 +31,13 @@ class RolesTable extends LivewireDatatable
                     'slot' => 'View'
                 ]);
             }),
+            Column::callback(['id'], function ($id) {
+                return view('tables.delete-action', [
+                    'type' => 'role',
+                    'id' => $id,
+                    'label' => 'role',
+                ]);
+            })->label('Delete'),
 
     	];
     }

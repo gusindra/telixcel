@@ -37,14 +37,19 @@ Artisan::command('reset-login', function () {
     }
 })->purpose('Reset user status who is not logout');
 
-Artisan::command('test', function(){
+Artisan::command('dev:test-invoice', function(){
     $reflection = Order::find(36);
+    if (! $reflection || ! $reflection->lastInvoice) {
+        $this->comment('Order or invoice sample is not available.');
+        return;
+    }
+
     $lastInvoice = Carbon::parse($reflection->lastInvoice->period)->format('m-Y');
     if($lastInvoice != date('m-Y')){
         $this->comment($lastInvoice." : ".date('m-Y'));
     }else{
         $this->comment('Same');
     }
-})->purpose('test');
+})->purpose('Test a sample invoice period');
 
 // Artisan::command('assistance:project', ProjectAssistance::class)->purpose('Display an expired project');

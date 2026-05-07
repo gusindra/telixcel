@@ -4,7 +4,9 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use App\Models\Permission;
 use App\Models\PermissionRole;
+use App\Models\Role;
 class PermissionRoleSeeder extends Seeder
 {
     /**
@@ -14,9 +16,32 @@ class PermissionRoleSeeder extends Seeder
      */
     public function run()
     {
-        PermissionRole::create([
-            'role_id' => 1,
-            'permission_id' => 1,
-        ]);
+        $superAdmin = Role::where('name', 'Super Admin')->first();
+        if ($superAdmin) {
+            Permission::query()->each(function ($permission) use ($superAdmin) {
+                PermissionRole::updateOrCreate([
+                    'role_id' => $superAdmin->id,
+                    'permission_id' => $permission->id,
+                ]);
+            });
+        }
+
+        $projectManager = Role::where('name', 'Project Manager')->first();
+        if ($projectManager) {
+            Permission::whereIn('model', [
+                'PROJECT',
+                'PRODUCT',
+                'QUOTATION',
+                'CONTRACT',
+                'ORDER',
+                'COMMISSION',
+                'BILLING',
+            ])->each(function ($permission) use ($projectManager) {
+                PermissionRole::updateOrCreate([
+                    'role_id' => $projectManager->id,
+                    'permission_id' => $permission->id,
+                ]);
+            });
+        }
     }
 }

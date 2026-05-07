@@ -16,7 +16,7 @@ return new class extends Migration
         Schema::create('contracts', function (Blueprint $table) {
             $table->id();
             $table->string('title');
-            $table->string('status', 100)->default('active')->comment('active, disabled');
+            $table->string('status', 100)->default('draft')->comment('draft, active, disabled');
             $table->string('signer_email')->nullable();
             $table->string('model', 100)->nullable()->comment('base on ext: project or manual');
             $table->string('model_id', 50)->nullable()->comment('address to id');

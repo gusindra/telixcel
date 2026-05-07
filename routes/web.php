@@ -23,6 +23,7 @@ use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\RecordDeleteController;
 use App\Http\Controllers\RoleInvitationController;
 use App\Http\Controllers\SynProductController;
 use App\Http\Controllers\TeamInvitationController;
@@ -138,6 +139,9 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/assistant',  function () {
         return view('assistant.index');
     })->name('assistant');
+
+    Route::delete('/records/{type}/{id}', [RecordDeleteController::class, 'destroy'])
+        ->name('records.destroy');
 
     // Route::get('/project',  function () {
     //     return view('assistant.project.index');

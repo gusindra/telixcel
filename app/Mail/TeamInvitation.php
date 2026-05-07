@@ -3,19 +3,11 @@
 namespace App\Mail;
 
 use App\Models\TeamInvitation as ModelsTeamInvitation;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Mail\Mailable;
-use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\URL;
+use Laravel\Jetstream\Mail\TeamInvitation as JetstreamTeamInvitation;
 
-class TeamInvitation extends Mailable
+class TeamInvitation extends JetstreamTeamInvitation
 {
-    use Queueable, SerializesModels;
-
-    public $invitation;
-
     /**
      * Create a new message instance.
      *

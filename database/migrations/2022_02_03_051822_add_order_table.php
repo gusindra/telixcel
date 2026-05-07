@@ -15,16 +15,21 @@ class AddOrderTable extends Migration
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->string('name');
-            $table->string('type')->comment('Selling Produc, SAAS Service, Referral');
-            $table->string('entity_party');
-            $table->string('customer_type');
-            $table->string('referrer_id');
-            $table->string('commision_ratio');
-            $table->string('total');
-            $table->string('status');
-            $table->string('customer_id');
-            $table->foreignId('user_id');
+            $table->string('no')->nullable();
+            $table->string('name')->nullable();
+            $table->string('type')->nullable()->comment('Selling Product, SAAS Service, Referral');
+            $table->string('entity_party')->nullable();
+            $table->string('customer_type')->nullable();
+            $table->string('referrer_id')->nullable();
+            $table->string('commision_ratio')->nullable();
+            $table->float('vat')->default(0);
+            $table->float('total')->default(0);
+            $table->string('status')->default('draft');
+            $table->string('customer_id')->nullable();
+            $table->string('source')->nullable();
+            $table->string('source_id')->nullable();
+            $table->date('date')->nullable();
+            $table->foreignId('user_id')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

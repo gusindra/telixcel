@@ -154,6 +154,9 @@ function isJSON($string){
 
 function checkPermisissions($array_id){
     $user = Auth::user();
+    if (! $user) {
+        return false;
+    }
     // return $user->super->first();
 
     if($user->super->first()){
@@ -164,7 +167,9 @@ function checkPermisissions($array_id){
     if( count($user->role)>0){
         // return count($user->role);
         foreach($user->role as $role){
-            return $role->role->permission;
+            if (! $role->role) {
+                continue;
+            }
             foreach($role->role->permission as $permission){
                 if (in_array($permission->model, $array_id)){
                     return true;
@@ -305,7 +310,7 @@ function masterOrder($status='draft'){
 }
 
 function get_my_companies(){
-    if(Auth::user()->super->first()->role == 'superadmin'){
+    if(optional(Auth::user()->super->first())->role == 'superadmin' || Auth::user()->activeRole){
         return Company::where('user_id', 0)->get();
     }
     return Company::where('user_id', auth()->user()->currentTeam->user_id)->get();

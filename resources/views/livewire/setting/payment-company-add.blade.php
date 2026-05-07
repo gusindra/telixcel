@@ -15,7 +15,7 @@
                 <x-jet-action-message class="mr-3" on="saved">
                     {{ __('Action saved.') }}
                 </x-jet-action-message>
-                <x-save-button show="true" wire:click="showCreateModal">
+                <x-save-button show="true" type="button" wire:click="showCreateModal">
                     {{__('Add Account')}}
                 </x-save-button>
             </div>

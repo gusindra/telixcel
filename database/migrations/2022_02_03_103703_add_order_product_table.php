@@ -15,11 +15,17 @@ class AddOrderProductTable extends Migration
     {
         Schema::create('order_products', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->string('order_id');
-            $table->string('product_id');
-            $table->string('qty');
-            $table->string('price');
-            $table->foreignId('user_id');
+            $table->string('order_id')->nullable();
+            $table->string('model')->nullable();
+            $table->string('model_id')->nullable();
+            $table->string('product_id')->nullable();
+            $table->string('name')->nullable();
+            $table->string('qty')->nullable();
+            $table->string('unit')->nullable();
+            $table->float('price')->default(0);
+            $table->float('total_percentage')->default(100);
+            $table->text('note')->nullable();
+            $table->foreignId('user_id')->nullable();
             $table->timestamps();
         });
     }

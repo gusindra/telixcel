@@ -51,7 +51,7 @@
                                     {{disableInput($project->status)?'disabled':''}}
                                     wire:model="customer_address"
                                     wire:model.defer="customer_address"
-                                    wire:model.debunce.800ms="customer_address"  class="border-gray-300 dark:bg-slate-800 focus:border-indigo-300focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full" x-bind:autofocus="isSet"></textarea>
+                                    wire:model.debunce.800ms="customer_address"  class="border-gray-300 dark:bg-slate-800 focus:border-indigo-300focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full"></textarea>
                             <x-jet-input-error for="name" class="mt-2" />
                         </div>
 
@@ -67,7 +67,7 @@
 
             <x-save-button show="{{$project->status=='draft'?true:false}}">
                 {{ __('Save') }}
-            </x-jet-button>
+            </x-save-button>
         </x-slot>
     </x-jet-form-section>
 </div>

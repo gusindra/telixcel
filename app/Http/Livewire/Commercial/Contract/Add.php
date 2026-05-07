@@ -33,6 +33,7 @@ class Add extends Component
     {
         $data = [
             'title'     => $this->title,
+            'status'    => 'draft',
             'user_id'   => Auth::user()->id,
         ];
 

@@ -142,7 +142,7 @@
 
             <x-save-button show="{{$order->status=='draft'?true:false}}">
                 {{ __('Save') }}
-            </x-jet-button>
+            </x-save-button>
         </x-slot>
     </x-jet-form-section>
 
@@ -205,16 +205,16 @@
 
             <x-save-button show="{{$order->status=='draft'?true:false}}">
                 {{ __('Save') }}
-            </x-jet-button>
+            </x-save-button>
         </x-slot>
     </x-jet-form-section>
 
     <x-jet-section-border />
 
-    @livewire('order.item', ['data' => $order])
+    @livewire('order.item', ['data' => $order], key('order-items-'.$order->id))
 
     <x-jet-section-border />
 
-    @livewire('commission.edit', ['model' => 'order', 'data' => $order])
+    @livewire('commission.edit', ['model' => 'order', 'data' => $order], key('order-commission-'.$order->id))
 
 </div>

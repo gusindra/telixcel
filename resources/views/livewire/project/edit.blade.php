@@ -88,7 +88,7 @@
 
             <x-save-button show="{{$project->status=='draft'?true:false}}">
                 {{ __('Save') }}
-            </x-jet-button>
+            </x-save-button>
         </x-slot>
     </x-jet-form-section>
 

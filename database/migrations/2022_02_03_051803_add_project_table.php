@@ -16,15 +16,19 @@ class AddProjectTable extends Migration
         Schema::create('projects', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('name');
-            $table->string('type')->comment('Selling Produc, SAAS Service, Referral');
-            $table->string('entity_party');
-            $table->string('customer_name');
-            $table->string('customer_address');
-            $table->string('customer_type');
-            $table->string('contact_id');
-            $table->string('referrer_id');
-            $table->string('commision_ratio');
-            $table->foreignId('user_id');
+            $table->string('type')->nullable()->comment('Selling Product, SAAS Service, Referral');
+            $table->string('entity_party')->nullable();
+            $table->string('customer_name')->nullable();
+            $table->string('customer_address')->nullable();
+            $table->string('customer_type')->nullable();
+            $table->string('contact_id')->nullable();
+            $table->string('referrer_id')->nullable();
+            $table->string('referrer_name')->nullable();
+            $table->string('commision_ratio')->nullable();
+            $table->string('product_line')->nullable();
+            $table->string('status', 100)->default('draft');
+            $table->foreignId('team_id')->nullable();
+            $table->foreignId('user_id')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });
