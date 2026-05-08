@@ -137,7 +137,7 @@
 
             <x-save-button show="{{$order->status=='draft'?true:false}}">
                 {{ __('Save') }}
-            </x-jet-button>
+            </x-save-button>
         </x-slot>
     </x-jet-form-section>
 
@@ -195,7 +195,7 @@
 
             <x-save-button show="{{$order->status=='draft'?true:false}}">
                 {{ __('Save') }}
-            </x-jet-button>
+            </x-save-button>
         </x-slot>
     </x-jet-form-section>
 

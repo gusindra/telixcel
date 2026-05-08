@@ -14,7 +14,7 @@ class AddSlugTeamTable extends Migration
     public function up()
     {
         Schema::table('teams', function (Blueprint $table) {
-            $table->string('slug')->unique();
+            $table->string('slug')->nullable()->unique();
         });
     }
 

@@ -17,7 +17,7 @@
                         name="clientId"
                         id="clientId"
                         class="border-gray-300 dark:bg-slate-800 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full"
-                        wire:model.debunce.800ms="clientId"
+                        wire:model.defer="clientId"
                         >
                         <option selected>-- Select --</option>
                         <option value="0">All Agent</option>
@@ -35,8 +35,7 @@
                         name="type"
                         id="type"
                         class="border-gray-300 dark:bg-slate-800 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full"
-                        wire:model="type"
-                        wire:model.debunce.800ms="type"
+                        wire:model.defer="type"
                         >
                         <option selected>-- Select --</option>
                         <option value="percentage">Percentage</option>
@@ -95,7 +94,7 @@
 
             <x-save-button show="{{$master->status=='draft'?true:false}}">
                 {{ __('Save') }}
-            </x-jet-button>
+            </x-save-button>
         </x-slot>
     </x-jet-form-section>
 

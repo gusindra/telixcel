@@ -41,6 +41,13 @@ class Quotation extends LivewireDatatable
                     'slot' => 'View'
                 ]);
             }),
+            Column::callback(['id'], function ($id) {
+                return view('tables.delete-action', [
+                    'type' => 'quotation',
+                    'id' => $id,
+                    'label' => 'quotation',
+                ]);
+            })->label('Delete'),
 
     	];
     }

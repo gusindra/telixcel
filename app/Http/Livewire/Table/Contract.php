@@ -28,6 +28,13 @@ class Contract extends LivewireDatatable
                     'slot' => 'View'
                 ]);
             }),
+            Column::callback(['id'], function ($id) {
+                return view('tables.delete-action', [
+                    'type' => 'contract',
+                    'id' => $id,
+                    'label' => 'contract',
+                ]);
+            })->label('Delete'),
 
     	];
     }

@@ -38,6 +38,13 @@ class ProjectTable extends LivewireDatatable
                     'slot' => 'View'
                 ]);
             }),
+            Column::callback(['id'], function ($id) {
+                return view('tables.delete-action', [
+                    'type' => 'project',
+                    'id' => $id,
+                    'label' => 'project',
+                ]);
+            })->label('Delete'),
 
     	];
     }

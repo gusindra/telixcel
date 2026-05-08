@@ -4,8 +4,6 @@ namespace App\Http\Livewire\Role;
 
 use Livewire\Component;
 use App\Models\Role;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
 
 class Roles extends Component
 {
@@ -38,7 +36,7 @@ class Roles extends Component
             'type'          => $this->type,
             'name'          => $this->name,
             'description'   => $this->description,
-            'team_id'       => Auth::user()->currentTeam->id,
+            'role_for'      => 'team',
         ];
     }
 

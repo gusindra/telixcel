@@ -42,6 +42,13 @@ class AllBillingTable extends LivewireDatatable
                 }
                 return $link;
             }),
+            Column::callback(['id'], function ($id) {
+                return view('tables.delete-action', [
+                    'type' => 'invoice',
+                    'id' => $id,
+                    'label' => 'invoice',
+                ]);
+            })->label('Delete'),
     	];
     }
 }

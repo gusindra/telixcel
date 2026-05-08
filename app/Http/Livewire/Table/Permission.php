@@ -29,6 +29,13 @@ class Permission extends LivewireDatatable
                         'slot' => $value
                     ]);
                 })->label('Model'),
+            Column::callback(['id'], function ($id) {
+                return view('tables.delete-action', [
+                    'type' => 'permission',
+                    'id' => $id,
+                    'label' => 'menu permission',
+                ]);
+            })->label('Delete'),
             // NumberColumn::name('id')->label('Detail')->sortBy('id')->callback('id', function ($value) {
             //     return view('datatables::link', [
             //         'href' => "/roles/" . $value . '?month='.date('m').'&year='.date('Y'),

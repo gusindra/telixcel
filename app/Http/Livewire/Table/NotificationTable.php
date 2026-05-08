@@ -32,6 +32,13 @@ class NotificationTable extends LivewireDatatable
                     'slot' => 'View'
                 ]);
             }),
+            Column::callback(['id'], function ($id) {
+                return view('tables.delete-action', [
+                    'type' => 'notification',
+                    'id' => $id,
+                    'label' => 'notification',
+                ]);
+            })->label('Delete'),
     	];
     }
 }

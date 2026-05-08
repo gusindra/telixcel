@@ -18,9 +18,9 @@ return new class extends Migration
             $table->foreignId('user_id', 50);
             $table->foreignId('role_id', 50);
             $table->foreignId('team_id', 50);
-            $table->string('status');
+            $table->string('status')->nullable();
             $table->tinyInteger('active')->nullable();
-            $table->string('working_id');
+            $table->string('working_id')->nullable();
             $table->timestamps();
         });
     }

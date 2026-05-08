@@ -19,6 +19,9 @@ class PermissionSeeder extends Seeder
             'CAMPAIGN',
             'ORDER',
             'PRODUCT',
+            'QUOTATION',
+            'CONTRACT',
+            'COMMISSION',
             'TICKET',
             'BILLING',
             'AFTERSALES',
@@ -36,14 +39,14 @@ class PermissionSeeder extends Seeder
         );
         foreach ($data as $menu) {
             foreach ($functions as $action) {
-                \App\Models\Permission::create([
-                    'name' => $action. ' ' .$menu,
-                    'model' => $menu
-                ]);
+                \App\Models\Permission::updateOrCreate(
+                    ['name' => $action. ' ' .$menu],
+                    ['model' => $menu]
+                );
             }
         }
-        \App\Models\Permission::create(['name' => 'UPDATE SETTING', 'model' => 'SETTING']);
-        \App\Models\Permission::create(['name' => 'VIEW DASHBOARD', 'model' => 'DASHBOARD']);
+        \App\Models\Permission::updateOrCreate(['name' => 'UPDATE SETTING'], ['model' => 'SETTING']);
+        \App\Models\Permission::updateOrCreate(['name' => 'VIEW DASHBOARD'], ['model' => 'DASHBOARD']);
         // DB::table('permissions')->insert($data);
     }
 }

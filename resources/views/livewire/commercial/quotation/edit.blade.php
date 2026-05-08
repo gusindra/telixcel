@@ -112,7 +112,7 @@
 
             <x-save-button show="{{$quote->status=='draft'?true:false}}">
                 {{ __('Save') }}
-            </x-jet-button>
+            </x-save-button>
         </x-slot>
     </x-jet-form-section>
 
@@ -130,15 +130,15 @@
         <x-slot name="form">
 
             <div class="col-span-6 grid grid-cols-2">
-                @if($source=="project" || $model="PROJECT")
+                @if($source=="project" || $model=="PROJECT")
                     <div class="col-span-12 sm:col-span-1">
                         <x-jet-label for="type" value="{{ __('Client Name') }}" />
-                        <p class="border rounded-md shadow-sm mt-1 block w-full p-2">{{$quote->project->customer_name}}</p>
+                        <p class="border rounded-md shadow-sm mt-1 block w-full p-2">{{optional($quote->project)->customer_name}}</p>
                     </div>
 
                     <div class="col-span-12 sm:col-span-1 md:mx-4">
                         <x-jet-label for="type" value="{{ __('Client Address') }}" />
-                        <p class="border rounded-md shadow-sm mt-1 block w-full p-2">{{$quote->project->customer_address}}</p>
+                        <p class="border rounded-md shadow-sm mt-1 block w-full p-2">{{optional($quote->project)->customer_address}}</p>
                     </div>
                 @else
                     <div class="col-span-12 sm:col-span-1">
@@ -191,7 +191,7 @@
 
             <x-save-button show="{{$quote->status=='draft'?true:false}}">
                 {{ __('Save') }}
-            </x-jet-button>
+            </x-save-button>
         </x-slot>
     </x-jet-form-section>
 
@@ -225,13 +225,9 @@
 
             <x-save-button show="{{$quote->status=='draft'?true:false}}">
                 {{ __('Save') }}
-            </x-jet-button>
+            </x-save-button>
         </x-slot>
     </x-jet-form-section>
-
-    <x-jet-section-border />
-
-    @livewire('commercial.quotation.item', ['data' => $quote])
 
     <x-jet-section-border />
 
@@ -260,7 +256,7 @@
 
             <x-save-button show="{{$quote->status=='draft'?true:false}}">
                 {{ __('Save') }}
-            </x-jet-button>
+            </x-save-button>
         </x-slot>
     </x-jet-form-section>
 
@@ -332,7 +328,7 @@
 
             <x-save-button show="{{$quote->status=='draft'?true:false}}">
                 {{ __('Save') }}
-            </x-jet-button>
+            </x-save-button>
         </x-slot>
     </x-jet-form-section>
 </div>

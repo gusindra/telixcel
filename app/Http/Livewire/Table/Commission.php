@@ -56,6 +56,13 @@ class Commission extends LivewireDatatable
                     'slot' => 'View'
                 ]);
             }),
+            Column::callback(['id'], function ($id) {
+                return view('tables.delete-action', [
+                    'type' => 'commission',
+                    'id' => $id,
+                    'label' => 'commission',
+                ]);
+            })->label('Delete'),
 
     	];
     }

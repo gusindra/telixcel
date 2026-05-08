@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
 use Laravel\Jetstream\Jetstream;
 
@@ -37,33 +38,34 @@ class CreateNewUser implements CreatesNewUsers
                 'email' => $input['email'],
                 'password' => Hash::make($input['password']),
             ]), function (User $user) {
-                //$this->createTeam($user);
-
+                $this->createTeam($user);
             });
         });
 
         if($input['email'] && $registeruser){
-            $role = 'client';
             $newInvitation = RoleInvitation::where('email', $input['email'])->first();
-            $newTeamMember = Jetstream::findUserByEmailOrFail($input['email']);
             if($newInvitation){
-                $role = 'editor';
+                $newTeamMember = Jetstream::findUserByEmailOrFail($input['email']);
                 $roleUser = RoleUser::where('user_id', $newTeamMember->id)->count();
                 if($roleUser==0){
                     RoleUser::create([
                         'user_id' => $newTeamMember->id,
                         'role_id' => $newInvitation->role_id,
-                        'team_id' => $newInvitation->team_id
+                        'team_id' => $newInvitation->team_id,
+                        'status' => 'active',
+                        'working_id' => Str::random(8),
                     ]);
                     $newTeamMember->update(['current_team_id'=>$newInvitation->team_id]);
                 }
+
+                $team = Team::find($newInvitation->team_id);
+                if($team){
+                    $team->users()->syncWithoutDetaching([
+                        $newTeamMember->id => ['role' => 'editor']
+                    ]);
+                }
                 $newInvitation->delete();
             }
-
-            $team = Team::find($newInvitation->team_id);
-            $team->users()->attach(
-                $newTeamMember, ['role' => $role]
-            );
         }
 
         return $registeruser;
@@ -77,10 +79,14 @@ class CreateNewUser implements CreatesNewUsers
      */
     protected function createTeam(User $user)
     {
-        $user->ownedTeams()->save(Team::forceCreate([
+        $team = Team::forceCreate([
             'user_id' => $user->id,
             'name' => explode(' ', $user->name, 2)[0]."'s Chat Team",
+            'slug' => slugify($user->name.' team'),
             'personal_team' => true,
-        ]));
+        ]);
+
+        $user->ownedTeams()->save($team);
+        $user->switchTeam($team);
     }
 }

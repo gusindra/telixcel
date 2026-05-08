@@ -45,6 +45,13 @@ class Order extends LivewireDatatable
                     'slot' => 'View'
                 ]);
             }),
+            Column::callback(['id'], function ($id) {
+                return view('tables.delete-action', [
+                    'type' => 'order',
+                    'id' => $id,
+                    'label' => 'order',
+                ]);
+            })->label('Delete'),
 
     	];
     }

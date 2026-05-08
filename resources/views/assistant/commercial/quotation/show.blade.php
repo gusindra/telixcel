@@ -131,6 +131,8 @@
                     </div>
                 </div>
             </div>
+            <x-jet-section-border />
+            @livewire('commercial.quotation.item', ['data' => $quote], key('quotation-items-'.$quote->id))
         </div>
     </div>
 </x-app-layout>
