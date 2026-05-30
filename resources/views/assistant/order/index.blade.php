@@ -13,6 +13,8 @@
 
                 <div class="mx-auto">
                     <div class="px-4 py-2">
+                        @livewire('order.add')
+
                         <livewire:table.order searchable="name" exportable/>
                     </div>
                 </div>

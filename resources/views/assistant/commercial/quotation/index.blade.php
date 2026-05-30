@@ -9,6 +9,8 @@
                 <div class="container mx-auto">
                     <div class="flex justify-between">
                         @include('assistant.commercial.table-list', ['active'=>'quotation'])
+                        @livewire('commercial.quotation.add')
+
                     </div>
 
                     <div class="px-4 py-1">
