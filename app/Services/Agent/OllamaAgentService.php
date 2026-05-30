@@ -1,0 +1,226 @@
+<?php
+
+namespace App\Services\Agent;
+
+use Illuminate\Support\Facades\Http;
+
+/**
+ * Drives the Ollama tool-calling loop for one user turn.
+ *
+ * Calls POST {base_url}/api/chat with the tool schemas, executes any tool
+ * calls via ToolExecutor, feeds results back, and repeats until the model
+ * returns a plain-text answer or a destructive op needs approval.
+ */
+class OllamaAgentService
+{
+    public function __construct(private ToolExecutor $executor)
+    {
+    }
+
+    /**
+     * @param  array  $history  Prior messages: [['role'=>'user'|'assistant', 'content'=>...], ...]
+     * @param  string|null  $model  Optional model override (used for cloud-vs-local benchmarking).
+     * @return array{reply:string, pending:?array, model:string, metrics:array}
+     */
+    public function run(array $history, string $userMessage, ?string $model = null): array
+    {
+        $model = $model ?: config('services.ollama.model');
+
+        $messages = array_merge(
+            [['role' => 'system', 'content' => $this->systemPrompt()]],
+            $this->sanitizeHistory($history),
+            [['role' => 'user', 'content' => $userMessage]],
+        );
+
+        $pending = null;
+        $metrics = [];
+        $max = (int) config('services.ollama.max_iterations', 6);
+
+        for ($i = 0; $i < $max; $i++) {
+            $response = $this->chat($messages, $model);
+            $metrics[] = $this->extractMetrics($response);
+            $msg = $response['message'] ?? [];
+
+            $toolCalls = $this->extractToolCalls($msg);
+
+            if (empty($toolCalls)) {
+                return [
+                    'reply' => trim($msg['content'] ?? '') ?: '(no response)',
+                    'pending' => $pending,
+                    'model' => $model,
+                    'metrics' => $metrics,
+                ];
+            }
+
+            $messages[] = [
+                'role' => 'assistant',
+                'content' => $msg['content'] ?? '',
+                'tool_calls' => $toolCalls,
+            ];
+
+            foreach ($toolCalls as $call) {
+                $name = $call['function']['name'] ?? '';
+                $args = $this->decodeArgs($call['function']['arguments'] ?? []);
+                $result = $this->executor->execute($name, $args);
+
+                if ($result['status'] === 'pending') {
+                    $pending = $result['action'];
+                    $messages[] = [
+                        'role' => 'tool',
+                        'content' => json_encode([
+                            'status' => 'awaiting_user_approval',
+                            'summary' => $result['action']['summary'],
+                        ]),
+                    ];
+                } else {
+                    $messages[] = ['role' => 'tool', 'content' => json_encode($result)];
+                }
+            }
+
+            // A destructive proposal short-circuits the loop; the UI handles approval.
+            if ($pending) {
+                return [
+                    'reply' => $pending['summary'] . ' Please review and approve below.',
+                    'pending' => $pending,
+                    'model' => $model,
+                    'metrics' => $metrics,
+                ];
+            }
+        }
+
+        return [
+            'reply' => 'Reached the step limit for this request. Please refine or split your request.',
+            'pending' => $pending,
+            'model' => $model,
+            'metrics' => $metrics,
+        ];
+    }
+
+    private function chat(array $messages, string $model): array
+    {
+        $request = Http::timeout((int) config('services.ollama.timeout', 120))
+            ->acceptJson();
+
+        if ($key = config('services.ollama.api_key')) {
+            $request = $request->withToken($key);
+        }
+
+        $response = $request->post(
+            rtrim(config('services.ollama.base_url'), '/') . '/api/chat',
+            [
+                'model' => $model,
+                'messages' => $messages,
+                'tools' => ToolSchemas::all(),
+                'stream' => false,
+                'options' => ['temperature' => 0.1],
+            ]
+        );
+
+        $response->throw();
+
+        return $response->json() ?? [];
+    }
+
+    /**
+     * Handles BOTH Ollama's native message.tool_calls AND a fallback where the
+     * model (e.g. some Gemma variants) emits a JSON tool call inside content,
+     * optionally fenced in a ```json block.
+     */
+    private function extractToolCalls(array $msg): array
+    {
+        if (! empty($msg['tool_calls']) && is_array($msg['tool_calls'])) {
+            return $msg['tool_calls'];
+        }
+
+        $json = $this->extractJsonObject($msg['content'] ?? '');
+        if ($json && isset($json['name'])) {
+            return [[
+                'function' => [
+                    'name' => $json['name'],
+                    'arguments' => $json['arguments'] ?? ($json['parameters'] ?? []),
+                ],
+            ]];
+        }
+
+        return [];
+    }
+
+    private function extractJsonObject(string $content): ?array
+    {
+        if ($content === '') {
+            return null;
+        }
+
+        if (preg_match('/```(?:json)?\s*(\{.*?\})\s*```/s', $content, $m)) {
+            $candidate = $m[1];
+        } elseif (preg_match('/(\{(?:[^{}]|(?R))*\})/s', $content, $m)) {
+            $candidate = $m[1];
+        } else {
+            return null;
+        }
+
+        $decoded = json_decode($candidate, true);
+
+        return (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) ? $decoded : null;
+    }
+
+    private function decodeArgs(mixed $args): array
+    {
+        if (is_array($args)) {
+            return $args;
+        }
+        if (is_string($args)) {
+            $decoded = json_decode($args, true);
+
+            return is_array($decoded) ? $decoded : [];
+        }
+
+        return [];
+    }
+
+    private function extractMetrics(array $response): array
+    {
+        return [
+            'model' => $response['model'] ?? null,
+            'total_duration' => $response['total_duration'] ?? null,
+            'eval_count' => $response['eval_count'] ?? null,
+            'eval_duration' => $response['eval_duration'] ?? null,
+        ];
+    }
+
+    private function sanitizeHistory(array $history): array
+    {
+        return collect($history)
+            ->filter(fn ($m) => in_array($m['role'] ?? '', ['user', 'assistant'], true))
+            ->map(fn ($m) => ['role' => $m['role'], 'content' => (string) ($m['content'] ?? '')])
+            ->values()
+            ->all();
+    }
+
+    private function systemPrompt(): string
+    {
+        $user = auth()->user();
+
+        return bind_to_template([
+            'SCHEMA_CONTEXT' => SchemaContext::build(),
+            'username' => $user->name ?? 'admin',
+            'userid' => $user->id ?? 0,
+            'now' => now()->toDateTimeString(),
+        ], $this->template());
+    }
+
+    private function template(): string
+    {
+        return "You are an AI assistant for admin panel.\n\n"
+            . "{SCHEMA_CONTEXT}\n\n"
+            . "CURRENT USER: {username} (ID: {userid})\n"
+            . "CURRENT DATETIME: {now}\n\n"
+            . "RULES:\n"
+            . "- Always confirm with the user before performing UPDATE or DELETE operations\n"
+            . "- For updates, show what will change before executing\n"
+            . "- Never expose internal IDs unless specifically asked\n"
+            . "- If a user asks something ambiguous, ask for clarification\n"
+            . "- Always validate data makes business sense before calling tools\n"
+            . "- Report validation errors clearly to the user";
+    }
+}

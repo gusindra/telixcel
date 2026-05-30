@@ -77,6 +77,10 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         return view('message');
     })->name('message');
 
+    Route::get('/agent-console', function () {
+        return view('agent-console');
+    })->name('agent');
+
     Route::get('/client', function () {
         return view('client');
     })->name('client');
