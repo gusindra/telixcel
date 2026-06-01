@@ -66,7 +66,6 @@ class EventServiceProvider extends ServiceProvider
     {
         Request::observe(RequestObserver::class);
         Template::observe(TemplateObserver::class);
-        ApiCredential::observe(ApiCredentialObserver::class);
         Client::observe(ClientObserver::class);
         Ticket::observe(TicketObserver::class);
         Project::observe(ProjectObserver::class);

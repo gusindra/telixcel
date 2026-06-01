@@ -36,4 +36,13 @@ return [
         'whatsapp_from' => env('TWILIO_WHATSAPP_FROM')
       ],
 
+    'ollama' => [
+        'base_url' => env('OLLAMA_BASE_URL', 'http://localhost:11434'),
+        'model' => env('OLLAMA_MODEL', 'gemma4:31b-cloud'),
+        'model_local' => env('OLLAMA_MODEL_LOCAL'),
+        'api_key' => env('OLLAMA_API_KEY'),
+        'timeout' => (int) env('OLLAMA_TIMEOUT', 120),
+        'max_iterations' => (int) env('OLLAMA_MAX_ITERATIONS', 6),
+    ],
+
 ];

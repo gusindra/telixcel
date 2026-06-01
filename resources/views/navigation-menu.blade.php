@@ -38,6 +38,9 @@
                                 <x-jet-nav-link href="{{ route('billing') }}" :active="request()->routeIs('billing')">
                                     {{ __('Billing') }}
                                 </x-jet-nav-link>
+                                <x-jet-nav-link href="{{ route('agent') }}" :active="request()->routeIs('agent')">
+                                    {{ __('AI Console') }}
+                                </x-jet-nav-link>
                             @endif
                         @endif
 
@@ -236,6 +239,9 @@
                     {{ __('Billing') }}
                 </x-jet-responsive-nav-link>
                 @endif
+                <x-jet-responsive-nav-link href="{{ route('agent') }}" :active="request()->routeIs('agent')">
+                    {{ __('AI Console') }}
+                </x-jet-responsive-nav-link>
             @endif
         </div>
 

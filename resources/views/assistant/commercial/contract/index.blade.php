@@ -9,6 +9,7 @@
                 <div class="container mx-auto">
                     <div class="flex justify-between">
                         @include('assistant.commercial.table-list', ['active'=>'contract'])
+                        @livewire('commercial.contract.add')
                     </div>
 
                     <div class="px-4 py-2 bordered">
