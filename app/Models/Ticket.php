@@ -20,16 +20,37 @@ class Ticket extends Model
         'reasons',
         'solution',
         'status',
+        'priority',
         'created_by',
         'updated_by',
         'request_id',
         'handled_by',
-        'forward_to'
+        'role_id',
+        'forward_to',
+        'resolved_at',
+        'closed_at',
     ];
 
     protected $guarded = [];
 
     protected $dates = [ 'deleted_at' ];
+
+    protected $casts = [
+        'resolved_at' => 'datetime',
+        'closed_at'   => 'datetime',
+    ];
+
+    /** The user assigned to handle this ticket. */
+    public function assignee()
+    {
+        return $this->belongsTo('App\Models\User', 'handled_by');
+    }
+
+    /** The role this ticket is assigned to. */
+    public function role()
+    {
+        return $this->belongsTo('App\Models\Role', 'role_id');
+    }
 
     /**
      * Get the action that belongs to template.
@@ -39,6 +60,12 @@ class Ticket extends Model
     public function request()
     {
         return $this->belongsTo('App\Models\Request', 'request_id');
+    }
+
+    /** To-do tasks created from this ticket. */
+    public function tasks()
+    {
+        return $this->hasMany(Task::class, 'ticket_id');
     }
 
     /**

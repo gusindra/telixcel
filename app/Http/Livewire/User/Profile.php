@@ -4,6 +4,8 @@ namespace App\Http\Livewire\User;
 
 use App\Models\BillingUser;
 use App\Models\Client;
+use App\Models\Role;
+use App\Models\RoleUser;
 use App\Models\Team;
 use App\Models\User;
 use Livewire\Component;
@@ -16,6 +18,9 @@ class Profile extends Component
     public $inputuser;
     public $inputclient;
 
+    /** Selected role_id to set as the user's active role. */
+    public $selectedRole;
+
     public function mount($user)
     {
         $this->user = User::find($user->id);
@@ -24,6 +29,8 @@ class Profile extends Component
         $this->inputuser['nick'] = $this->user->nick ?? '';
         $this->inputuser['email'] = $this->user->email ?? '';
         $this->inputuser['phone'] = $this->user->phone_no ?? '';
+
+        $this->selectedRole = optional($this->user->activeRole)->role_id;
         // dd($this->inputuser);
         if($this->user->isClient){
             $this->inputclient['title'] = $this->user->isClient->title ?? '';
@@ -111,8 +118,43 @@ class Profile extends Component
 
     }
 
+    /**
+     * Assign / change the user's active role directly from the profile page.
+     * Follows the same active-flag pattern as SwitchRole::updateRole():
+     * clear all active flags for this user, then activate the chosen role.
+     */
+    public function saveRole()
+    {
+        $this->validate([
+            'selectedRole' => 'required|exists:roles,id',
+        ]);
+
+        $teamId = $this->user->current_team_id;
+
+        // Deactivate any currently active role for this user.
+        RoleUser::where('user_id', $this->user->id)->update(['active' => null]);
+
+        // Activate the selected role (create the pivot row if it doesn't exist).
+        RoleUser::updateOrCreate(
+            [
+                'user_id' => $this->user->id,
+                'role_id' => $this->selectedRole,
+            ],
+            [
+                'team_id' => $teamId,
+                'status'  => 'active',
+                'active'  => 1,
+            ]
+        );
+
+        $this->user = User::find($this->user->id);
+        $this->emit('role_saved');
+    }
+
     public function render()
     {
-        return view('livewire.user.profile');
+        return view('livewire.user.profile', [
+            'roles' => Role::orderBy('name')->get(),
+        ]);
     }
 }

@@ -93,6 +93,11 @@ class Quotation extends Model
     {
         return $this->belongsTo('App\Models\Client', 'model_id');
     }
+    /** The client this quotation is for (normalized client_id FK). */
+    public function clientRef()
+    {
+        return $this->belongsTo('App\Models\Client', 'client_id');
+    }
     public function order()
     {
         return $this->hasOne('App\Models\Order', 'source_id')->where('source', 'QUOTATION');

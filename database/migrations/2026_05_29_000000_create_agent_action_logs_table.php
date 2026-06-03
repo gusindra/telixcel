@@ -8,6 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasTable('agent_action_logs')) {
+            return;
+        }
+
         Schema::create('agent_action_logs', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id')->nullable()->index();

@@ -93,4 +93,25 @@ class Project extends Model
     public function company(){
     	return $this->belongsTo('App\Models\Company', 'entity_party');
     }
+
+    /**
+     * Clients attached to this project (1 project — many clients).
+     */
+    public function clients(){
+    	return $this->belongsToMany('App\Models\Client', 'project_client')->withTimestamps();
+    }
+
+    /**
+     * Users assigned to this project (assign only — does not create users).
+     */
+    public function members(){
+    	return $this->belongsToMany('App\Models\User', 'project_user')->withPivot('role')->withTimestamps();
+    }
+
+    /**
+     * To-do tasks of this project.
+     */
+    public function tasks(){
+    	return $this->hasMany('App\Models\Task', 'project_id')->orderBy('created_at', 'desc');
+    }
 }

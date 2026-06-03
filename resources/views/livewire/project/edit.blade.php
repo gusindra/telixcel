@@ -51,9 +51,9 @@
                         name="entity"
                         id="entity"
                         class="border-gray-300 dark:bg-slate-800 focus:border-indigo-300 focus:ring focus:ring-indigo-200focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full"
-                        wire:model.debunce.800ms="entity"
+                        wire:model="entity"
                         >
-                        <option selected>-- Select Party --</option>
+                        <option value="">-- Select Party --</option>
                         @foreach (get_my_companies() as $company)
                             <option value="{{$company->id}}">{{$company->name}}</option>
                         @endforeach
@@ -93,8 +93,6 @@
     </x-jet-form-section>
 
     @livewire('project.add-customer', ['id' => $project->id])
+    @livewire('project.add-agent', ['id' => $project->id])
     @livewire('project.edit-type', ['id' => $project->id, 'disabled' => disableInput($project->status)])
-    @livewire('project.orders', ['id' => $project->id])
-    @livewire('project.quotations', ['id' => $project->id])
-    @livewire('project.contracts', ['id' => $project->id])
 </div>
