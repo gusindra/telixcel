@@ -42,10 +42,6 @@
             <div class="flex items-center justify-end mt-4">
 
                 <span class="text-gray-600 text-sm">
-                    Don't have an account?
-                    <a class="underline text-sm text-gray-600 hover:text-gray-900" href="{{ route('register') }}">
-                        Create free account
-                    </a>
                 </span>
 
                 <x-jet-button class="ml-4">
