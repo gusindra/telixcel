@@ -156,6 +156,7 @@ class Board extends Component
             'ticket_id'   => $this->todoTicketId,
             'title'       => $this->todoTitle,
             'type'        => $this->todoType,
+            'priority'    => 'high', // tasks spawned from a ticket are high priority
             'source'      => 'Ticket #' . $this->todoTicketId,
             'owner_id'    => auth()->id(),
             'team_id'     => auth()->user()->current_team_id,
