@@ -175,6 +175,9 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/commercial', [CommercialController::class, 'index'])->name('commercial');
     Route::get('commercial/{key}', [CommercialController::class, 'show'])->name('commercial.show');
 
+    // Ticket page: shows all quotations (read-only listing).
+    Route::get('/ticket', fn () => view('ticket.index'))->name('ticket');
+
     Route::get('report', [ReportController::class, 'index'])->name('report.index');
     Route::get('report/{key}', [ReportController::class, 'show'])->name('report.show');
 

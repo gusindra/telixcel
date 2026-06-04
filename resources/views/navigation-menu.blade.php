@@ -16,61 +16,48 @@
                         {{ __('Dashboard') }}
                     </x-jet-nav-link>
 
-                    @if(request()->routeIs('assistant') || request()->routeIs('project') || request()->routeIs('commercial') || request()->routeIs('order') || request()->routeIs('commercial.show'))
-                        <x-jet-nav-link href="{{ route('project') }}" :active="request()->routeIs('project')">
-                            {{ __('Project') }}
-                        </x-jet-nav-link>
-                        <x-jet-nav-link href="{{ route('commercial') }}" :active="request()->routeIs('commercial')">
-                            {{ __('Commercial') }}
-                        </x-jet-nav-link>
-                        <x-jet-nav-link href="{{ route('order') }}" :active="request()->routeIs('order')">
-                            {{ __('Order') }}
+                    {{-- Main menu — consistent across all pages (no more swapping) --}}
+                    @if (@Auth::user()->role || Auth::user()->super->first())
+                        @if((Auth::user()->activeRole && str_contains(Auth::user()->activeRole->role->name, "Admin")))
+                            <x-jet-nav-link href="{{ route('user.index') }}" :active="request()->routeIs('user.index')">
+                                {{ __('Users') }}
+                            </x-jet-nav-link>
+                            <x-jet-nav-link href="{{ route('billing') }}" :active="request()->routeIs('billing')">
+                                {{ __('Billing') }}
+                            </x-jet-nav-link>
+                            <x-jet-nav-link href="{{ route('agent') }}" :active="request()->routeIs('agent')">
+                                {{ __('AI Console') }}
+                            </x-jet-nav-link>
+                        @endif
+                    @endif
+
+                    <x-jet-nav-link href="{{ route('ticket') }}" :active="request()->routeIs('ticket')">
+                        {{ __('Ticket') }}
+                    </x-jet-nav-link>
+
+                    @if (Auth::user()->activeRole)
+                        <x-jet-nav-link href="{{ route('assistant') }}"
+                            :active="request()->routeIs('assistant') || request()->routeIs('project*') || request()->routeIs('commercial*') || request()->routeIs('order') || request()->routeIs('show.order') || request()->routeIs('show.invoice') || request()->routeIs('invoice') || request()->routeIs('commission*')">
+                            {{ __('Assistant') }}
                         </x-jet-nav-link>
                     @else
-                        @if (@Auth::user()->role || Auth::user()->super->first())
-                            @if((Auth::user()->activeRole && str_contains(Auth::user()->activeRole->role->name, "Admin")))
-                                <x-jet-nav-link href="{{ route('user.index') }}" :active="request()->routeIs('user.index')">
-                                    {{ __('Users') }}
-                                </x-jet-nav-link>
-                                <!--<x-jet-nav-link href="{{ route('user.billing.index') }}" :active="request()->routeIs('user.billing.index')">-->
-                                <!--    {{ __('Master Billing') }}-->
-                                <!--</x-jet-nav-link>-->
-                                <x-jet-nav-link href="{{ route('billing') }}" :active="request()->routeIs('billing')">
-                                    {{ __('Billing') }}
-                                </x-jet-nav-link>
-                                <x-jet-nav-link href="{{ route('agent') }}" :active="request()->routeIs('agent')">
-                                    {{ __('AI Console') }}
-                                </x-jet-nav-link>
-                            @endif
-                        @endif
-
-                        <x-jet-nav-link href="{{ route('message') }}" :active="request()->routeIs('message')">
-                            {{ __('Chat Area') }}
+                        <x-jet-nav-link href="{{ route('client') }}" :active="request()->routeIs('client')">
+                            {{ __('Customers') }}
                         </x-jet-nav-link>
-
-                        @if (Auth::user()->activeRole)
-                            <x-jet-nav-link href="{{ route('assistant') }}" :active="request()->routeIs('assistant')">
-                                {{ __('Assistant') }}
-                            </x-jet-nav-link>
-                        @else
-                            <x-jet-nav-link href="{{ route('client') }}" :active="request()->routeIs('client')">
-                                {{ __('Customers') }}
-                            </x-jet-nav-link>
-                            <x-jet-nav-link href="{{ route('template') }}" :active="request()->routeIs('template')">
-                                {{ __('Templates') }}
-                            </x-jet-nav-link>
-                            @if ( Auth::user()->currentTeam && Auth::user()->currentTeam->user_id == Auth::user()->id )
-                                <x-jet-nav-link href="{{ route('billing') }}" :active="request()->routeIs('billing')">
-                                    {{ __('Report') }}
-                                </x-jet-nav-link>
-                            @endif
-                        @endif
-
-                        @if((Auth::user()->activeRole && str_contains(Auth::user()->activeRole->role->name, "Super Admin")))
-                            <x-jet-nav-link href="{{ route('settings') }}" :active="request()->routeIs('settings')">
-                                {{ __('Settings') }}
+                        <x-jet-nav-link href="{{ route('template') }}" :active="request()->routeIs('template')">
+                            {{ __('Templates') }}
+                        </x-jet-nav-link>
+                        @if ( Auth::user()->currentTeam && Auth::user()->currentTeam->user_id == Auth::user()->id )
+                            <x-jet-nav-link href="{{ route('billing') }}" :active="request()->routeIs('billing')">
+                                {{ __('Report') }}
                             </x-jet-nav-link>
                         @endif
+                    @endif
+
+                    @if((Auth::user()->activeRole && str_contains(Auth::user()->activeRole->role->name, "Super Admin")))
+                        <x-jet-nav-link href="{{ route('settings') }}" :active="request()->routeIs('settings')">
+                            {{ __('Settings') }}
+                        </x-jet-nav-link>
                     @endif
                 </div>
             </div>
@@ -224,8 +211,8 @@
             <x-jet-responsive-nav-link href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-jet-responsive-nav-link>
-            <x-jet-responsive-nav-link href="{{ route('message') }}" :active="request()->routeIs('message')">
-                {{ __('Chat Area') }}
+            <x-jet-responsive-nav-link href="{{ route('ticket') }}" :active="request()->routeIs('ticket')">
+                {{ __('Ticket') }}
             </x-jet-responsive-nav-link>
             @if (Auth::user()->hasTeamRole(Auth::user()->currentTeam, 'admin'))
                 <x-jet-responsive-nav-link href="{{ route('client') }}" :active="request()->routeIs('client')">
@@ -318,4 +305,38 @@
             </div>
         </div>
     </div>
+
+    {{-- Assistant sub-menu (second layer) — only inside the Assistant workspace.
+         Commercial & Order here are the GLOBAL lists (across all projects); the same-named
+         tabs inside a project detail are scoped to that single project. --}}
+    @php
+        $inAssistant = request()->routeIs('assistant') || request()->routeIs('project*')
+            || request()->routeIs('commercial*') || request()->routeIs('order')
+            || request()->routeIs('show.order') || request()->routeIs('show.invoice')
+            || request()->routeIs('commission*') || request()->routeIs('invoice');
+        $isProject = request()->routeIs('project') || request()->routeIs('project.show');
+        $isCommercial = request()->routeIs('commercial') || request()->routeIs('commercial.show') || request()->routeIs('commercial.edit.show');
+        $isOrder = request()->routeIs('order') || request()->routeIs('show.order') || request()->routeIs('invoice') || request()->routeIs('show.invoice') || request()->routeIs('commission*');
+    @endphp
+    @if($inAssistant)
+        <div class="bg-gray-50 dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex h-12 items-center space-x-6">
+                    <span class="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">{{ __('Assistant') }}</span>
+                    <a href="{{ route('project') }}"
+                       class="text-sm font-medium pb-px border-b-2 transition {{ $isProject ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-slate-400' }}">
+                        {{ __('Project') }}
+                    </a>
+                    <a href="{{ route('commercial') }}"
+                       class="text-sm font-medium pb-px border-b-2 transition {{ $isCommercial ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-slate-400' }}">
+                        {{ __('Commercial') }}
+                    </a>
+                    <a href="{{ route('order') }}"
+                       class="text-sm font-medium pb-px border-b-2 transition {{ $isOrder ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-slate-400' }}">
+                        {{ __('Order') }}
+                    </a>
+                </div>
+            </div>
+        </div>
+    @endif
 </nav>

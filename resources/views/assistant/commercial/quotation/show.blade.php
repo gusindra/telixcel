@@ -4,6 +4,9 @@
             {{ __('Quotation Detail') }}
         </h2>
     </x-slot>
+
+    @include('assistant.commercial.back-to-project')
+
     <header class="bg-white dark:bg-slate-900 border-b dark:border-slate-600 shadow">
         <div class="flex justify-between pt-2 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="justify-end flex">

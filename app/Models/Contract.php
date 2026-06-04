@@ -24,7 +24,8 @@ class Contract extends Model
         'actived_at',
         'expired_at',
         'model',
-        'model_id'
+        'model_id',
+        'client_id',
     ];
 
     public static $searchable=[
@@ -60,6 +61,11 @@ class Contract extends Model
     public function client()
     {
         return $this->belongsTo('App\Models\Client', 'model_id');
+    }
+    /** The client this contract is for (normalized client_id FK). */
+    public function clientRef()
+    {
+        return $this->belongsTo('App\Models\Client', 'client_id');
     }
     /**
      * Get last approval.

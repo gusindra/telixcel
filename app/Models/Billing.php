@@ -24,7 +24,11 @@ class Billing extends Model
         'amount',
         'user_id',
         'currency',
-        'note'
+        'note',
+        'direction',
+        'vendor_name',
+        'invoice_date',
+        'attachment',
     ];
 
     public static $searchable=[

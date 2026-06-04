@@ -30,6 +30,7 @@ class OrderObserver
                 'amount'        => $request->total,
                 'user_id'       => $request->user_id,
                 'order_id'      => $request->id,
+                'direction'     => 'out',
                 'period'        => $request->date->format('m/Y')
             ]);
         }
@@ -55,6 +56,7 @@ class OrderObserver
                     'amount'        => $request->total,
                     'user_id'       => $request->user_id,
                     'order_id'      => $request->id,
+                    'direction'     => 'out',
                     'period'        => $request->date->format('Y-m-d')
                 ]);
             }

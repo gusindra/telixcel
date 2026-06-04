@@ -18,6 +18,8 @@
 
 
     @if(auth()->user()->currentTeam)
+        <!-- Projects & Tasks -->
+        @include('dashboard.project')
         <!-- Stat -->
         @includeWhen(!auth()->user()->currentTeam && auth()->user()->currentTeam->id!=env('IN_HOUSE_TEAM_ID'), 'dashboard.statistic', ['status' => 'complete'])
         <!-- Asset -->

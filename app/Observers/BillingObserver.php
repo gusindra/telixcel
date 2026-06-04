@@ -18,7 +18,7 @@ class BillingObserver
      */
     public function created(Billing $request)
     {
-        if(auth()){
+        if(auth()->check()){
             FlowProcess::create([
                 'model'     => 'INVOICE',
                 'model_id'  => $request->id,

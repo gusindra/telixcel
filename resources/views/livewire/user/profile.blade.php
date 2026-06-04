@@ -88,6 +88,50 @@
 
     <x-jet-section-border />
 
+    <x-jet-form-section submit="saveRole">
+        <x-slot name="title">
+            {{ __('User Role') }}
+        </x-slot>
+
+        <x-slot name="description">
+            {{ __('Select the role for this user. The selected role becomes the user\'s active role.') }}
+        </x-slot>
+
+        <x-slot name="form">
+            <div class="col-span-6 sm:col-span-4">
+                <x-jet-label for="selectedRole" value="{{ __('Role') }}" />
+                <select id="selectedRole"
+                    wire:model="selectedRole"
+                    class="border-gray-300 dark:bg-slate-800 dark:text-slate-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full">
+                    <option value="">-- Select Role --</option>
+                    @foreach ($roles as $role)
+                        <option value="{{ $role->id }}">{{ $role->name }}</option>
+                    @endforeach
+                </select>
+                <x-jet-input-error for="selectedRole" class="mt-2" />
+
+                @if ($user->activeRole && $user->activeRole->role)
+                    <p class="mt-2 text-sm text-gray-500 dark:text-slate-400">
+                        {{ __('Current active role') }}:
+                        <span class="font-medium capitalize">{{ $user->activeRole->role->name }}</span>
+                    </p>
+                @endif
+            </div>
+        </x-slot>
+
+        <x-slot name="actions">
+            <x-jet-action-message class="mr-3" on="role_saved">
+                {{ __('Role updated.') }}
+            </x-jet-action-message>
+
+            <x-jet-button>
+                {{ __('Save') }}
+            </x-jet-button>
+        </x-slot>
+    </x-jet-form-section>
+
+    <x-jet-section-border />
+
     <x-jet-form-section submit="saveClient">
         <x-slot name="title">
             {{ __('Update Client') }}

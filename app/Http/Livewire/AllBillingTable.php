@@ -14,14 +14,24 @@ class AllBillingTable extends LivewireDatatable
 
     public function builder()
     {
-        return Billing::query()->orderBy('created_at', 'desc');
+        return Billing::query()->orderBy('billings.created_at', 'desc');
     }
 
     public function columns()
     {
         return [
     		NumberColumn::name('code')->label('Transaction ID')->sortBy('code'),
+            Column::callback(['direction'], function ($d) {
+                $d = strtolower($d ?? 'out');
+                if ($d === 'in') {
+                    return '<span class="border border-transparent border-amber-400 bg-amber-50 text-amber-600 text-xs font-bold rounded-md uppercase py-1 px-2">Masuk</span>';
+                }
+                return '<span class="border border-transparent border-green-400 bg-green-50 text-green-600 text-xs font-bold rounded-md uppercase py-1 px-2">Keluar</span>';
+            })->label('Type')->filterable(['in', 'out']),
     		Column::name('description')->label('Description')->filterable(),
+            Column::name('vendor_name')->label('Vendor')->callback('vendor_name', function ($v) {
+                return $v ?: '-';
+            }),
     		NumberColumn::name('amount')->callback('amount', function ($value) {
                 if($value){
                     return 'Rp'.number_format($value);

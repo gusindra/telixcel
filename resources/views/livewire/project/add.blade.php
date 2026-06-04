@@ -41,9 +41,9 @@
                     name="entity"
                     id="entity"
                     class="border-gray-300 dark:bg-slate-800 dark:text-slate-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full"
-                    wire:model.debunce.800ms="entity"
+                    wire:model="entity"
                     >
-                    <option selected>-- Select Party --</option>
+                    <option value="">-- Select Party --</option>
                     @foreach ($companies as $company)
                         <option value="{{$company->id}}">{{$company->name}}</option>
                     @endforeach
