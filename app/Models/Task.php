@@ -17,6 +17,7 @@ class Task extends Model
         'ticket_id',
         'title',
         'type',
+        'priority',
         'owner_id',
         'source',
         'target_date',

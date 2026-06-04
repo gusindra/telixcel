@@ -26,7 +26,7 @@
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-slate-300">{{ __('Priority') }}</label>
-            <select wire:model="priority" class="border-gray-300 dark:bg-slate-800 dark:text-slate-200 rounded-md shadow-sm mt-1 block w-full text-sm">
+            <select wire:model.defer="priority" class="border-gray-300 dark:bg-slate-800 dark:text-slate-200 rounded-md shadow-sm mt-1 block w-full text-sm">
                 @foreach ($priorities as $p)<option value="{{ $p }}">{{ ucfirst($p) }}</option>@endforeach
             </select>
         </div>
@@ -150,7 +150,7 @@
                 </div>
                 <div>
                     <x-jet-label value="{{ __('Type') }}" />
-                    <select wire:model="todoType" class="border-gray-300 dark:bg-slate-800 dark:text-slate-300 rounded-md shadow-sm mt-1 block w-full text-sm">
+                    <select wire:model.defer="todoType" class="border-gray-300 dark:bg-slate-800 dark:text-slate-300 rounded-md shadow-sm mt-1 block w-full text-sm">
                         <option value="">-- {{ __('Select Type') }} --</option>
                         @foreach ($types as $t)<option value="{{ $t }}">{{ ucfirst($t) }}</option>@endforeach
                     </select>

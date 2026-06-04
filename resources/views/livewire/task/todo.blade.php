@@ -8,6 +8,9 @@
     $typeBadge = fn ($t) => [
         'finance' => 'bg-indigo-50 text-indigo-600', 'admin' => 'bg-sky-50 text-sky-600', 'operasional' => 'bg-violet-50 text-violet-600',
     ][$t] ?? 'bg-gray-100 text-gray-500';
+    $prioBadge = fn ($p) => [
+        'low' => 'bg-gray-100 text-gray-500', 'medium' => 'bg-blue-50 text-blue-600', 'high' => 'bg-red-50 text-red-600',
+    ][$p] ?? 'bg-gray-100 text-gray-500';
 @endphp
 
 <div>
@@ -37,7 +40,7 @@
                 $isDone = $root->status === 'complete';
                 $m = $meta($root->status);
             @endphp
-            <div x-data="{ open: false }" class="bg-white dark:bg-slate-700">
+            <div x-data="{ open: false }" class="bg-white dark:bg-slate-700 {{ $root->priority === 'high' && ! $isDone ? 'border-l-2 border-red-400' : '' }}">
                 {{-- ROW --}}
                 <div class="flex items-center gap-3 px-4 py-3">
                     <span class="h-2 w-2 rounded-full flex-shrink-0 {{ $m['dot'] }}"></span>
@@ -46,6 +49,7 @@
                         <div class="flex items-center gap-2 flex-wrap">
                             <span class="text-sm truncate {{ $isDone ? 'line-through text-gray-400' : 'font-medium text-gray-800 dark:text-slate-100' }}">{{ $root->title }}</span>
                             @if($root->type)<span class="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded {{ $typeBadge($root->type) }}">{{ $root->type }}</span>@endif
+                            @if($root->priority)<span class="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded {{ $prioBadge($root->priority) }}">{{ $root->priority }}</span>@endif
                             @if($root->ticket_id)<span class="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-rose-50 text-rose-600">Ticket #{{ $root->ticket_id }}</span>@endif
                         </div>
                         <div class="flex items-center gap-3 mt-0.5 text-[11px] text-gray-400">
@@ -147,14 +151,21 @@
                 @unless($parent_id)
                     <div>
                         <x-jet-label value="{{ __('Type') }}" />
-                        <select wire:model="type" class="border-gray-300 dark:bg-slate-800 dark:text-slate-300 rounded-md shadow-sm mt-1 block w-full text-sm">
+                        <select wire:model.defer="type" class="border-gray-300 dark:bg-slate-800 dark:text-slate-300 rounded-md shadow-sm mt-1 block w-full text-sm">
                             <option value="">-- {{ __('Select Type') }} --</option>
                             @foreach ($types as $t)<option value="{{ $t }}">{{ ucfirst($t) }}</option>@endforeach
                         </select>
                         <x-jet-input-error for="type" class="mt-2" />
                     </div>
                 @endunless
-                <div class="{{ $parent_id ? 'md:col-span-2' : '' }}">
+                <div>
+                    <x-jet-label value="{{ __('Priority') }}" />
+                    <select wire:model.defer="priority" class="border-gray-300 dark:bg-slate-800 dark:text-slate-300 rounded-md shadow-sm mt-1 block w-full text-sm">
+                        @foreach ($priorities as $p)<option value="{{ $p }}">{{ ucfirst($p) }}</option>@endforeach
+                    </select>
+                    <x-jet-input-error for="priority" class="mt-2" />
+                </div>
+                <div>
                     <x-jet-label value="{{ __('Target Date') }}" />
                     <x-jet-input type="date" class="mt-1 block w-full" wire:model.defer="target_date" />
                     <x-jet-input-error for="target_date" class="mt-2" />

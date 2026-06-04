@@ -18,6 +18,7 @@ class Todo extends Component
     // form fields
     public $title;
     public $type;
+    public $priority = 'medium';
     public $source;
     public $target_date;
     public $parent_id = 0;   // 0 = root task, else parent task id
@@ -31,6 +32,7 @@ class Todo extends Component
     public $deleteIsParent = false;
 
     public const TYPES = ['finance', 'admin', 'operasional'];
+    public const PRIORITIES = ['low', 'medium', 'high'];
 
     private const ROLE_TYPE_MAP = [
         'Accounting' => 'finance', 'Commercial' => 'finance',
@@ -56,6 +58,7 @@ class Todo extends Component
         if (! $this->parent_id) {
             $rules['type'] = 'required|in:' . implode(',', self::TYPES);
         }
+        $rules['priority'] = 'required|in:' . implode(',', self::PRIORITIES);
         return $rules;
     }
 
@@ -74,6 +77,7 @@ class Todo extends Component
             'parent_id'   => $this->parent_id ?: 0,
             'title'       => $this->title,
             'type'        => $type,
+            'priority'    => $this->priority,
             'source'      => $this->source,
             'target_date' => $this->target_date,
             'owner_id'    => auth()->id(),
@@ -188,6 +192,7 @@ class Todo extends Component
     {
         $this->title = '';
         $this->type = '';
+        $this->priority = 'medium';
         $this->source = '';
         $this->parent_id = 0;
         $this->target_date = now()->addDays(7)->toDateString();
@@ -217,7 +222,11 @@ class Todo extends Component
         }
 
         // progress & pending first, complete last; oldest first within each.
-        $query->orderByRaw("FIELD(status,'progress','pending','complete')")->orderBy('created_at');
+        // completed sink to the bottom; then HIGH priority pinned to top; then status; then oldest.
+        $query->orderByRaw("status = 'complete'")
+              ->orderByRaw("FIELD(priority,'high','medium','low')")
+              ->orderByRaw("FIELD(status,'progress','pending','complete')")
+              ->orderBy('created_at');
 
         $roots = $query->paginate(8, ['*'], 'todoPage');
 
@@ -300,10 +309,11 @@ class Todo extends Component
     public function render()
     {
         return view('livewire.task.todo', [
-            'types'     => self::TYPES,
-            'roots'     => $this->tree(),
-            'parents'   => $this->parentOptions(),
-            'dashboard' => ! $this->project_id,
+            'types'      => self::TYPES,
+            'priorities' => self::PRIORITIES,
+            'roots'      => $this->tree(),
+            'parents'    => $this->parentOptions(),
+            'dashboard'  => ! $this->project_id,
         ]);
     }
 }
