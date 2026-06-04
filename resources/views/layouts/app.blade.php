@@ -30,7 +30,9 @@
 <body class="font-sans antialiased">
     <x-jet-banner />
 
+    @php($embed = request()->boolean('embed'))
     <div class="min-h-screen bg-gray-100 dark:bg-slate-900">
+        @unless($embed)
         <button x-cloak x-on:click="darkMode==='true' || darkMode==true ? darkMode=false : darkMode=true;" class="inline-flex absolute right-10 md:right-0 m-5">
             <!-- Icon Moon -->
             <svg x-show="darkMode==false||darkMode==='false'" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -43,6 +45,7 @@
         </button>
 
         @livewire('navigation-menu')
+        @endunless
 
         <!-- Page Heading -->
         @if (isset($header))

@@ -2,7 +2,9 @@
 
 namespace App\Http\Livewire\Project;
 
+use App\Models\Client;
 use App\Models\Project;
+use Illuminate\Support\Str;
 use Livewire\Component;
 
 class AddCustomer extends Component
@@ -12,6 +14,27 @@ class AddCustomer extends Component
     public $contact_id;
     public $project_id;
     public $project;
+
+    // ── Client (many) management ──
+    public $clientModalVisible = false;
+    public $mode = 'existing';     // 'existing' | 'new'
+    public $selectedClient;        // client id to attach (existing)
+
+    // detach confirmation
+    public $confirmingDetach = false;
+    public $detachId = null;
+    public $detachName = '';
+
+    protected $listeners = ['confirmDetachClient'];
+
+    // new client fields
+    public $newClient = [
+        'title'  => '',
+        'sender' => '',
+        'name'   => '',
+        'phone'  => '',
+        'email'  => '',
+    ];
 
     public function mount($id)
     {
@@ -40,13 +63,13 @@ class AddCustomer extends Component
 
     public function updated($propertyName)
     {
-        $this->validateOnly($propertyName);
+        if (in_array($propertyName, ['customer_name', 'customer_address'])) {
+            $this->validateOnly($propertyName);
+        }
     }
 
     /**
-     * Update Template
-     *
-     * @return void
+     * Save Party A customer details (existing behaviour).
      */
     public function save()
     {
@@ -55,8 +78,83 @@ class AddCustomer extends Component
         $this->emit('saved');
     }
 
+    // ── Client popup actions ──
+
+    public function showClientModal()
+    {
+        $this->resetClientForm();
+        $this->clientModalVisible = true;
+    }
+
+    public function attachExisting()
+    {
+        $this->validate(['selectedClient' => 'required|exists:clients,id']);
+        $this->project->clients()->syncWithoutDetaching([$this->selectedClient]);
+        $this->clientModalVisible = false;
+        $this->resetClientForm();
+        $this->emit('refreshLivewireDatatable');
+    }
+
+    public function createAndAttach()
+    {
+        $this->validate([
+            'newClient.name'  => 'required',
+            'newClient.phone' => 'required',
+            'newClient.email' => 'nullable|email',
+        ]);
+
+        $client = Client::create([
+            'uuid'    => (string) Str::uuid(),
+            'title'   => $this->newClient['title'],
+            'sender'  => $this->newClient['sender'],
+            'name'    => $this->newClient['name'],
+            'phone'   => $this->newClient['phone'],
+            'email'   => $this->newClient['email'],
+            'user_id' => auth()->id() ?? 0,
+        ]);
+
+        $this->project->clients()->syncWithoutDetaching([$client->id]);
+        $this->clientModalVisible = false;
+        $this->resetClientForm();
+        $this->emit('refreshLivewireDatatable');
+    }
+
+    public function confirmDetachClient($clientId)
+    {
+        $client = Client::find($clientId);
+        $this->detachId = $clientId;
+        $this->detachName = $client?->name ?? '';
+        $this->confirmingDetach = true;
+    }
+
+    public function detachClient()
+    {
+        if ($this->detachId) {
+            $this->project->clients()->detach($this->detachId);
+        }
+        $this->confirmingDetach = false;
+        $this->detachId = null;
+        $this->emit('refreshLivewireDatatable');
+    }
+
+    private function resetClientForm()
+    {
+        $this->mode = 'existing';
+        $this->selectedClient = null;
+        $this->newClient = ['title' => '', 'sender' => '', 'name' => '', 'phone' => '', 'email' => ''];
+    }
+
+    private function availableClients()
+    {
+        $attached = $this->project->clients()->pluck('clients.id')->all();
+
+        return Client::whereNotIn('id', $attached)->orderBy('name')->get();
+    }
+
     public function render()
     {
-        return view('livewire.project.add-customer');
+        return view('livewire.project.add-customer', [
+            'availableClients' => $this->availableClients(),
+        ]);
     }
 }

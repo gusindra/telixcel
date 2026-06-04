@@ -16,6 +16,10 @@ class TicketObserver
      */
     public function created(Ticket $request)
     {
+        // Chat-based tickets only (tied to a customer Request). Standalone tickets skip this.
+        if(! $request->request_id){
+            return;
+        }
         // if status open -> sent from agent :
         if($request->status == 'open'){
             $reply = "We have received your request, your Ticket No ".$request->request_id." has been assigned. Meanwhile, we suggest to use this Ticket No in any further communication for easier reference.";
@@ -47,6 +51,9 @@ class TicketObserver
      */
     public function updated(Ticket $request)
     {
+        if(! $request->request_id){
+            return;
+        }
         // if status close, sent bot :
         $from = 'bot';
         if($request->status == 'close'){
@@ -81,6 +88,9 @@ class TicketObserver
      */
     public function deleted(Ticket $request)
     {
+        if(! $request->request_id){
+            return;
+        }
         // if status close, sent bot :
         if($request->forward_to == null){
             $from = 'bot';

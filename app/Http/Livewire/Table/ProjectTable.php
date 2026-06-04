@@ -2,6 +2,7 @@
 
 namespace App\Http\Livewire\Table;
 
+use App\Models\FlowSetting;
 use App\Models\Project;
 use Mediconesystems\LivewireDatatables\BooleanColumn;
 use Mediconesystems\LivewireDatatables\Column;
@@ -15,7 +16,39 @@ class ProjectTable extends LivewireDatatable
 
     public function builder()
     {
-        return Project::query()->orderBy('updated_at', 'desc');
+        $query = Project::query()->orderBy('updated_at', 'desc');
+
+        // Approval gates visibility: managers see all; everyone else only sees
+        // APPROVED projects, plus their own drafts/submits, plus submitted ones
+        // they are an approver for.
+        if ($this->isManager()) {
+            return $query;
+        }
+
+        $uid = auth()->id();
+        $myRoleIds = auth()->user()->role->map(fn ($r) => optional($r->role)->id)->filter()->all();
+        $approverRoleIds = FlowSetting::where('model', 'PROJECT')->pluck('role_id')->all();
+        $iAmApprover = ! empty(array_intersect($myRoleIds, $approverRoleIds));
+
+        return $query->where(function ($q) use ($uid, $iAmApprover) {
+            $q->where('status', 'approved')
+              ->orWhere('user_id', $uid);
+            if ($iAmApprover) {
+                $q->orWhere('status', 'submit');
+            }
+        });
+    }
+
+    private function isManager(): bool
+    {
+        $user = auth()->user();
+        if (! $user) {
+            return false;
+        }
+        if ($user->super->first()?->role === 'superadmin') {
+            return true;
+        }
+        return $user->activeRole && str_contains($user->activeRole->role->name ?? '', 'Admin');
     }
 
     public function columns()

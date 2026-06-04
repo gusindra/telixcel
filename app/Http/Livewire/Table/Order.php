@@ -3,6 +3,7 @@
 namespace App\Http\Livewire\Table;
 
 use App\Models\Order as ModelsOrder;
+use App\Models\Project;
 use Mediconesystems\LivewireDatatables\Column;
 use Mediconesystems\LivewireDatatables\DateColumn;
 use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
@@ -13,9 +14,27 @@ class Order extends LivewireDatatable
 {
     public $model = ModelsOrder::class;
 
+    /** Optional: scope the table to a single project's orders. */
+    public $project_id;
+
     public function builder()
     {
-        return ModelsOrder::query()->orderBy('created_at', 'desc');
+        $query = ModelsOrder::query()->orderBy('orders.created_at', 'desc');
+
+        if ($this->project_id) {
+            // Orders belong to a project directly (source=PROJECT) OR via its quotations (source=QUOTATION).
+            $quotationIds = Project::find($this->project_id)?->quotations->pluck('id')->all() ?? [];
+
+            $query->where(function ($q) use ($quotationIds) {
+                $q->where(function ($sub) {
+                    $sub->where('orders.source', 'PROJECT')->where('orders.source_id', $this->project_id);
+                })->orWhere(function ($sub) use ($quotationIds) {
+                    $sub->where('orders.source', 'QUOTATION')->whereIn('orders.source_id', $quotationIds ?: [0]);
+                });
+            });
+        }
+
+        return $query;
     }
 
     public function columns()
