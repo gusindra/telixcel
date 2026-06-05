@@ -310,8 +310,11 @@ function masterOrder($status='draft'){
 }
 
 function get_my_companies(){
+    // Must match the company list shown in the "create project" modal
+    // (App\Http\Livewire\Project\Add::readCompany) so a company picked at
+    // create time stays selectable/visible on the project detail/edit.
     if(optional(Auth::user()->super->first())->role == 'superadmin' || Auth::user()->activeRole){
-        return Company::where('user_id', 0)->get();
+        return Company::all();
     }
     return Company::where('user_id', auth()->user()->currentTeam->user_id)->get();
 }
