@@ -59,6 +59,10 @@
                     <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5a1.99 1.99 0 011.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.99 1.99 0 013 12V7a4 4 0 014-4z"/></svg>
                     {{ __('Commercial') }}
                 </button>
+                <button @click="tab = 'contract'" :class="tab === 'contract' ? '{{ $tabOn }}' : '{{ $tabOff }}'" class="{{ $tabBtn }}">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    {{ __('Contract') }}
+                </button>
                 <button @click="tab = 'order'" :class="tab === 'order' ? '{{ $tabOn }}' : '{{ $tabOff }}'" class="{{ $tabBtn }}">
                     <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                     {{ __('Order') }}
@@ -109,7 +113,6 @@
                 <div class="inline-flex items-center gap-1 p-1 bg-gray-100 dark:bg-slate-700/60 rounded-xl">
                     <button type="button" @click="sub = 'product'" :class="sub === 'product' ? '{{ $subOn }}' : '{{ $subOff }}'" class="{{ $subBtn }}">{{ __('Product Master Data') }}</button>
                     <button type="button" @click="sub = 'quotation'" :class="sub === 'quotation' ? '{{ $subOn }}' : '{{ $subOff }}'" class="{{ $subBtn }}">{{ __('Quotation') }}</button>
-                    <button type="button" @click="sub = 'contract'" :class="sub === 'contract' ? '{{ $subOn }}' : '{{ $subOff }}'" class="{{ $subBtn }}">{{ __('Contract') }}</button>
                 </div>
             </div>
 
@@ -128,16 +131,18 @@
                     searchable="name, sender, phone, email" exportable :key="'pcc-q-'.$project->id" />
             </div>
 
-            {{-- Contract: client list -> View Contract per client (opens modal) --}}
-            <div x-show="sub === 'contract'" class="p-4 space-y-3" style="display:none;">
-                <p class="text-xs text-gray-400">{{ __('Pick a client to view or create its contracts.') }}</p>
-                <livewire:table.project-client-commercial :project_id="$project->id" only="contract"
-                    searchable="name, sender, phone, email" exportable :key="'pcc-c-'.$project->id" />
-            </div>
         </div>
 
         {{-- Single shared modal for per-client quotation/contract (page level so it works on any tab) --}}
         @livewire('project.client-commercial', ['id' => $project->id, 'showTable' => false], key('client-commercial-modal-'.$project->id))
+
+        {{-- Contract tab: project-level contracts (not tied to a client), styled like Order --}}
+        <div x-show="tab === 'contract'" class="bg-white dark:bg-slate-700 shadow rounded-lg p-4 space-y-6" style="display:none;">
+            <div class="flex justify-end gap-2">
+                @livewire('project.contract-add', ['source' => $project->id, 'model' => 'PROJECT'], key('contract-add-'.$project->id))
+            </div>
+            <livewire:table.contract :project_id="$project->id" searchable="title" exportable :key="'contract-tbl-'.$project->id" />
+        </div>
 
         {{-- Order tab: order list --}}
         <div x-show="tab === 'order'" class="bg-white dark:bg-slate-700 shadow rounded-lg p-4 space-y-6" style="display:none;">
