@@ -32,7 +32,9 @@ class ProjectTable extends LivewireDatatable
 
         return $query->where(function ($q) use ($uid, $iAmApprover) {
             $q->where('status', 'approved')
-              ->orWhere('user_id', $uid);
+              ->orWhere('user_id', $uid)
+              // projects this user is assigned to (project_user pivot) — e.g. Project Manager
+              ->orWhereHas('members', fn ($m) => $m->where('users.id', $uid));
             if ($iAmApprover) {
                 $q->orWhere('status', 'submit');
             }
