@@ -20,7 +20,7 @@ class ToolSchemas
                     'model' => ['type' => 'string', 'enum' => $models],
                     'filters' => [
                         'type' => 'array',
-                        'description' => 'List of {field, op, value}. op must be one of =, !=, like, in.',
+                        'description' => 'List of {field, op, value}. op must be one of =, !=, like, in, >, <, >=, <=. Use > or < for date/number comparisons (e.g. expired_at < "2025-12-31", target_date < "2025-07-01").',
                         'items' => self::filterItem(),
                     ],
                     'limit' => ['type' => 'integer', 'description' => 'Max rows to return (1-50, default 20).'],
@@ -67,7 +67,7 @@ class ToolSchemas
             'type' => 'object',
             'properties' => [
                 'field' => ['type' => 'string'],
-                'op' => ['type' => 'string', 'enum' => ['=', '!=', 'like', 'in']],
+                'op' => ['type' => 'string', 'enum' => ['=', '!=', 'like', 'in', '>', '<', '>=', '<=']],
                 'value' => ['description' => 'string|number, or array of values when op is "in".'],
             ],
             'required' => ['field', 'op', 'value'],

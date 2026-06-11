@@ -47,7 +47,11 @@
             @endisset
             <div class="bg-white overflow-hidden sm:rounded-lg">
                 <div class="container mx-auto" x-ref="print" >
-                    <div class="px-4 py-2" id="PRINT">
+                    @php $isFinal = in_array($data->status, ['approved', 'released', 'reviewed']); @endphp
+                    @unless($isFinal)
+                        <div style="position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) rotate(-35deg); font-size:120px; font-weight:800; color:rgba(220,38,38,0.13); letter-spacing:12px; z-index:0; pointer-events:none; user-select:none; white-space:nowrap; -webkit-print-color-adjust:exact; print-color-adjust:exact;">{{ strtoupper($data->status ?? 'draft') }}</div>
+                    @endunless
+                    <div class="px-4 py-2 relative" id="PRINT" style="z-index:1;">
                         <!-- Header -->
                         <!--<div class="md:grid md:grid-cols-3 md:gap-6 my-4">-->
                         <!--    <div class="md:col-span-1 flex justify-between">-->
@@ -75,17 +79,16 @@
                             <tr>
                                 <td>
                                     <div class="px-4 sm:px-0">
-                                        @if($data->model == 'COMPANY')
-                                            @if($data->company && $data->company->img_logo)
-                                            <img style="height:100px;" src="https://telixcel.s3.ap-southeast-1.amazonaws.com/{{$data->company->img_logo->file}}" />
-
-                                            @endif
-                                        @elseif($data->model == 'PROJECT')
-                                            @if($data->project->company && $data->project->company->img_logo)
-                                            <img style="height:100px;" src="https://telixcel.s3.ap-southeast-1.amazonaws.com/{{$data->project->company->img_logo->file}}" />
-                                            @endif
-                                        @else
-                                            <h3 class="text-lg font-medium text-gray-900">{{$data->company->name}}</h3>
+                                        @php
+                                            // Resolve the issuing company's logo from the Source entity.
+                                            $logoCompany = $data->model == 'COMPANY'
+                                                ? $data->company
+                                                : ($data->model == 'PROJECT' ? optional($data->project)->company : null);
+                                        @endphp
+                                        @if($logoCompany && $logoCompany->img_logo)
+                                            <img style="height:100px;" src="https://telixcel.s3.ap-southeast-1.amazonaws.com/{{$logoCompany->img_logo->file}}" />
+                                        @elseif($logoCompany)
+                                            <h3 class="text-lg font-medium text-gray-900">{{ $logoCompany->name }}</h3>
                                         @endif
                                     </div>
                                 </td>
@@ -98,6 +101,16 @@
                             </tr>
                         </table>
                         <!-- Costumer -->
+                        @php
+                            // Customer = client chosen in Customer Information (client_id -> clientRef).
+                            // Fallbacks: Source=Client (model_id -> client), then addressed_* text fields.
+                            $client          = $data->clientRef ?? ($data->model == 'CLIENT' ? $data->client : null);
+                            $customerName    = $client->name    ?? ($data->addressed_name    ?: '-');
+                            $customerCompany = $client->title   ?? ($data->addressed_company ?: '-');
+                            $customerSender  = $client->sender  ?? null;
+                            $customerPhone   = $client->phone   ?? null;
+                            $customerEmail   = $client->email   ?? null;
+                        @endphp
                         <div class="md:grid md:grid-cols-3 md:gap-6 my-4">
                             <div class="md:col-span-1 flex justify-between">
                                 <div class="px-4 sm:px-0">
@@ -105,20 +118,38 @@
                                     <table class="min-w-full divide-y divide-gray-200">
                                         <tbody class="bg-white divide-y divide-gray-200">
                                             <tr class="border-none">
-                                                <td class="px-6 text-sm whitespace-no-wrap"> Up : </td>
-                                                <td class="px-6 text-sm whitespace-no-wrap"> {{$data->addressed_name}} </td>
+                                                <td class="px-6 text-sm whitespace-no-wrap">Up :</td>
+                                                <td class="px-6 text-sm whitespace-no-wrap">{{ $customerName }}</td>
                                             </tr>
                                             <tr class="border-none">
-                                                <td class="px-6 text-sm whitespace-no-wrap"> Company : </td>
-                                                <td class="px-6 text-sm whitespace-no-wrap"> {{$data->addressed_company}} </td>
+                                                <td class="px-6 text-sm whitespace-no-wrap">Company :</td>
+                                                <td class="px-6 text-sm whitespace-no-wrap">{{ $customerCompany }}</td>
+                                            </tr>
+                                            @if($customerSender)
+                                            <tr class="border-none">
+                                                <td class="px-6 text-sm whitespace-no-wrap">Sender :</td>
+                                                <td class="px-6 text-sm whitespace-no-wrap">{{ $customerSender }}</td>
+                                            </tr>
+                                            @endif
+                                            @if($customerPhone)
+                                            <tr class="border-none">
+                                                <td class="px-6 text-sm whitespace-no-wrap">Phone :</td>
+                                                <td class="px-6 text-sm whitespace-no-wrap">{{ $customerPhone }}</td>
+                                            </tr>
+                                            @endif
+                                            @if($customerEmail)
+                                            <tr class="border-none">
+                                                <td class="px-6 text-sm whitespace-no-wrap">Email :</td>
+                                                <td class="px-6 text-sm whitespace-no-wrap">{{ $customerEmail }}</td>
+                                            </tr>
+                                            @endif
+                                            <tr class="border-none">
+                                                <td class="px-6 text-sm whitespace-no-wrap">Quote No :</td>
+                                                <td class="px-6 text-sm whitespace-no-wrap">{{ $data->quote_no ?? '-' }}</td>
                                             </tr>
                                             <tr class="border-none">
-                                                <td class="px-6 text-sm whitespace-no-wrap"> Quote No : </td>
-                                                <td class="px-6 text-sm whitespace-no-wrap"> {{$data->quote_no}} </td>
-                                            </tr>
-                                            <tr class="border-none">
-                                                <td class="px-6 text-sm whitespace-no-wrap"> Date : </td>
-                                                <td class="px-6 text-sm whitespace-no-wrap"> {{$data->date->format('d M Y')}} </td>
+                                                <td class="px-6 text-sm whitespace-no-wrap">Date :</td>
+                                                <td class="px-6 text-sm whitespace-no-wrap">{{ $data->date->format('d M Y') }}</td>
                                             </tr>
                                         </tbody>
                                     </table>
