@@ -45,10 +45,16 @@ class Task extends Model
         return $this->belongsTo(Ticket::class, 'ticket_id');
     }
 
-    /** Child tasks (sub-tasks). */
+    /** Direct child tasks (one level). */
     public function children()
     {
         return $this->hasMany(Task::class, 'parent_id')->orderBy('created_at');
+    }
+
+    /** All descendants recursively (for eager loading with nested::with). */
+    public function childrenRecursive()
+    {
+        return $this->children()->with('childrenRecursive');
     }
 
     /** Parent task (null for root tasks where parent_id = 0). */

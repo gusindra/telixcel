@@ -129,58 +129,57 @@
 
         <x-slot name="form">
 
-            <div class="col-span-6 grid grid-cols-2">
-                @if($source=="project" || $model=="PROJECT")
-                    <div class="col-span-12 sm:col-span-1">
-                        <x-jet-label for="type" value="{{ __('Client Name') }}" />
-                        <p class="border rounded-md shadow-sm mt-1 block w-full p-2">{{optional($quote->project)->customer_name}}</p>
-                    </div>
+            <div class="col-span-6 space-y-4">
 
-                    <div class="col-span-12 sm:col-span-1 md:mx-4">
-                        <x-jet-label for="type" value="{{ __('Client Address') }}" />
-                        <p class="border rounded-md shadow-sm mt-1 block w-full p-2">{{optional($quote->project)->customer_address}}</p>
-                    </div>
-                @else
-                    <div class="col-span-12 sm:col-span-1">
-                        <x-jet-label for="addressed_company" value="{{ __('Customer') }}" />
-                        @if($client)
-                        <span class="border rounded-md shadow-sm mt-1 block w-full p-2">{{$client->name}}</span>
-                        @else
-                        <x-jet-input id="addressed_company"
-                            disabled="{{disableInput($quote->status)}}"
-                                    type="text"
-                                    class="mt-1 block w-full"
-                                    wire:model="addressed_company"
-                                    wire:model.defer="addressed_company"
-                                    wire:model.debunce.800ms="addressed_company" />
-                        <x-jet-input-error for="addressed_company" class="mt-2" />
-                        @endif
-                    </div>
-
-                    <div class="col-span-12 sm:col-span-1 md:mx-4">
-                        <x-jet-label for="type" value="{{ __('Client') }}" />
-
-                        <select
-                            {{disableInput($quote->status)?'disabled':''}}
-                            wire:change="onChangeModelId"
-                            name="model_id"
-                            id="model_id"
-                            class="border-gray-300 dark:bg-slate-800 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full"
-                            wire:model.debunce.800ms="model_id"
-                            >
-                            <option selected>-- Select --</option>
-                            @foreach($model_list as $key => $item)
-                            <option value="{{$key}}">{{$item}}</option>
+                {{-- Client dropdown — for project quotations use project's clients; otherwise use all clients --}}
+                <div>
+                    <x-jet-label value="{{ __('Client') }}" />
+                    <select wire:change="onClientChange($event.target.value)"
+                            {{ disableInput($quote->status) ? 'disabled' : '' }}
+                            class="border-gray-300 dark:bg-slate-800 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full">
+                        <option value="">-- {{ __('Select Client') }} --</option>
+                        @if($source=="project" || $model=="PROJECT")
+                            @foreach($project_clients as $pc)
+                                <option value="{{ $pc->id }}" {{ $client_id == $pc->id ? 'selected' : '' }}>
+                                    {{ $pc->name }}{{ $pc->title ? ' — ' . $pc->title : '' }}
+                                </option>
                             @endforeach
+                        @else
+                            @foreach($model_list as $key => $item)
+                                <option value="{{ $key }}" {{ $client_id == $key ? 'selected' : '' }}>{{ $item }}</option>
+                            @endforeach
+                        @endif
+                    </select>
+                </div>
 
-                            @if($quote->type!="project")
-                            <option value="0">New Client</option>
-                            @endif
-
-                        </select>
-                        <x-jet-input-error for="model_id" class="mt-2" />
+                {{-- Show selected client details --}}
+                @if($client)
+                <div class="grid grid-cols-2 gap-3 p-3 bg-gray-50 dark:bg-slate-800 rounded-md text-sm">
+                    <div>
+                        <span class="text-xs text-gray-400 block">{{ __('Contact') }}</span>
+                        <span class="font-medium text-gray-800 dark:text-slate-100">{{ $client->name }}</span>
                     </div>
+                    @if($client->title)
+                    <div>
+                        <span class="text-xs text-gray-400 block">{{ __('Company') }}</span>
+                        <span class="font-medium text-gray-800 dark:text-slate-100">{{ $client->title }}</span>
+                    </div>
+                    @endif
+                    @if($client->phone)
+                    <div>
+                        <span class="text-xs text-gray-400 block">{{ __('Phone') }}</span>
+                        <span class="text-gray-700 dark:text-slate-300">{{ $client->phone }}</span>
+                    </div>
+                    @endif
+                    @if($client->email)
+                    <div>
+                        <span class="text-xs text-gray-400 block">{{ __('Email') }}</span>
+                        <span class="text-gray-700 dark:text-slate-300">{{ $client->email }}</span>
+                    </div>
+                    @endif
+                </div>
                 @endif
+
             </div>
         </x-slot>
 

@@ -33,6 +33,7 @@ class Edit extends Component
     public $description;
     public $source;
     public $source_id;
+    public $client_id;
 
     public function mount($code, $source=null, $source_id=null)
     {
@@ -54,13 +55,16 @@ class Edit extends Component
         $this->created_role = $this->quote->created_role == '' ? '' : $this->quote->created_role;
         $this->addressed_name = $this->quote->addressed_name;
         $this->addressed_role = $this->quote->addressed_role;
+        $this->client_id = $this->quote->client_id;
+
+        // Load existing client into $addressed so the form shows current selection
+        if ($this->quote->client_id) {
+            $this->addressed = Client::find($this->quote->client_id);
+        }
+
         if($source && $source_id){
             $this->source = $source;
             $this->source_id = $source_id;
-            if($this->source=='project'){
-                $this->addressed_company = $this->quote->project->customer_name;
-                $this->addressed_name = $this->quote->project->customer_name;
-            }
         }
     }
 
@@ -90,11 +94,8 @@ class Edit extends Component
             'addressed_role'    => $this->addressed_role,
         ];
 
-        if($this->source=='project'){
-            $client = User::where('email', $this->quote->project->customer_address)->first();
-            if($client){
-                $data['client_id'] = $client->id;
-            }
+        if ($this->client_id) {
+            $data['client_id'] = $this->client_id;
         }
 
         return $data;
@@ -105,6 +106,28 @@ class Edit extends Component
         $this->validate();
         Quotation::find($id)->update($this->modelData());
         $this->emit('saved');
+    }
+
+    /** Called when the client dropdown in Customer Information changes. */
+    public function onClientChange($clientId)
+    {
+        $this->client_id = $clientId ?: null;
+        $this->addressed = $clientId ? Client::find($clientId) : null;
+    }
+
+    /** Clients available for project-based quotations (from project_client pivot). */
+    public function readProjectClients()
+    {
+        $project = optional($this->quote)->project;
+        if (! $project) {
+            return collect();
+        }
+        // Try project's linked clients first; fallback to all clients in the team
+        $clients = $project->clients ?? collect();
+        if ($clients->isEmpty()) {
+            return Client::where('user_id', auth()->user()->currentTeam->user_id ?? 0)->get();
+        }
+        return $clients;
     }
 
     public function onChangeModelId()
@@ -159,17 +182,22 @@ class Edit extends Component
      */
     public function readSourceSelection()
     {
-        if($this->source=='project' || $this->model=='PROJECT'){
+        // Embedded inside a specific project -> lock the Source ID to that project.
+        if($this->source=='project'){
            return Project::where('id', $this->model_id)->pluck('name', 'id');
         }
+
         if($this->model=='PROJECT'){
-            $data = Project::where('team_id', auth()->user()->currentTeam->team_id)->pluck('name', 'id');
+            // List all projects in the team so the user can pick one.
+            return Project::where('team_id', auth()->user()->currentTeam->team_id)->pluck('name', 'id');
         }elseif($this->model=='COMPANY'){
-            $data = Company::where('user_id', auth()->user()->id)->pluck('name', 'id');
-        }else{
-            $data = Client::where('user_id', auth()->user()->currentTeam->user_id)->pluck('name', 'id');
+            // Use the shared helper so ALL companies from Company Settings appear
+            // (same list as the "create project" company picker).
+            return get_my_companies()->pluck('name', 'id');
+        }elseif($this->model=='CLIENT'){
+            return Client::where('user_id', auth()->user()->currentTeam->user_id)->pluck('name', 'id');
         }
-        return $data;
+        return collect();
     }
 
     /**
@@ -185,9 +213,10 @@ class Edit extends Component
     public function render()
     {
         return view('livewire.commercial.quotation.edit', [
-            'source_list' => $this->readSourceSelection(),
-            'model_list' => $this->readModelSelection(),
-            'client' => $this->readClient(),
+            'source_list'     => $this->readSourceSelection(),
+            'model_list'      => $this->readModelSelection(),
+            'client'          => $this->readClient(),
+            'project_clients' => $this->readProjectClients(),
         ]);
     }
 }

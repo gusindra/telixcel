@@ -133,9 +133,10 @@ class Todo extends Component
     }
 
     /**
-     * After a sub-task changes, sync the parent:
+     * After a sub-task changes, sync the parent recursively up the chain:
      * - all children complete  -> parent complete
      * - any child not complete  -> parent back to progress (if it was complete)
+     * Recurses until there is no parent (root task reached).
      */
     private function syncParentStatus(Task $task): void
     {
@@ -157,8 +158,10 @@ class Todo extends Component
 
         if ($allComplete && $parent->status !== 'complete') {
             $parent->update(['status' => 'complete']);
+            $this->syncParentStatus($parent); // propagate up
         } elseif (! $allComplete && $parent->status === 'complete') {
             $parent->update(['status' => 'progress']);
+            $this->syncParentStatus($parent); // propagate up
         }
     }
 
@@ -171,7 +174,8 @@ class Todo extends Component
         }
         $this->deleteId = $task->id;
         $this->deleteTitle = $task->title;
-        $this->deleteIsParent = $task->parent_id == 0 && Task::where('parent_id', $task->id)->exists();
+        // Flag if this task has any children (at any depth level)
+        $this->deleteIsParent = Task::where('parent_id', $task->id)->exists();
         $this->confirmingDelete = true;
     }
 
@@ -180,8 +184,10 @@ class Todo extends Component
     {
         $task = Task::find($this->deleteId);
         if ($task && $this->canManage($task)) {
-            // children become root tasks so they are not orphaned/hidden
-            Task::where('parent_id', $task->id)->update(['parent_id' => 0]);
+            // Move children up one level (to task's parent, not always root)
+            // This preserves hierarchy: sub-sub-tasks become sub-tasks of grandparent
+            $newParentId = $task->parent_id ?: 0;
+            Task::where('parent_id', $task->id)->update(['parent_id' => $newParentId]);
             $task->delete();
         }
         $this->confirmingDelete = false;
@@ -198,7 +204,7 @@ class Todo extends Component
         $this->target_date = now()->addDays(7)->toDateString();
     }
 
-    /** Visible tasks for this project, scoped by role, returned as a tree. */
+    /** Visible tasks for this project, scoped by role, returned as a tree (unlimited depth). */
     private function tree()
     {
         // Root tasks only, paginated. Project page -> single project; dashboard -> all visible.
@@ -221,8 +227,7 @@ class Todo extends Component
             });
         }
 
-        // progress & pending first, complete last; oldest first within each.
-        // completed sink to the bottom; then HIGH priority pinned to top; then status; then oldest.
+        // Completed sink to bottom; HIGH priority pinned top; then status order; then oldest.
         $query->orderByRaw("status = 'complete'")
               ->orderByRaw("FIELD(priority,'high','medium','low')")
               ->orderByRaw("FIELD(status,'progress','pending','complete')")
@@ -230,21 +235,57 @@ class Todo extends Component
 
         $roots = $query->paginate(8, ['*'], 'todoPage');
 
-        // attach sorted children for the roots on this page
+        // Sort comparator: progress first, then pending, then complete; oldest first within each.
         $rank = ['progress' => 0, 'pending' => 1, 'complete' => 2];
         $sorter = fn ($c) => $c->sortBy([
             fn ($a, $b) => ($rank[$a->status] ?? 1) <=> ($rank[$b->status] ?? 1),
             fn ($a, $b) => $a->created_at <=> $b->created_at,
         ])->values();
 
-        $childMap = Task::whereIn('parent_id', $roots->pluck('id') ?: [0])->get()->groupBy('parent_id');
+        // Recursively load ALL descendants for roots on this page (one query per depth level).
+        $rootIds = $roots->pluck('id')->toArray();
+        $allDescendants = $this->loadAllDescendants($rootIds);
+        $childMap = $allDescendants->groupBy('parent_id');
 
-        $roots->getCollection()->transform(function ($root) use ($childMap, $sorter) {
-            $root->setRelation('childNodes', $sorter($childMap->get($root->id, collect())));
-            return $root;
+        $roots->getCollection()->each(function ($root) use ($childMap, $sorter) {
+            $this->attachChildNodes($root, $childMap, $sorter);
         });
 
         return $roots;
+    }
+
+    /**
+     * Batch-load all descendants of the given parent IDs, one SQL query per depth level.
+     * Returns a flat collection of all descendant tasks.
+     */
+    private function loadAllDescendants(array $parentIds): \Illuminate\Support\Collection
+    {
+        if (empty($parentIds)) {
+            return collect();
+        }
+
+        $children = Task::whereIn('parent_id', $parentIds)->get();
+        if ($children->isEmpty()) {
+            return collect();
+        }
+
+        return $children->merge(
+            $this->loadAllDescendants($children->pluck('id')->toArray())
+        );
+    }
+
+    /**
+     * Recursively attach childNodes relation to a task and all its descendants
+     * from the pre-loaded flat $childMap (keyed by parent_id).
+     */
+    private function attachChildNodes($task, \Illuminate\Support\Collection $childMap, callable $sorter): void
+    {
+        $children = $sorter($childMap->get($task->id, collect()));
+        $task->setRelation('childNodes', $children);
+
+        foreach ($children as $child) {
+            $this->attachChildNodes($child, $childMap, $sorter);
+        }
     }
 
     /** Tasks eligible to be a parent (root tasks of this project). */
