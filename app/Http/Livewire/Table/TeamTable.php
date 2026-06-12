@@ -14,7 +14,7 @@ class TeamTable extends LivewireDatatable
 
     public function builder()
     {
-        return Team::query()->groupBy('user_id');
+        return Team::query()->join("team_user", "team_user.user_id", "=", "teams.user_id")->groupBy('teams.user_id');
     }
 
     public function columns()
@@ -23,8 +23,11 @@ class TeamTable extends LivewireDatatable
     		Column::name('user.id')->filterable()->label('ID'),
     		Column::name('user.name')->filterable()->label('Name'),
     		Column::name('user.email')->filterable()->label('Email'),
-    		DateColumn::name('created_at')->label('Register Date'),
-            NumberColumn::name('user_id')->label('Detail')->sortBy('user_id')->callback('user_id', function ($value) {
+    		DateColumn::name('created_at')->label('Register Date')->format('d F Y H:i:s'),
+    		Column::name('team_user.team_id')->label('Team'),
+    		Column::name('team_user.status')->label('Status'),
+    		DateColumn::name('updated_at')->label('Last Online')->format('d F Y H:i:s'),
+            NumberColumn::name('user.id')->label('Detail')->sortBy('user.id')->callback('user.id', function ($value) {
                 return view('datatables::link', [
                     'href' => "/user/" . $value . '?month='.date('m').'&year='.date('Y'),
                     'slot' => 'View'

@@ -6,6 +6,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DevhookController;
 use App\Http\Controllers\WebhookController;
 use App\Http\Livewire\ShowTemplate;
+use App\Http\Livewire\Dashboard\DashboardOverview;
+use App\Http\Livewire\Dashboard\CalendarView;
 use App\Http\Controllers\ApiWaController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\AuthController;
@@ -70,8 +72,12 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         if(empty(auth()->user()->currentTeam)){
             return redirect()->route('teams.create');
         }
-        return view('dashboard');
+        return view('dashboard', ['dashboard' => DashboardOverview::class]);
     })->name('dashboard');
+
+    Route::get('/calendar', function () {
+        return view('dashboard.calendar', ['calendar' => CalendarView::class]);
+    })->name('calendar.view');
 
     Route::get('/message', function () {
         return view('message');
