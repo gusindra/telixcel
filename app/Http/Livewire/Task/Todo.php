@@ -31,8 +31,23 @@ class Todo extends Component
     public $deleteTitle = '';
     public $deleteIsParent = false;
 
+    // status-comment modal (for terminal statuses that require a reason)
+    public $commentModal = false;
+    public $commentTaskId = null;
+    public $commentStatus = null;
+    public $statusComment = '';
+
     public const TYPES = ['finance', 'admin', 'operasional'];
     public const PRIORITIES = ['low', 'medium', 'high'];
+
+    /** All valid task statuses. */
+    public const STATUSES = ['progress', 'pending', 'complete', 'declined', 'cancelled', 'aborted'];
+
+    /** Statuses that require a mandatory comment/reason before they can be applied. */
+    public const COMMENT_REQUIRED = ['declined', 'cancelled', 'aborted'];
+
+    /** "Closed" statuses sink to the bottom of the list. */
+    public const CLOSED = ['complete', 'declined', 'cancelled', 'aborted'];
 
     private const ROLE_TYPE_MAP = [
         'Accounting' => 'finance', 'Commercial' => 'finance',
@@ -100,7 +115,13 @@ class Todo extends Component
 
     public function setStatus($taskId, $status)
     {
-        if (! in_array($status, ['progress', 'pending', 'complete'], true)) {
+        // Terminal statuses must go through the comment modal (defense in depth:
+        // even if the front-end routes here directly).
+        if (in_array($status, self::COMMENT_REQUIRED, true)) {
+            $this->requestStatusComment($taskId, $status);
+            return;
+        }
+        if (! in_array($status, self::STATUSES, true)) {
             return;
         }
         $task = Task::find($taskId);
@@ -110,22 +131,77 @@ class Todo extends Component
                 return;
             }
             $before = $task->toJson();
-            $task->update(['status' => $status]);
+            // Moving back to a non-terminal status clears any previous reason.
+            $task->update(['status' => $status, 'status_note' => null]);
             $this->logStatus($task, $from, $status, $before);
             $this->syncParentStatus($task);
         }
     }
 
-    /** Record a status change (who + from->to) into LogChange for auditing. */
-    private function logStatus(Task $task, $from, $to, $before): void
+    /** Open the comment modal for a status that requires a mandatory reason. */
+    public function requestStatusComment($taskId, $status)
+    {
+        if (! in_array($status, self::COMMENT_REQUIRED, true)) {
+            return;
+        }
+        $task = Task::find($taskId);
+        if (! $task || ! $this->canManage($task)) {
+            return;
+        }
+        $this->commentTaskId = $taskId;
+        $this->commentStatus = $status;
+        $this->statusComment = '';
+        $this->resetErrorBag('statusComment');
+        $this->commentModal = true;
+    }
+
+    /** Apply a terminal status together with its mandatory comment/reason. */
+    public function confirmStatusComment()
+    {
+        $this->validate([
+            'statusComment' => 'required|string|min:3',
+        ], [
+            'statusComment.required' => __('A reason is required for this status.'),
+            'statusComment.min'      => __('Please write at least 3 characters.'),
+        ]);
+
+        if (! in_array($this->commentStatus, self::COMMENT_REQUIRED, true)) {
+            $this->commentModal = false;
+            return;
+        }
+
+        $task = Task::find($this->commentTaskId);
+        if ($task && $this->canManage($task)) {
+            $from = $task->status;
+            $before = $task->toJson();
+            $task->update([
+                'status'      => $this->commentStatus,
+                'status_note' => $this->statusComment,
+            ]);
+            $this->logStatus($task, $from, $this->commentStatus, $before, $this->statusComment);
+            $this->syncParentStatus($task);
+        }
+
+        $this->commentModal = false;
+        $this->commentTaskId = null;
+        $this->commentStatus = null;
+        $this->statusComment = '';
+    }
+
+    /** Record a status change (who + from->to, plus reason) into LogChange for auditing. */
+    private function logStatus(Task $task, $from, $to, $before, $comment = null): void
     {
         try {
+            $remark = 'Status ' . $from . ' -> ' . $to
+                . ' by ' . (auth()->user()->name ?? 'system');
+            if ($comment) {
+                $remark .= ' | Reason: ' . $comment;
+            }
             LogChange::create([
                 'model'    => 'Task',
                 'model_id' => $task->id,
                 'before'   => $before,
-                'remark'   => 'Status ' . $from . ' -> ' . $to
-                    . ' by ' . (auth()->user()->name ?? 'system'),
+                'remark'   => $remark,
             ]);
         } catch (\Throwable $e) {
             // Auditing must never block the status update.
@@ -227,16 +303,17 @@ class Todo extends Component
             });
         }
 
-        // Completed sink to bottom; HIGH priority pinned top; then status order; then oldest.
-        $query->orderByRaw("status = 'complete'")
+        // Closed tasks (complete/declined/cancelled/aborted) sink to bottom;
+        // HIGH priority pinned top among open; then status order; then oldest.
+        $query->orderByRaw("status IN ('complete','declined','cancelled','aborted')")
               ->orderByRaw("FIELD(priority,'high','medium','low')")
-              ->orderByRaw("FIELD(status,'progress','pending','complete')")
+              ->orderByRaw("FIELD(status,'progress','pending','complete','declined','cancelled','aborted')")
               ->orderBy('created_at');
 
         $roots = $query->paginate(8, ['*'], 'todoPage');
 
-        // Sort comparator: progress first, then pending, then complete; oldest first within each.
-        $rank = ['progress' => 0, 'pending' => 1, 'complete' => 2];
+        // Sort comparator: open first, then closed; oldest first within each rank.
+        $rank = ['progress' => 0, 'pending' => 1, 'complete' => 2, 'declined' => 3, 'cancelled' => 4, 'aborted' => 5];
         $sorter = fn ($c) => $c->sortBy([
             fn ($a, $b) => ($rank[$a->status] ?? 1) <=> ($rank[$b->status] ?? 1),
             fn ($a, $b) => $a->created_at <=> $b->created_at,

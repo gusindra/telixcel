@@ -10,6 +10,7 @@ use App\Models\Team;
 use App\Models\User;
 use Livewire\Component;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Hash;
 
 class Profile extends Component
 {
@@ -20,6 +21,10 @@ class Profile extends Component
 
     /** Selected role_id to set as the user's active role. */
     public $selectedRole;
+
+    /** New password fields (admin reset). */
+    public $password;
+    public $password_confirmation;
 
     public function mount($user)
     {
@@ -111,6 +116,46 @@ class Profile extends Component
             }
         }
         $this->emit('client_saved');
+    }
+
+    /**
+     * Set a new password for this user.
+     * Allowed for Admin/Superadmin, or a user updating their own account.
+     * Admin reset does not require the current password.
+     */
+    public function savePassword($id)
+    {
+        abort_unless($this->isAdmin() || auth()->id() === (int) $id, 403);
+
+        $this->validate([
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $user = User::find($id);
+        if (! $user) {
+            return;
+        }
+
+        $user->update([
+            'password' => Hash::make($this->password),
+        ]);
+
+        $this->password = '';
+        $this->password_confirmation = '';
+        $this->emit('password_saved');
+    }
+
+    /** Admin / superadmin gate (same pattern used across the app). */
+    private function isAdmin(): bool
+    {
+        $auth = auth()->user();
+        if (! $auth) {
+            return false;
+        }
+        if ($auth->super->first()?->role === 'superadmin') {
+            return true;
+        }
+        return $auth->activeRole && str_contains($auth->activeRole->role->name ?? '', 'Admin');
     }
 
     public function delete()
