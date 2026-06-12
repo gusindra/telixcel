@@ -23,7 +23,8 @@ class UsersTable extends LivewireDatatable
     		NumberColumn::name('uuid')->label('ID'),
     		Column::name('name')->label('Name')->sortBy('name'),
     		Column::name('phone')->label('Phone Number'),
-    		DateColumn::name('created_at')->label('Creation Date')
+    		DateColumn::name('created_at')->label('Creation Date'),
+    		DateColumn::name('updated_at')->label('Last') 
     	];
     }
 }

@@ -78,7 +78,7 @@
     @livewireChartsScripts
     @stack('scripts')
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
- 
+    
     <script>
         // FIX 1: Use 'livewire:init' instead of 'window.load' so Livewire is defined before running
         document.addEventListener('livewire:init', () => {
@@ -125,7 +125,6 @@
             Livewire.dispatchTo('dark', 'ModeView', { mode: isDark });
         }
     </script>
-  
 
     <audio id="sound" class="hidden" controls>
         <source src="{{url('/assets/sound/notif.wav')}}" type="audio/wav">
