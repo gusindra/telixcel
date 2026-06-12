@@ -80,7 +80,9 @@ class CommercialController extends Controller
     public function template($key, $id){
         // return $key;
         if($id=='quotation'){
-            $q = Quotation::find($key);
+            // clientRef = the customer chosen in Customer Information (client_id);
+            // company/project/client load the Source entity (model_id) for the logo.
+            $q = Quotation::with(['clientRef', 'company', 'project.company', 'client', 'items'])->find($key);
             return view('assistant.commercial.quotation.template', ['data' => $q]);
         }elseif($id=='contract'){
             $c = Contract::find($key);

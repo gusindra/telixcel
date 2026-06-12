@@ -49,8 +49,10 @@
                 </div>
             </div>
 
-            @if($quote->status=='approved' || $quote->status=='released' || $quote->status=='reviewed')
-                <div class="justify-end flex">
+            @php $isFinal = in_array($quote->status, ['approved', 'released', 'reviewed']); @endphp
+            <div class="justify-end flex">
+                {{-- Convert to Order / View Order: only after approval --}}
+                @if($isFinal)
                     @if(!$quote->order)
                         @can('create', App\Models\Order::class)
                             @livewire('order.quotation-to-order', ['id'=>$code])
@@ -62,43 +64,48 @@
                             </a>
                         </span>
                     @endif
-                    <div class="items-center justify-end px-2 text-right">
-                        <x-jet-dropdown align="right" width="60">
-                            <x-slot name="trigger">
-                                <span class="inline-flex rounded-md mb-2">
-                                    <button type="button" class="inline-flex dark:bg-slate-800 dark:text-slate-300 items-center px-3 py-2 border text-xs leading-4 font-medium rounded-md text-gray-500  bg-gray-200 hover:bg-gray-300 hover:text-gray-700 focus:outline-none focus:bg-gray-400 active:bg-gray-400 transition">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
-                                            <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
-                                        </svg>
-                                    </button>
-                                </span>
-                            </x-slot>
+                @endif
 
-                            <x-slot name="content">
-                                <div class="w-60">
-                                    <div>
-                                        @if (count($quote->attachments)>0)
-                                            @foreach($quote->attachments as $file)
-                                                <a title="Quotation upload at {{$file->created_at->format('d F Y - H:i')}}" class="block px-4 py-2 text-sm leading-5 text-gray-700 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 transition" target="_blank" href="https://telixcel.s3.ap-southeast-1.amazonaws.com/{{$file->file}}">
-                                                    <div class="flex items-center justify-between">
-                                                        <div class="truncate text-xs">Download Quotation {{$loop->iteration}}</div>
-                                                    </div>
-                                                </a>
-                                            @endforeach
-                                        @else
-                                            <a class="block px-4 py-2 text-sm leading-5 text-gray-700 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 transition" target="_blank" href="{{route('commercial.print', ['type'=>'quotation','id'=>$code])}}">
+                {{-- Print / Preview: always available (Preview while still draft) --}}
+                <div class="items-center justify-end px-2 text-right">
+                    <x-jet-dropdown align="right" width="60">
+                        <x-slot name="trigger">
+                            <span class="inline-flex rounded-md mb-2">
+                                <button type="button" class="inline-flex dark:bg-slate-800 dark:text-slate-300 items-center px-3 py-2 border text-xs leading-4 font-medium rounded-md text-gray-500  bg-gray-200 hover:bg-gray-300 hover:text-gray-700 focus:outline-none focus:bg-gray-400 active:bg-gray-400 transition">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                                        <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
+                                    </svg>
+                                </button>
+                            </span>
+                        </x-slot>
+
+                        <x-slot name="content">
+                            <div class="w-60">
+                                <div>
+                                    @if (count($quote->attachments)>0)
+                                        @foreach($quote->attachments as $file)
+                                            <a title="Quotation upload at {{$file->created_at->format('d F Y - H:i')}}" class="block px-4 py-2 text-sm leading-5 text-gray-700 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 transition" target="_blank" href="https://telixcel.s3.ap-southeast-1.amazonaws.com/{{$file->file}}">
                                                 <div class="flex items-center justify-between">
-                                                    <div class="truncate">Print</div>
+                                                    <div class="truncate text-xs">Download Quotation {{$loop->iteration}}</div>
                                                 </div>
                                             </a>
-                                        @endif
-                                    </div>
+                                        @endforeach
+                                    @endif
+                                    {{-- Print/Preview link is always shown --}}
+                                    <a class="block px-4 py-2 text-sm leading-5 text-gray-700 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 transition" target="_blank" href="{{route('commercial.print', ['type'=>'quotation','id'=>$code])}}">
+                                        <div class="flex items-center justify-between">
+                                            <div class="truncate">{{ $isFinal ? __('Print') : __('Preview (Draft)') }}</div>
+                                            @unless($isFinal)
+                                                <span class="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded bg-amber-100 text-amber-700">draft</span>
+                                            @endunless
+                                        </div>
+                                    </a>
                                 </div>
-                            </x-slot>
-                        </x-jet-dropdown>
-                    </div>
+                            </div>
+                        </x-slot>
+                    </x-jet-dropdown>
                 </div>
-            @endif
+            </div>
         </div>
     </header>
     <div>

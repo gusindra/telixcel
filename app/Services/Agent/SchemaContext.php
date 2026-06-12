@@ -17,7 +17,14 @@ class SchemaContext
             $statuses = isset($reg['statuses'])
                 ? ' | status values: ' . implode('/', $reg['statuses'])
                 : '';
-            $lines[] = "- \"{$key}\" ({$reg['label']}): columns: {$cols}{$statuses}";
+            $types = isset($reg['types'])
+                ? ' | type values: ' . implode('/', $reg['types'])
+                : '';
+            $priorities = isset($reg['priorities'])
+                ? ' | priority values: ' . implode('/', $reg['priorities'])
+                : '';
+            $notes = isset($reg['notes']) ? ' | note: ' . $reg['notes'] : '';
+            $lines[] = "- \"{$key}\" ({$reg['label']}): columns: {$cols}{$statuses}{$types}{$priorities}{$notes}";
         }
 
         return implode("\n", $lines);

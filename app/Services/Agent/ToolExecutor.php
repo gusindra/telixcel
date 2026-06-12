@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Schema;
  */
 class ToolExecutor
 {
-    private const ALLOWED_OPS = ['=', '!=', 'like', 'in'];
+    private const ALLOWED_OPS = ['=', '!=', 'like', 'in', '>', '<', '>=', '<='];
     private const MAX_LIMIT = 50;
 
     public function execute(string $tool, array $args): array
@@ -69,6 +69,10 @@ class ToolExecutor
             return $this->err('No writable values provided.');
         }
 
+        if ($enumErr = $this->validateEnums($values, $reg)) {
+            return $this->err($enumErr);
+        }
+
         $record = $reg['class']::create($values);
 
         return [
@@ -88,6 +92,10 @@ class ToolExecutor
         $values = $this->onlyWritable($a['values'] ?? [], $reg);
         if (empty($values)) {
             return $this->err('No writable values to update.');
+        }
+
+        if ($enumErr = $this->validateEnums($values, $reg)) {
+            return $this->err($enumErr);
         }
 
         $q = $reg['class']::query();
@@ -197,6 +205,31 @@ class ToolExecutor
     private function onlyWritable(array $values, array $reg): array
     {
         return collect($values)->only($reg['writable'])->all();
+    }
+
+    /**
+     * Validate enum-constrained fields (type, priority, status) against the
+     * registry's declared allowed values. Returns an error string or null.
+     */
+    private function validateEnums(array $values, array $reg): ?string
+    {
+        $checks = [
+            'status'   => $reg['statuses']   ?? null,
+            'type'     => $reg['types']       ?? null,
+            'priority' => $reg['priorities']  ?? null,
+        ];
+
+        foreach ($checks as $field => $allowed) {
+            if ($allowed === null || ! array_key_exists($field, $values)) {
+                continue;
+            }
+            if (! in_array($values[$field], $allowed, true)) {
+                return "Invalid value \"{$values[$field]}\" for \"{$field}\". "
+                    . 'Allowed: ' . implode(', ', $allowed) . '.';
+            }
+        }
+
+        return null;
     }
 
     private function recordLabel($record): string
