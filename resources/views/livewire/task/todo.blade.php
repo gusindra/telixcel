@@ -1,9 +1,13 @@
 @php
     $statusMeta = [
-        'progress' => ['dot' => 'bg-blue-500',    'soft' => 'bg-blue-50 text-blue-600'],
-        'pending'  => ['dot' => 'bg-amber-500',   'soft' => 'bg-amber-50 text-amber-600'],
-        'complete' => ['dot' => 'bg-emerald-500', 'soft' => 'bg-emerald-50 text-emerald-600'],
+        'progress'  => ['dot' => 'bg-blue-500',    'soft' => 'bg-blue-50 text-blue-600'],
+        'pending'   => ['dot' => 'bg-amber-500',   'soft' => 'bg-amber-50 text-amber-600'],
+        'complete'  => ['dot' => 'bg-emerald-500', 'soft' => 'bg-emerald-50 text-emerald-600'],
+        'declined'  => ['dot' => 'bg-red-500',     'soft' => 'bg-red-50 text-red-600'],
+        'cancelled' => ['dot' => 'bg-gray-500',    'soft' => 'bg-gray-100 text-gray-600'],
+        'aborted'   => ['dot' => 'bg-orange-500',  'soft' => 'bg-orange-50 text-orange-600'],
     ];
+    $closedStatuses = ['complete', 'declined', 'cancelled', 'aborted'];
     $meta = fn ($s) => $statusMeta[$s] ?? ['dot' => 'bg-gray-400', 'soft' => 'bg-gray-100 text-gray-600'];
     $typeBadge = fn ($t) => [
         'finance' => 'bg-indigo-50 text-indigo-600', 'admin' => 'bg-sky-50 text-sky-600', 'operasional' => 'bg-violet-50 text-violet-600',
@@ -115,4 +119,54 @@
             <x-jet-danger-button class="ml-2" wire:click="deleteTask">{{ __('Delete') }}</x-jet-danger-button>
         </x-slot>
     </x-jet-confirmation-modal>
+
+    {{-- Mandatory comment modal for terminal statuses (declined / cancelled / aborted) --}}
+    @php
+        $statusIcon = [
+            'declined'  => 'M6 18L18 6M6 6l12 12',                                            // X
+            'cancelled' => 'M18.364 5.636L5.636 18.364M21 12a9 9 0 11-18 0 9 9 0 0118 0z',     // ban
+            'aborted'   => 'M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9.5 9.5h5v5h-5z',               // stop
+        ];
+        $cStatus = $commentStatus ?: 'declined';
+        $cMeta   = $statusMeta[$cStatus] ?? ['dot' => 'bg-gray-400', 'soft' => 'bg-gray-100 text-gray-600'];
+        $cIcon   = $statusIcon[$cStatus] ?? 'M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z';
+    @endphp
+    <x-jet-dialog-modal wire:model="commentModal">
+        <x-slot name="title">
+            <div class="flex items-center gap-3">
+                <span class="flex items-center justify-center h-10 w-10 rounded-full flex-shrink-0 {{ $cMeta['soft'] }}">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="{{ $cIcon }}" />
+                    </svg>
+                </span>
+                <div>
+                    <div class="text-base font-semibold text-gray-900 dark:text-slate-100 leading-tight">
+                        {{ __('Set task as') }} <span class="capitalize">{{ $cStatus }}</span>
+                    </div>
+                    <div class="text-xs font-normal text-gray-400">{{ __('A reason is required for this status') }}</div>
+                </div>
+            </div>
+        </x-slot>
+        <x-slot name="content">
+            <div x-data="{ note: @entangle('statusComment').defer }">
+                <label class="block text-sm font-medium text-gray-600 dark:text-slate-300 mb-1.5">
+                    {{ __('Reason / comment') }} <span class="text-red-500">*</span>
+                </label>
+                <textarea x-model="note" rows="4" maxlength="500"
+                    class="border-gray-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-lg shadow-sm block w-full text-sm resize-none"
+                    placeholder="{{ __('e.g. Client postponed the project / duplicate task / out of scope...') }}"></textarea>
+                <div class="flex items-center justify-between mt-1.5">
+                    <x-jet-input-error for="statusComment" />
+                    <span class="text-[11px] text-gray-400 ml-auto" x-text="(note ? note.length : 0) + ' / 500'"></span>
+                </div>
+            </div>
+        </x-slot>
+        <x-slot name="footer">
+            <x-jet-secondary-button wire:click="$set('commentModal', false)">{{ __('Cancel') }}</x-jet-secondary-button>
+            <button wire:click="confirmStatusComment" wire:loading.attr="disabled"
+                    class="ml-2 inline-flex items-center px-4 py-2 rounded-md font-semibold text-xs text-white uppercase tracking-widest transition focus:outline-none disabled:opacity-50 {{ $cMeta['dot'] }} hover:opacity-90">
+                {{ __('Confirm') }}
+            </button>
+        </x-slot>
+    </x-jet-dialog-modal>
 </div>

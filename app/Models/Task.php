@@ -22,6 +22,7 @@ class Task extends Model
         'source',
         'target_date',
         'status',
+        'status_note',
         'team_id',
     ];
 
