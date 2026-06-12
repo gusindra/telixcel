@@ -25,9 +25,15 @@ class AgentConsole extends Component
 
         $this->messages[] = [
             'role' => 'assistant',
-            'content' => 'Hi! Ask me to show, create, update, or delete records '
-                . '(orders, projects, tickets, blast messages). '
-                . 'Example: "show orders with status draft".',
+            'content' => "Halo! Saya analis data AI untuk **Telixcel**.\n\n"
+                . "Saya bisa membantu **analisa & laporan data**. Contoh:\n"
+                . "- *Project mana yang task-nya masih berjalan?*\n"
+                . "- *Kontrak yang akan expired bulan ini*\n"
+                . "- *Ringkasan task per status untuk project tertentu*\n"
+                . "- *Order dengan status unpaid minggu ini*\n"
+                . "- *Task yang sudah melewati target date*\n\n"
+                . "Saya juga bisa **ubah status** record — tapi perlu konfirmasi Anda dulu sebelum dieksekusi.\n\n"
+                . "Saya **tidak bisa** membuat atau menghapus data.",
         ];
     }
 
@@ -68,7 +74,7 @@ class AgentConsole extends Component
         } catch (\Throwable $e) {
             $this->messages[] = [
                 'role' => 'assistant',
-                'content' => 'Error talking to the AI service: ' . $e->getMessage(),
+                'content' => 'Gagal menghubungi AI service: ' . $e->getMessage(),
             ];
         } finally {
             $this->isThinking = false;
@@ -91,7 +97,7 @@ class AgentConsole extends Component
     public function rejectPendingAction(): void
     {
         $this->pendingAction = null;
-        $this->messages[] = ['role' => 'assistant', 'content' => 'Action cancelled. Nothing was changed.'];
+        $this->messages[] = ['role' => 'assistant', 'content' => 'Dibatalkan. Tidak ada yang berubah.'];
     }
 
     /** History for the model: prior user/assistant turns, excluding the current trailing user message. */

@@ -42,20 +42,21 @@ class Add extends Component
     }
 
     /**
-     * Copy line items from the most recent prior quotation of the same source
-     * (same model + model_id, e.g. the same project) into the new quotation.
+     * Copy line items from the most recent prior quotation into the new one.
+     * When model+source are set (e.g. created from a project), scope to that entity.
+     * Otherwise fall back to the globally latest quotation — so standalone creation
+     * also benefits from auto-fill.
      */
     private function copyItemsFromLatest(Quotation $new): void
     {
-        if (! $this->model || ! $this->source) {
-            return;
+        $query = Quotation::where('id', '!=', $new->id)->orderBy('id', 'desc');
+
+        if ($this->model && $this->source) {
+            // Prefer items from the same entity (project / order).
+            $query->where('model', $this->model)->where('model_id', $this->source);
         }
 
-        $latest = Quotation::where('model', $this->model)
-            ->where('model_id', $this->source)
-            ->where('id', '!=', $new->id)
-            ->orderBy('id', 'desc')
-            ->first();
+        $latest = $query->first();
 
         if (! $latest) {
             return;
@@ -64,6 +65,10 @@ class Add extends Component
         $items = OrderProduct::where('model', 'Quotation')
             ->where('model_id', $latest->id)
             ->get();
+
+        if ($items->isEmpty()) {
+            return;
+        }
 
         foreach ($items as $item) {
             OrderProduct::create([
