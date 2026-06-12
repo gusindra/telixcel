@@ -88,6 +88,45 @@
 
     <x-jet-section-border />
 
+    {{-- Update Password — admin sets a new password for this user --}}
+    <x-jet-form-section submit="savePassword({{ $user->id }})">
+        <x-slot name="title">
+            {{ __('Update Password') }}
+        </x-slot>
+
+        <x-slot name="description">
+            {{ __('Set a new password for this user. The user can change it later from their own profile.') }}
+        </x-slot>
+
+        <x-slot name="form">
+            <div class="col-span-6 sm:col-span-4">
+                <x-jet-label for="password" value="{{ __('New Password') }}" />
+                <x-jet-input id="password" type="password" class="mt-1 block w-full"
+                    wire:model.defer="password" autocomplete="new-password" />
+                <x-jet-input-error for="password" class="mt-2" />
+            </div>
+
+            <div class="col-span-6 sm:col-span-4">
+                <x-jet-label for="password_confirmation" value="{{ __('Confirm Password') }}" />
+                <x-jet-input id="password_confirmation" type="password" class="mt-1 block w-full"
+                    wire:model.defer="password_confirmation" autocomplete="new-password" />
+                <x-jet-input-error for="password_confirmation" class="mt-2" />
+            </div>
+        </x-slot>
+
+        <x-slot name="actions">
+            <x-jet-action-message class="mr-3" on="password_saved">
+                {{ __('Password updated.') }}
+            </x-jet-action-message>
+
+            <x-jet-button>
+                {{ __('Update Password') }}
+            </x-jet-button>
+        </x-slot>
+    </x-jet-form-section>
+
+    <x-jet-section-border />
+
     <x-jet-form-section submit="saveRole">
         <x-slot name="title">
             {{ __('User Role') }}
