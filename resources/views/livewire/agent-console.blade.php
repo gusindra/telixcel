@@ -106,6 +106,6 @@
     </div>
 
     <p class="text-xs text-gray-400 mt-2 text-center">
-        Model: {{ config('services.ollama.model') }} · Ubah status memerlukan konfirmasi · Tidak bisa buat / hapus data
+        Model: {{ config('services.ai.model') ?: config('services.ollama.model') }} 
     </p>
 </div>

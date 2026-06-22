@@ -36,6 +36,15 @@ return [
         'whatsapp_from' => env('TWILIO_WHATSAPP_FROM')
       ],
 
+    'ai' => [
+        'base_url' => env('AI_BASE_URL', env('OLLAMA_BASE_URL', 'http://localhost:11434')),
+        'model' => env('AI_MODEL', env('OLLAMA_MODEL', 'gemma4:31b-cloud')),
+        'api_key' => env('AI_API_KEY', env('OLLAMA_API_KEY')),
+        'timeout' => (int) (env('AI_TIMEOUT') ?: env('OLLAMA_TIMEOUT', 120)),
+        'max_iterations' => (int) (env('AI_MAX_ITERATIONS') ?: env('OLLAMA_MAX_ITERATIONS', 6)),
+        'is_openai' => str_contains(env('AI_BASE_URL', ''), '/v1'),
+    ],
+
     'ollama' => [
         'base_url' => env('OLLAMA_BASE_URL', 'http://localhost:11434'),
         'model' => env('OLLAMA_MODEL', 'gemma4:31b-cloud'),
