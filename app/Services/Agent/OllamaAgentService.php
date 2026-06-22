@@ -24,7 +24,7 @@ class OllamaAgentService
      */
     public function run(array $history, string $userMessage, ?string $model = null): array
     {
-        $model = $model ?: config('services.ollama.model');
+        $model = $model ?: (config('services.ai.model') ?: config('services.ollama.model'));
 
         $messages = array_merge(
             [['role' => 'system', 'content' => $this->systemPrompt()]],
@@ -34,7 +34,7 @@ class OllamaAgentService
 
         $pending = null;
         $metrics = [];
-        $max = (int) config('services.ollama.max_iterations', 6);
+        $max = (int) (config('services.ai.max_iterations') ?: config('services.ollama.max_iterations', 6));
 
         for ($i = 0; $i < $max; $i++) {
             $response = $this->chat($messages, $model);
@@ -63,17 +63,21 @@ class OllamaAgentService
                 $args = $this->decodeArgs($call['function']['arguments'] ?? []);
                 $result = $this->executor->execute($name, $args);
 
+                $toolMsg = [
+                    'role' => 'tool',
+                    'content' => $result['status'] === 'pending'
+                        ? json_encode(['status' => 'awaiting_user_approval', 'summary' => $result['action']['summary']])
+                        : json_encode($result),
+                ];
+
+                if (! empty($call['id'])) {
+                    $toolMsg['tool_call_id'] = $call['id'];
+                }
+
+                $messages[] = $toolMsg;
+
                 if ($result['status'] === 'pending') {
                     $pending = $result['action'];
-                    $messages[] = [
-                        'role' => 'tool',
-                        'content' => json_encode([
-                            'status' => 'awaiting_user_approval',
-                            'summary' => $result['action']['summary'],
-                        ]),
-                    ];
-                } else {
-                    $messages[] = ['role' => 'tool', 'content' => json_encode($result)];
                 }
             }
 
@@ -96,29 +100,60 @@ class OllamaAgentService
         ];
     }
 
-    private function chat(array $messages, string $model): array
+    private function normalizeResponse(array $response): array
     {
-        $request = Http::timeout((int) config('services.ollama.timeout', 120))
-            ->acceptJson();
+        $isOpenAI = config('services.ai.is_openai', false);
 
-        if ($key = config('services.ollama.api_key')) {
-            $request = $request->withToken($key);
+        if ($isOpenAI) {
+            return [
+                'message' => $response['choices'][0]['message'] ?? [],
+                'model' => $response['model'] ?? null,
+                'total_duration' => $response['usage']['total_tokens'] ?? null,
+                'eval_count' => $response['usage']['completion_tokens'] ?? null,
+                'eval_duration' => $response['usage']['prompt_tokens'] ?? null,
+            ];
         }
 
-        $response = $request->post(
-            rtrim(config('services.ollama.base_url'), '/') . '/api/chat',
-            [
+        return $response;
+    }
+
+    private function chat(array $messages, string $model): array
+    {
+        $baseUrl = config('services.ai.base_url') ?: config('services.ollama.base_url', 'http://localhost:11434');
+        $apiKey = config('services.ai.api_key') ?: config('services.ollama.api_key');
+        $timeout = (int) (config('services.ai.timeout') ?: config('services.ollama.timeout', 120));
+        $isOpenAI = config('services.ai.is_openai', false);
+
+        $request = Http::timeout($timeout)->acceptJson();
+
+        if ($apiKey) {
+            $request = $request->withToken($apiKey);
+        }
+
+        $url = $isOpenAI
+            ? rtrim($baseUrl, '/') . '/chat/completions'
+            : rtrim($baseUrl, '/') . '/api/chat';
+
+        $payload = $isOpenAI
+            ? [
+                'model' => $model,
+                'messages' => $messages,
+                'tools' => ToolSchemas::all(),
+                'stream' => false,
+                'temperature' => 0.1,
+            ]
+            : [
                 'model' => $model,
                 'messages' => $messages,
                 'tools' => ToolSchemas::all(),
                 'stream' => false,
                 'options' => ['temperature' => 0.1],
-            ]
-        );
+            ];
 
+        $response = $request->post($url, $payload);
         $response->throw();
 
-        return $response->json() ?? [];
+        return $this->normalizeResponse($response->json() ?? []);
     }
 
     /**
