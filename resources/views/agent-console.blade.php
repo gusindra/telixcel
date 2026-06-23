@@ -5,7 +5,7 @@
         </h2>
     </x-slot>
 
-    <div class="py-6">
+    <div class="py-2">
         @livewire('agent-console')
     </div>
 </x-app-layout>

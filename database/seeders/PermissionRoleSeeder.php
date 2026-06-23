@@ -43,5 +43,15 @@ class PermissionRoleSeeder extends Seeder
                 ]);
             });
         }
+
+        $adminRole = Role::where('name', 'Admin')->first();
+        if ($adminRole) {
+            Permission::query()->each(function ($permission) use ($adminRole) {
+                PermissionRole::updateOrCreate([
+                    'role_id' => $adminRole->id,
+                    'permission_id' => $permission->id,
+                ]);
+            });
+        }
     }
 }

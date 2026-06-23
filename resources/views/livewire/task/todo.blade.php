@@ -5,7 +5,7 @@
         'complete'  => ['dot' => 'bg-emerald-500', 'soft' => 'bg-emerald-50 text-emerald-600'],
         'declined'  => ['dot' => 'bg-red-500',     'soft' => 'bg-red-50 text-red-600'],
         'cancelled' => ['dot' => 'bg-gray-500',    'soft' => 'bg-gray-100 text-gray-600'],
-        'aborted'   => ['dot' => 'bg-orange-500',  'soft' => 'bg-orange-50 text-orange-600'],
+        'aborted'   => ['dot' => 'bg-yellow-500',  'soft' => 'bg-yellow-50 text-yellow-600'],
     ];
     $closedStatuses = ['complete', 'declined', 'cancelled', 'aborted'];
     $meta = fn ($s) => $statusMeta[$s] ?? ['dot' => 'bg-gray-400', 'soft' => 'bg-gray-100 text-gray-600'];
