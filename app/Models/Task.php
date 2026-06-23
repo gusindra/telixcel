@@ -46,6 +46,23 @@ class Task extends Model
         return $this->belongsTo(Ticket::class, 'ticket_id');
     }
 
+    /**
+     * Limit to tasks whose type matches the current user's role type(s).
+     * Admin / Super Admin are exempt — they see every task.
+     * For other roles: no matching role type -> no tasks (strict task.type === role.type).
+     */
+    public function scopeForMyType($query)
+    {
+        if (is_task_manager()) {
+            return $query; // managers see all tasks
+        }
+        $types = my_task_types();
+        if (empty($types)) {
+            return $query->whereRaw('1 = 0');
+        }
+        return $query->whereIn('type', $types);
+    }
+
     /** Direct child tasks (one level). */
     public function children()
     {

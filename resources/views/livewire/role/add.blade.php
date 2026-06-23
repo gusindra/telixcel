@@ -21,11 +21,12 @@
                     name="type"
                     id="type"
                     class="border-gray-300 dark:bg-slate-800 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full"
-                    wire:model.debunce.800ms="type"
+                    wire:model="type"
                     >
-                    <option selected>-- Select Type --</option>
-                    <option value="admin">Admin</option>
-                    <option value="agent">Agent</option>
+                    <option value="">-- Select Type --</option>
+                    <option value="admin">Admin (teknikal)</option>
+                    <option value="finance">Finance (invoice)</option>
+                    <option value="operasional">Operasional (dokumentasi, support, install)</option>
                 </select>
                 <x-jet-input-error for="type" class="mt-2" />
             </div>

@@ -97,5 +97,17 @@ class UserTableSeeder extends Seeder
             'current_team_id' => $projectTeam->id
         ]);
 
+        // Team Admin — Telixcel team
+        $teamAdmin = User::updateOrCreate(['email' => 'teamadmin@telixcel.com'], [
+            'name' => 'Team Admin',
+            'password' => Hash::make('12345678'),
+            'current_team_id' => $inHouseTeam->id,
+        ]);
+
+        TeamUser::updateOrCreate(
+            ['team_id' => $inHouseTeam->id, 'user_id' => $teamAdmin->id],
+            ['role' => 'admin', 'status' => null]
+        );
+
     }
 }

@@ -45,5 +45,20 @@ class RoleUserSeeder extends Seeder
                 'working_id' => 'PM123',
             ]);
         }
+
+        $teamAdminUser = User::where('email', 'teamadmin@telixcel.com')->first();
+        $adminRole = Role::where('name', 'Admin')->first();
+
+        if ($teamAdminUser && $adminRole && $teamAdminUser->current_team_id) {
+            RoleUser::updateOrCreate([
+                'user_id' => $teamAdminUser->id,
+                'role_id' => $adminRole->id,
+                'team_id' => $teamAdminUser->current_team_id,
+            ], [
+                'status' => 'active',
+                'active' => 1,
+                'working_id' => 'ADM456',
+            ]);
+        }
     }
 }
