@@ -136,11 +136,23 @@ class CalendarView extends Component
         $startDate = Carbon::createFromDate($this->selectedYear, $this->selectedMonth, 1)->startOfDay();
         $endDate = $startDate->copy()->endOfMonth()->endOfDay();
 
+        /*if(auth()->user()->activeRole && str_contains(auth()->user()->activeRole->role->name, "Super Admin")){
+            $tasks = Task::orderBy('target_date');
+        }else{
+            // Get all projects for the team
+            $project = Project::whereHas('members', function ($query) {
+                    $query->where('user_id', auth()->user()->id);
+                })
+                ->pluck('id');
+            $tasks = Task::orderBy('target_date')
+                ->whereIn('project_id', $project);
+        }
+        $tasks = $tasks->whereNotNull('target_date')*/
         $tasks = Task::where('team_id', $team->id)
+            ->forMyType()
             ->whereNotNull('target_date')
             ->whereBetween('target_date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
             ->with(['project', 'owner'])
-            ->orderBy('target_date')
             ->orderBy('created_at', 'desc')
             ->get();
 

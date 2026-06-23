@@ -39,7 +39,22 @@
     </header>
 
     @if($user->id != 0)
-        {{-- Same content as the app dashboard: Projects + Tasks --}}
+        {{-- This user's own / assigned tasks --}}
+        <div class="py-4">
+            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                <div class="bg-white dark:bg-slate-600 overflow-hidden shadow-xl sm:rounded-lg">
+                    <div class="p-4 border-b border-gray-200 dark:border-slate-500">
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-slate-200">{{ __('Tasks') }} — <span class="capitalize">{{ $user->name }}</span></h3>
+                        <p class="text-sm text-gray-500 dark:text-slate-300">{{ __('Tasks owned by or assigned to this user.') }}</p>
+                    </div>
+                    <div class="px-4 py-3">
+                        @livewire('task.todo', ['ownerId' => $user->id], key('user-todo-'.$user->id))
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Team projects overview --}}
         @include('dashboard.project')
 
         {{-- Teams this user belongs to --}}

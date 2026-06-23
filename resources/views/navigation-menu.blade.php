@@ -116,10 +116,10 @@
                     <x-jet-dropdown align="right" width="48">
                         <x-slot name="trigger">
                             @if (Laravel\Jetstream\Jetstream::managesProfilePhotos())
-                                <button class="flex text-sm border-2 border-transparent rounded-full focus:outline-none focus:border-gray-300 dark:bg-slate-700 transition">
+                                <button class="flex items-center text-sm border-2 border-transparent rounded-full focus:outline-none focus:border-gray-300 dark:bg-slate-700 transition">
                                     <img class="h-8 w-8 rounded-full object-cover" src="{{ Auth::user()->profile_photo_url }}" alt="{{ Auth::user()->name }}" />
                                     @if(Auth::user()->activeRole)
-                                    <span class="m-2 text-xs">{{Auth::user()->activeRole->role->name}}</span>
+                                    <span class="ml-2 text-xs whitespace-nowrap">{{Auth::user()->activeRole->role->name}}</span>
                                     @endif
                                 </button>
                             @else
@@ -175,6 +175,30 @@
                                     {{ __('Log Out') }}
                                 </x-jet-dropdown-link>
                             </form>
+                        </x-slot>
+                    </x-jet-dropdown>
+                </div>
+
+                <!-- Language Switcher -->
+                <div class="ml-3 relative">
+                    <x-jet-dropdown align="right" width="40">
+                        <x-slot name="trigger">
+                            <button class="inline-flex items-center px-2 py-1.5 rounded-md text-sm text-gray-500 dark:text-slate-300 hover:text-gray-700 dark:hover:text-white focus:outline-none transition">
+                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7">
+                                    <circle cx="12" cy="12" r="9"/><path stroke-linecap="round" stroke-linejoin="round" d="M3.6 9h16.8M3.6 15h16.8M12 3a14 14 0 010 18M12 3a14 14 0 000 18"/>
+                                </svg>
+                                <span class="ml-1 uppercase font-semibold text-xs">{{ app()->getLocale() }}</span>
+                            </button>
+                        </x-slot>
+                        <x-slot name="content">
+                            <a href="{{ url('/lang/en') }}" class="flex items-center justify-between px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-slate-700 {{ app()->getLocale()=='en' ? 'font-semibold text-blue-600' : 'text-gray-600 dark:text-slate-300' }}">
+                                English
+                                @if(app()->getLocale()=='en')<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>@endif
+                            </a>
+                            <a href="{{ url('/lang/id') }}" class="flex items-center justify-between px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-slate-700 {{ app()->getLocale()=='id' ? 'font-semibold text-blue-600' : 'text-gray-600 dark:text-slate-300' }}">
+                                Indonesia
+                                @if(app()->getLocale()=='id')<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>@endif
+                            </a>
                         </x-slot>
                     </x-jet-dropdown>
                 </div>
@@ -252,6 +276,17 @@
                 <x-jet-responsive-nav-link href="{{ route('profile.show') }}" :active="request()->routeIs('profile.show')">
                     {{ __('Profile') }}
                 </x-jet-responsive-nav-link>
+
+                <!-- Language -->
+                <div class="border-t border-gray-200 dark:border-slate-700"></div>
+                <div class="block px-4 py-2 text-xs text-gray-400">{{ __('Language') }}</div>
+                <x-jet-responsive-nav-link href="{{ url('/lang/en') }}" :active="app()->getLocale()=='en'">
+                    English
+                </x-jet-responsive-nav-link>
+                <x-jet-responsive-nav-link href="{{ url('/lang/id') }}" :active="app()->getLocale()=='id'">
+                    Indonesia
+                </x-jet-responsive-nav-link>
+                <div class="border-t border-gray-200 dark:border-slate-700"></div>
 
                 @if (auth()->user()->currentTeam && Laravel\Jetstream\Jetstream::hasApiFeatures() && auth()->user()->currentTeam->id != 1)
                     <x-jet-responsive-nav-link href="{{ route('api-tokens.index') }}" :active="request()->routeIs('api-tokens.index')">
