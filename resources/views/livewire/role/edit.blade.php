@@ -43,11 +43,12 @@
                         name="type"
                         id="type"
                         class="border-gray-300 dark:bg-slate-800 dark:text-slate-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-md shadow-sm mt-1 block w-full"
-                        wire:model.debunce.800ms="type"
+                        wire:model="type"
                         >
-                        <option value="admin" selected>Admin</option>
-                        <option value="team">Team</option>
-                        <option value="master">Master</option>
+                        <option value="">-- Select Type --</option>
+                        <option value="admin" @selected($type=='admin')>Admin (teknikal)</option>
+                        <option value="finance" @selected($type=='finance')>Finance (invoice)</option>
+                        <option value="operasional" @selected($type=='operasional')>Operasional (dokumentasi, support, install)</option>
                     </select>
 
                     <x-jet-input-error for="type" class="mt-2" />

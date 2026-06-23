@@ -31,15 +31,21 @@ class DashboardOverview extends Component
             return;
         }
 
-        // Get all projects for the team
-        $this->projects = Project::where('team_id', $teamId)
-            ->with(['tasks'])
+        // Only projects the user is invited to (Super Admin -> all). Tasks then
+        // follow the ACTIVE role's type (changes when the user switches role).
+        $invited = my_invited_project_ids();
+        $projectsQuery = Project::where('team_id', $teamId);
+        if ($invited !== null) {
+            $projectsQuery->whereIn('id', $invited);
+        }
+        $this->projects = $projectsQuery
+            ->with(['tasks' => fn ($q) => $q->forMyType()])
             ->get();
 
         $this->totalProjects = $this->projects->count();
 
-        // Calculate statistics
-        $allTasks = Task::whereIn('project_id', $this->projects->pluck('id'))->get();
+        // Calculate statistics (invited projects + active role type)
+        $allTasks = Task::whereIn('project_id', $this->projects->pluck('id'))->forMyType()->get();
         $this->totalTasks = $allTasks->count();
         $this->tasksInProgress = $allTasks->where('status', 'progress')->count();
         $this->tasksCompleted = $allTasks->where('status', 'complete')->count();
@@ -86,8 +92,11 @@ class DashboardOverview extends Component
             }
         }
         if($projectId==0){
+            $invited = my_invited_project_ids();
             $this->selectedProjectTasks = [];
             $this->selectedProjectTasks = Task::whereIn('status', ['progress', 'pending'])
+                    ->when($invited !== null, fn ($q) => $q->whereIn('project_id', $invited))
+                    ->forMyType()
                     ->orderBy('status', 'desc')
                     ->orderBy('created_at', 'desc')
                     ->get()
@@ -108,6 +117,7 @@ class DashboardOverview extends Component
             if ($project) {
                 $this->selectedProjectTasks = $project->tasks()
                     ->whereIn('status', $statusArr)
+                    ->forMyType()
                     ->orderBy('status', 'desc')
                     ->orderBy('created_at', 'desc')
                     ->get()

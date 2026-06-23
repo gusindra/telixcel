@@ -15,6 +15,9 @@ class Todo extends Component
 
     public $project_id;
 
+    /** When set (e.g. user detail page), show only this user's own/assigned tasks. */
+    public $ownerId = null;
+
     // form fields
     public $title;
     public $type;
@@ -49,15 +52,10 @@ class Todo extends Component
     /** "Closed" statuses sink to the bottom of the list. */
     public const CLOSED = ['complete', 'declined', 'cancelled', 'aborted'];
 
-    private const ROLE_TYPE_MAP = [
-        'Accounting' => 'finance', 'Commercial' => 'finance',
-        'Operational' => 'operasional', 'Project Manager' => 'operasional',
-        'Agent' => 'operasional', 'Admin' => 'admin',
-    ];
-
-    public function mount($id = null)
+    public function mount($id = null, $ownerId = null)
     {
         $this->project_id = $id;
+        $this->ownerId = $ownerId;
         $this->resetForm();
     }
 
@@ -280,37 +278,61 @@ class Todo extends Component
         $this->target_date = now()->addDays(7)->toDateString();
     }
 
-    /** Visible tasks for this project, scoped by role, returned as a tree (unlimited depth). */
-    private function tree()
+    /**
+     * Base query of every task the current view may see (team + project + role-type
+     * or owner scope). A task is "visible" if it matches this — at ANY depth, so a
+     * finance sub-task under an operasional parent still counts for a finance role.
+     */
+    private function scopedQuery()
     {
-        // Root tasks only, paginated. Project page -> single project; dashboard -> all visible.
-        $query = Task::query()->with('owner')->where('parent_id', 0);
+        $q = Task::query()->where('team_id', auth()->user()->current_team_id);
 
         if ($this->project_id) {
-            $query->where('project_id', $this->project_id);
+            $q->where('project_id', $this->project_id);
+        } elseif (! $this->ownerId) {
+            // Dashboard / all-tasks view: only projects the user is invited to.
+            $invited = my_invited_project_ids();
+            if ($invited !== null) {
+                $q->whereIn('project_id', $invited);
+            }
         }
 
-        if ($this->isManager()) {
-            $query->where('team_id', auth()->user()->current_team_id);
-        } else {
-            $uid = auth()->id();
-            $types = $this->myTypes();
-            $query->where(function ($q) use ($uid, $types) {
-                $q->where('owner_id', $uid);
-                if (! empty($types)) {
-                    $q->orWhereIn('type', $types);
-                }
+        if ($this->ownerId) {
+            // Per-user view (user detail page): that user's own/assigned tasks, all types.
+            $q->where(function ($w) {
+                $w->where('owner_id', $this->ownerId)
+                  ->orWhere('assigned_to', $this->ownerId);
             });
+        } else {
+            // Visibility rule: task.type must match the active role's type
+            // (Super Admin is exempt and sees everything).
+            $q->forMyType();
         }
 
-        // Closed tasks (complete/declined/cancelled/aborted) sink to bottom;
-        // HIGH priority pinned top among open; then status order; then oldest.
-        $query->orderByRaw("status IN ('complete','declined','cancelled','aborted')")
-              ->orderByRaw("FIELD(priority,'high','medium','low')")
-              ->orderByRaw("FIELD(status,'progress','pending','complete','declined','cancelled','aborted')")
-              ->orderBy('created_at');
+        return $q;
+    }
 
-        $roots = $query->paginate(8, ['*'], 'todoPage');
+    /** Visible tasks for this view, returned as a tree (unlimited depth). */
+    private function tree()
+    {
+        // All task ids the user may see (any level). A visible task becomes a display
+        // "root" when its parent is NOT visible (e.g. a finance sub-task whose parent
+        // is operasional), so matching tasks are never hidden behind a filtered parent.
+        $visibleIds = $this->scopedQuery()->pluck('id')->all();
+
+        $roots = $this->scopedQuery()
+            ->with('owner')
+            ->where(function ($q) use ($visibleIds) {
+                $q->where('parent_id', 0);
+                if (! empty($visibleIds)) {
+                    $q->orWhereNotIn('parent_id', $visibleIds);
+                }
+            })
+            ->orderByRaw("status IN ('complete','declined','cancelled','aborted')")
+            ->orderByRaw("FIELD(priority,'high','medium','low')")
+            ->orderByRaw("FIELD(status,'progress','pending','complete','declined','cancelled','aborted')")
+            ->orderBy('created_at')
+            ->paginate(8, ['*'], 'todoPage');
 
         // Sort comparator: open first, then closed; oldest first within each rank.
         $rank = ['progress' => 0, 'pending' => 1, 'complete' => 2, 'declined' => 3, 'cancelled' => 4, 'aborted' => 5];
@@ -319,36 +341,14 @@ class Todo extends Component
             fn ($a, $b) => $a->created_at <=> $b->created_at,
         ])->values();
 
-        // Recursively load ALL descendants for roots on this page (one query per depth level).
-        $rootIds = $roots->pluck('id')->toArray();
-        $allDescendants = $this->loadAllDescendants($rootIds);
-        $childMap = $allDescendants->groupBy('parent_id');
+        // Only VISIBLE tasks are nested as children (same scope as the roots).
+        $childMap = $this->scopedQuery()->with('owner')->get()->groupBy('parent_id');
 
         $roots->getCollection()->each(function ($root) use ($childMap, $sorter) {
             $this->attachChildNodes($root, $childMap, $sorter);
         });
 
         return $roots;
-    }
-
-    /**
-     * Batch-load all descendants of the given parent IDs, one SQL query per depth level.
-     * Returns a flat collection of all descendant tasks.
-     */
-    private function loadAllDescendants(array $parentIds): \Illuminate\Support\Collection
-    {
-        if (empty($parentIds)) {
-            return collect();
-        }
-
-        $children = Task::whereIn('parent_id', $parentIds)->get();
-        if ($children->isEmpty()) {
-            return collect();
-        }
-
-        return $children->merge(
-            $this->loadAllDescendants($children->pluck('id')->toArray())
-        );
     }
 
     /**
@@ -375,33 +375,12 @@ class Todo extends Component
     }
 
     /**
-     * Task types the current user may see, taken from roles.type (data-driven,
-     * set by TaskRoleSeeder). Falls back to the name map if type is empty.
+     * Task types the current user may see (roles.type). Delegates to the shared
+     * my_task_types() helper so the rule is identical across the app.
      */
     private function myTypes(): array
     {
-        $user = auth()->user();
-        if (! $user) {
-            return [];
-        }
-        $types = [];
-        foreach ($user->role as $roleUser) {
-            $role = $roleUser->role;
-            if (! $role) {
-                continue;
-            }
-            if (! empty($role->type)) {
-                $types[] = $role->type;
-                continue;
-            }
-            // fallback for roles whose type hasn't been seeded yet
-            foreach (self::ROLE_TYPE_MAP as $needle => $type) {
-                if (str_contains($role->name ?? '', $needle)) {
-                    $types[] = $type;
-                }
-            }
-        }
-        return array_values(array_unique($types));
+        return my_task_types();
     }
 
     private function canManage(Task $task): bool

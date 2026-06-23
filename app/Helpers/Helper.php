@@ -319,6 +319,77 @@ function get_my_companies(){
     return Company::where('user_id', auth()->user()->currentTeam->user_id)->get();
 }
 
+/**
+ * Task types the current user may see, based on their CURRENTLY ACTIVE role's type:
+ *   admin = teknikal, finance = invoice, operasional = dokumentasi/support/install.
+ * Super Admin (active role) sees all three. Switching active role changes this.
+ */
+function my_task_types(): array
+{
+    $user = auth()->user();
+    if (! $user) {
+        return [];
+    }
+
+    $role = optional(optional($user->activeRole)->role);
+    $name = $role->name ?? '';
+
+    // Super Admin active role sees ALL task types.
+    if (strtolower(trim($name)) === 'super admin') {
+        return ['admin', 'finance', 'operasional'];
+    }
+
+    if (! empty($role->type)) {
+        return [$role->type];
+    }
+
+    // Fallback by role name when the type column isn't set yet.
+    $map = [
+        'Accounting' => 'finance', 'Commercial' => 'finance',
+        'Operational' => 'operasional', 'Project Manager' => 'operasional',
+        'Agent' => 'operasional', 'Admin' => 'admin',
+    ];
+    foreach ($map as $needle => $type) {
+        if (str_contains($name, $needle)) {
+            return [$type];
+        }
+    }
+
+    return [];
+}
+
+/**
+ * Project ids the current user is invited to (member) or owns.
+ * Returns null when the user sees ALL projects (Super Admin active role).
+ * Used to scope dashboard tasks to "projects the user is invited to".
+ */
+function my_invited_project_ids()
+{
+    if (is_task_manager()) {
+        return null; // Super Admin: all projects
+    }
+    $uid = auth()->id();
+    return \App\Models\Project::where(function ($q) use ($uid) {
+        $q->whereHas('members', fn ($m) => $m->where('users.id', $uid))
+          ->orWhere('user_id', $uid);
+    })->pluck('id')->all();
+}
+
+/**
+ * Whether the current user's ACTIVE role is "Super Admin".
+ * Only Super Admin sees every task type/project; every other role is limited
+ * to its active role's type. (Switching the active role changes what is visible.)
+ */
+function is_task_manager(): bool
+{
+    $user = auth()->user();
+    if (! $user) {
+        return false;
+    }
+    $name = optional(optional($user->activeRole)->role)->name ?? '';
+    return strtolower(trim($name)) === 'super admin';
+}
+
 function list_online(){
     return TeamUser::where('status', '!=', NULL)->get();
 }

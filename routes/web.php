@@ -63,6 +63,14 @@ Route::get('/', function () {
     return view('welcome');
 })->name('welcome');
 
+// Language switcher — stores chosen locale in session, applied by SetLocale middleware.
+Route::get('/lang/{locale}', function ($locale) {
+    if (in_array($locale, \App\Http\Middleware\SetLocale::SUPPORTED, true)) {
+        session(['locale' => $locale]);
+    }
+    return redirect()->back();
+})->name('lang.switch');
+
 Route::group(['middleware' => 'web'], function () {
     // Route::get('api/documentation', '\L5Swagger\Http\Controllers\SwaggerController@api')->name('l5swagger.api');
 });

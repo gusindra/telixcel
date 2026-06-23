@@ -137,6 +137,7 @@ class CalendarView extends Component
         $endDate = $startDate->copy()->endOfMonth()->endOfDay();
 
         $tasks = Task::where('team_id', $team->id)
+            ->forMyType()
             ->whereNotNull('target_date')
             ->whereBetween('target_date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
             ->with(['project', 'owner'])
