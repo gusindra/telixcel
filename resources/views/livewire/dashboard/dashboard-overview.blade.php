@@ -127,6 +127,7 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                                @php $totaltask = 0; @endphp
                                 @foreach($projectStats as $stat)
                                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition cursor-pointer" wire:click="selectProject({{ $stat['id'] }})">
                                         <td class="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
@@ -139,6 +140,7 @@
                                         <td class="px-6 py-4 text-sm text-center">
                                             <span class="inline-flex items-center justify-center h-8 w-8 rounded-full bg-gray-100 dark:bg-gray-700 font-semibold text-gray-900 dark:text-white">
                                                 {{ $stat['total_tasks'] }}
+                                                @php $totaltask = $totaltask + $stat['total_tasks'] @endphp
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 text-sm">
@@ -161,7 +163,7 @@
                                         </td>
                                     </tr>
                                 @endforeach
-                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition cursor-pointer" wire:click="selectProject(0)">
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition cursor-pointer" wire:click="loadProjectTasks(0)">
                                         <td class="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
                                             <div class="flex items-center">
                                                 <div class="ml-3">
@@ -171,7 +173,7 @@
                                         </td>
                                         <td class="px-6 py-4 text-sm text-center">
                                             <span class="inline-flex items-center justify-center h-8 w-8 rounded-full bg-gray-100 dark:bg-gray-700 font-semibold text-gray-900 dark:text-white">
-                                                
+                                                {{ $totaltask }}
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 text-sm">

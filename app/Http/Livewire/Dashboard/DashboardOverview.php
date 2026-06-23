@@ -30,11 +30,18 @@ class DashboardOverview extends Component
         if (!$teamId) {
             return;
         }
-
-        // Get all projects for the team
-        $this->projects = Project::where('team_id', $teamId)
-            ->with(['tasks'])
+        
+        if(auth()->user()->activeRole && str_contains(auth()->user()->activeRole->role->name, "Super Admin")){
+            $this->projects = Project::with(['tasks'])
             ->get();
+        }else{
+            // Get all projects for the team
+            $this->projects = Project::whereHas('members', function ($query) {
+                    $query->where('user_id', auth()->user()->id);
+                })
+                ->with(['tasks'])
+                ->get();
+        }
 
         $this->totalProjects = $this->projects->count();
 
@@ -80,6 +87,7 @@ class DashboardOverview extends Component
         $statusArr = ['progress', 'pending'];
         if(!is_null($status)){
             if($status == 'all'){
+                dd(1);
                 $statusArr = ['progress', 'pending', 'complete'];
             }else{
                 $statusArr = [$status];
@@ -107,6 +115,9 @@ class DashboardOverview extends Component
             $project = Project::find($projectId);
             if ($project) {
                 $this->selectedProjectTasks = $project->tasks()
+                    ->whereHas('tasks', function ($query) {
+                        $query->where('type', auth()->user()->activeRole->role->type);
+                    })
                     ->whereIn('status', $statusArr)
                     ->orderBy('status', 'desc')
                     ->orderBy('created_at', 'desc')
