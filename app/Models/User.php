@@ -112,7 +112,8 @@ class User extends Authenticatable
      * @return void
      */
     public function super(){
-    	return $this->hasMany('App\Models\TeamUser','user_id')->where('team_id', env('IN_HOUSE_TEAM_ID'));
+        $team = \App\Models\Team::where('slug', env('IN_HOUSE_TEAM_SLUG', 'telixcel'))->first();
+        return $this->hasMany('App\Models\TeamUser', 'user_id')->where('team_id', $team->id ?? 0);
     }
 
     /**

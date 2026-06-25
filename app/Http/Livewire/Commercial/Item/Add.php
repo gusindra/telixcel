@@ -17,7 +17,7 @@ class Add extends Component
     public function rules()
     {
         return [
-            'type' => 'required',
+            'type' => 'required|in:sku,nosku,one_time,monthly,anually',
             'name' => 'required',
             'sku' => 'required|unique:commerce_items',
             'price' => 'required|numeric',

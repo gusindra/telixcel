@@ -21,10 +21,10 @@ class Add extends Component
     public function rules()
     {
         return [
-            'input.type' => 'required',
+            'input.type' => 'required|in:admin,app,email',
             'input.message' => 'required',
             'input.group' => 'required',
-            'grouptype' => 'required',
+            'grouptype' => 'required|in:role,team,user',
         ];
     }
 
@@ -32,7 +32,7 @@ class Add extends Component
     {
         $this->validate();
         $this->user = auth()->user()->id;
-        if(auth()->user()->super->first()->role == 'superadmin'){
+        if(auth()->user()->super->first()?->role == 'superadmin'){
             $this->user = 0;
         }
         if($this->grouptype=='user'){
