@@ -24,7 +24,8 @@ class Project extends Model
         'contact_id',
         'referrer_name',
         'team_id',
-        'product_line'
+        'product_line',
+        'user_id',
     ];
 
     public static $searchable=[
