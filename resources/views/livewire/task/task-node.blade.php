@@ -31,7 +31,7 @@
 
         <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2 flex-wrap">
-                <span class="{{ $isRoot ? 'text-sm' : 'text-xs' }} truncate
+                <span class="{{ $isRoot ? 'text-sm' : 'text-xs' }}
                     {{ $isClosed ? 'line-through text-gray-400' : ($isRoot ? 'font-medium text-gray-800 dark:text-slate-100' : 'text-gray-700 dark:text-slate-300') }}">{{ $task->title }}</span>
                 @if($isRoot && $task->type)
                     <span class="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded {{ $typeBadge($task->type) }}">{{ $task->type }}</span>
