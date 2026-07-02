@@ -60,6 +60,31 @@ class ProjectMemberTest extends TestCase
     }
 
     /** @test */
+    public function assigning_a_user_also_grants_team_membership_role_and_notification(): void
+    {
+        $actor = $this->actor();
+        $team = \App\Models\Team::forceCreate(['user_id' => $actor->id, 'name' => 'T', 'personal_team' => true]);
+        $project = Project::create(['name' => 'P', 'type' => 'selling', 'status' => 'draft', 'team_id' => $team->id]);
+
+        // A role that can VIEW PROJECT exists in the system.
+        $perm = \App\Models\Permission::create(['name' => 'VIEW PROJECT', 'model' => 'PROJECT']);
+        $role = \App\Models\Role::create(['name' => 'Member', 'type' => 'operasional', 'role_for' => 'team', 'description' => 'm']);
+        \App\Models\PermissionRole::create(['role_id' => $role->id, 'permission_id' => $perm->id]);
+
+        $member = $this->makeUser('Fresh Invitee');
+
+        Livewire::test(AddAgent::class, ['id' => $project->id])
+            ->set('selectedUser', $member->id)
+            ->call('assign')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('project_user', ['project_id' => $project->id, 'user_id' => $member->id]);
+        $this->assertDatabaseHas('team_user', ['team_id' => $team->id, 'user_id' => $member->id]);
+        $this->assertDatabaseHas('role_user', ['user_id' => $member->id, 'team_id' => $team->id, 'role_id' => $role->id, 'active' => 1]);
+        $this->assertDatabaseHas('notifications', ['user_id' => $member->id, 'type' => 'app', 'status' => 'unread']);
+    }
+
+    /** @test */
     public function unassigning_a_user_removes_them_from_project_members(): void
     {
         $this->actor();

@@ -25,6 +25,7 @@ class Todo extends Component
     public $source;
     public $target_date;
     public $parent_id = 0;   // 0 = root task, else parent task id
+    public $assigned_to = null; // user the task is assigned to (optional)
 
     public $showForm = false;
 
@@ -94,6 +95,7 @@ class Todo extends Component
             'source'      => $this->source,
             'target_date' => $this->target_date,
             'owner_id'    => auth()->id(),
+            'assigned_to' => $this->assigned_to ?: null,
             'team_id'     => auth()->user()->current_team_id,
             'status'      => 'pending',
         ]);
@@ -275,6 +277,7 @@ class Todo extends Component
         $this->priority = 'medium';
         $this->source = '';
         $this->parent_id = 0;
+        $this->assigned_to = null;
         $this->target_date = now()->addDays(7)->toDateString();
     }
 
@@ -403,6 +406,24 @@ class Todo extends Component
         return $user->activeRole && str_contains($user->activeRole->role->name ?? '', 'Admin');
     }
 
+    /** Users a task may be assigned to: project members + owner (project tasks), else the team. */
+    private function assignableUsers()
+    {
+        if ($this->project_id) {
+            $project = \App\Models\Project::find($this->project_id);
+            if ($project) {
+                $ids = $project->members()->pluck('users.id')
+                    ->push($project->user_id)->push(auth()->id())
+                    ->filter()->unique()->all();
+
+                return \App\Models\User::whereIn('id', $ids)->orderBy('name')->get();
+            }
+        }
+        $team = auth()->user()->currentTeam;
+
+        return $team ? $team->allUsers() : collect([auth()->user()]);
+    }
+
     public function render()
     {
         return view('livewire.task.todo', [
@@ -410,6 +431,7 @@ class Todo extends Component
             'priorities' => self::PRIORITIES,
             'roots'      => $this->tree(),
             'parents'    => $this->parentOptions(),
+            'assignableUsers' => $this->assignableUsers(),
             'dashboard'  => ! $this->project_id,
         ]);
     }

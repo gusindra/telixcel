@@ -39,23 +39,17 @@
     </header>
 
     @if($user->id != 0)
-        {{-- This user's own / assigned tasks --}}
+        {{-- Dashboard-style overview, scoped to this user's owned / assigned tasks --}}
         <div class="py-4">
-            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <div class="bg-white dark:bg-slate-600 overflow-hidden shadow-xl sm:rounded-lg">
-                    <div class="p-4 border-b border-gray-200 dark:border-slate-500">
-                        <h3 class="text-lg font-medium text-gray-900 dark:text-slate-200">{{ __('Tasks') }} — <span class="capitalize">{{ $user->name }}</span></h3>
-                        <p class="text-sm text-gray-500 dark:text-slate-300">{{ __('Tasks owned by or assigned to this user.') }}</p>
-                    </div>
-                    <div class="px-4 py-3">
-                        @livewire('task.todo', ['ownerId' => $user->id], key('user-todo-'.$user->id))
-                    </div>
-                </div>
+            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 mb-2">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-slate-200">{{ __('Tasks') }} — <span class="capitalize">{{ $user->name }}</span></h3>
+                <p class="text-sm text-gray-500 dark:text-slate-300">{{ __('Tasks owned by or assigned to this user.') }}</p>
             </div>
+            @livewire('dashboard.dashboard-overview', ['forUserId' => $user->id], key('user-dashboard-'.$user->id))
         </div>
 
         {{-- Team projects overview --}}
-        @include('dashboard.project')
+        @include('dashboard.project', ['ownerId' => $user->id])
 
         {{-- Teams this user belongs to --}}
         <div class="py-3 mb-6">

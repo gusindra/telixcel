@@ -8,6 +8,7 @@ use App\Http\Controllers\WebhookController;
 use App\Http\Livewire\ShowTemplate;
 use App\Http\Livewire\Dashboard\DashboardOverview;
 use App\Http\Livewire\Dashboard\CalendarView;
+use App\Http\Livewire\Dashboard\GanttView;
 use App\Http\Controllers\ApiWaController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\AuthController;
@@ -86,6 +87,10 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/calendar', function () {
         return view('dashboard.calendar', ['calendar' => CalendarView::class]);
     })->name('calendar.view');
+
+    Route::get('/gantt', function () {
+        return view('dashboard.gantt', ['gantt' => GanttView::class]);
+    })->name('gantt.view');
 
     Route::get('/message', function () {
         return view('message');
