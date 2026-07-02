@@ -15,7 +15,7 @@ class Roles extends Component
     public function rules()
     {
         return [
-            'type' => 'required',
+            'type' => 'required|in:admin,finance,operasional',
             'name' => 'required',
             'description' => 'required',
         ];

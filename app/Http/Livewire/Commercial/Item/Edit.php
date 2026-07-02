@@ -42,7 +42,7 @@ class Edit extends Component
             'name' => 'required',
             'price' => 'required',
             'sku' => 'required',
-            'type' => 'required',
+            'type' => 'required|in:sku,nosku,one_time,monthly,anually',
         ];
     }
 

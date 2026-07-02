@@ -42,6 +42,8 @@ class DemoDataSeeder extends Seeder
                 'name' => $c['name'],
                 'phone' => $c['phone'],
                 'address' => $c['address'],
+                'sender' => $c['email'],
+                'identity' => Str::random(10),
                 'user_id' => $adminId,
                 'tag' => 'demo',
             ]);

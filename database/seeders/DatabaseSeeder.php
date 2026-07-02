@@ -22,7 +22,7 @@ class DatabaseSeeder extends Seeder
             PermissionSeeder::class,
             PermissionRoleSeeder::class,
             RoleUserSeeder::class,
-            DemoDataSeeder::class,
+            // DemoDataSeeder::class,  // run manually when needed
         ]);
     }
 }

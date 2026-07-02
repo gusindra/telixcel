@@ -31,7 +31,7 @@ class Edit extends Component
             'name' => 'required',
             'status' => 'required',
             'entity' => 'required',
-            'type' => 'required',
+            'type' => 'required|in:selling,saas,referral',
         ];
     }
 
