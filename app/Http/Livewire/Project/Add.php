@@ -20,7 +20,7 @@ class Add extends Component
     public function rules()
     {
         return [
-            'type' => 'required',
+            'type' => 'required|in:selling,saas,referral',
             'name' => 'required',
             'entity' => 'required',
         ];

@@ -32,6 +32,7 @@ class Edit extends Component
     {
         return [
             'name' => 'required',
+            'type' => 'nullable|in:admin,finance,operasional',
             'description' => 'required',
         ];
     }

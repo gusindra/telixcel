@@ -23,6 +23,7 @@
         <server name="CACHE_DRIVER" value="array"/>
         <server name="DB_CONNECTION" value="mysql"/>
         <server name="DB_DATABASE" value="telixcel_test"/>
+        <server name="IN_HOUSE_TEAM_ID" value="1"/>
         <server name="MAIL_MAILER" value="array"/>
         <server name="QUEUE_CONNECTION" value="sync"/>
         <server name="SESSION_DRIVER" value="array"/>

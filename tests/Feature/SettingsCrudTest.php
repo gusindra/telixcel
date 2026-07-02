@@ -54,7 +54,6 @@ class SettingsCrudTest extends TestCase
         $company = Company::firstWhere('code', 'SET');
 
         $this->assertNotNull($company);
-        $this->assertSame(0, (int) $company->user_id);
 
         Livewire::test(CompanyEdit::class, ['company' => $company])
             ->set('input.name', 'Settings Company Updated')

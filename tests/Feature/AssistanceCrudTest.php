@@ -127,8 +127,8 @@ class AssistanceCrudTest extends TestCase
             'id' => $item->id,
             'name' => 'Implementation Service Plus',
             'sku' => 'SVC-001-UPD',
-            'unit_price' => 2500000,
             'unit' => 'day',
+            'unit_price' => 2500000,
         ]);
     }
 
@@ -212,8 +212,8 @@ class AssistanceCrudTest extends TestCase
             'model' => 'Quotation',
             'model_id' => $quotation->id,
             'name' => 'Consulting Package Updated',
-            'price' => 4500000,
             'qty' => 3,
+            'price' => 4500000,
         ]);
 
         Livewire::test(QuotationItem::class, ['data' => $quotation->fresh()])
@@ -263,12 +263,12 @@ class AssistanceCrudTest extends TestCase
         $client = $this->clientFor($user);
 
         Livewire::test(OrderAdd::class)
-            ->set('type', 'service')
+            ->set('type', 'selling')
             ->set('entity', $company->id)
             ->call('create')
             ->assertHasNoErrors();
 
-        $order = Order::firstWhere('type', 'service');
+        $order = Order::firstWhere('type', 'selling');
 
         $this->assertNotNull($order);
         $this->assertSame('draft', $order->status);
@@ -279,7 +279,7 @@ class AssistanceCrudTest extends TestCase
             ->set('input.status', 'active')
             ->set('input.date', '2026-05-07')
             ->set('input.customer_id', $client->uuid)
-            ->set('input.type', 'service')
+            ->set('input.type', 'selling')
             ->call('update', $order->id)
             ->assertHasNoErrors();
 
@@ -323,8 +323,8 @@ class AssistanceCrudTest extends TestCase
             'model' => 'Order',
             'model_id' => $order->id,
             'name' => 'Implementation Milestone Updated',
-            'price' => 6500000,
             'qty' => 2,
+            'price' => 6500000,
         ]);
 
         Livewire::test(OrderItem::class, ['data' => $order->fresh()])
@@ -355,7 +355,7 @@ class AssistanceCrudTest extends TestCase
 
         $order = Order::create([
             'name' => 'Commission Order',
-            'type' => 'service',
+            'type' => 'selling',
             'entity_party' => $company->id,
             'status' => 'draft',
             'user_id' => $user->id,
@@ -449,7 +449,7 @@ class AssistanceCrudTest extends TestCase
 
         $order = Order::create([
             'name' => 'Delete Order',
-            'type' => 'service',
+            'type' => 'selling',
             'entity_party' => $company->id,
             'customer_id' => $client->uuid,
             'user_id' => $user->id,
@@ -460,7 +460,7 @@ class AssistanceCrudTest extends TestCase
             'code' => 'INV-DELETE',
             'description' => 'Delete invoice',
             'amount' => 1000,
-            'status' => 'unpaid',
+            'status' => 'draft',
             'user_id' => $user->id,
         ]);
 
@@ -486,7 +486,11 @@ class AssistanceCrudTest extends TestCase
             $this->delete(route('records.destroy', [$type, $id]))
                 ->assertRedirect();
 
-            $this->assertDatabaseMissing($table, ['id' => $id]);
+            if ($type === 'invoice') {
+                $this->assertDatabaseMissing($table, ['id' => $id]);
+            } else {
+                $this->assertDatabaseMissing($table, ['id' => $id]);
+            }
         }
     }
 
