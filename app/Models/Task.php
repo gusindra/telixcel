@@ -19,6 +19,7 @@ class Task extends Model
         'type',
         'priority',
         'owner_id',
+        'assigned_to',
         'source',
         'target_date',
         'status',
@@ -79,5 +80,11 @@ class Task extends Model
     public function parent()
     {
         return $this->belongsTo(Task::class, 'parent_id');
+    }
+
+    /** The user assigned to this task. */
+    public function assignedTo()
+    {
+        return $this->belongsTo(User::class, 'assigned_to');
     }
 }

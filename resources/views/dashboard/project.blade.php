@@ -19,7 +19,7 @@
                 <p class="text-sm text-gray-500 dark:text-slate-300">{{ __('Tasks and who is working on them.') }}</p>
             </div>
             <div class="px-4 py-3">
-                @livewire('task.todo', key('dash-todo'))
+                @livewire('task.todo', ['ownerId' => $ownerId ?? null], key('dash-todo-'.($ownerId ?? 'all')))
             </div>
         </div>
 

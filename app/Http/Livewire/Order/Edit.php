@@ -58,7 +58,8 @@ class Edit extends Component
     public function rules()
     {
         return [
-            'input' => 'required'
+            'input' => 'required',
+            'input.type' => 'required|in:selling,saas,referral',
         ];
     }
 

@@ -97,6 +97,14 @@
                     <x-jet-label value="{{ __('Source (client request, manual)') }}" />
                     <x-jet-input type="text" class="mt-1 block w-full" wire:model.defer="source" />
                 </div>
+                <div class="md:col-span-2">
+                    <x-jet-label value="{{ __('Assign to') }}" />
+                    <select wire:model.defer="assigned_to" class="border-gray-300 dark:bg-slate-800 dark:text-slate-300 rounded-md shadow-sm mt-1 block w-full text-sm">
+                        <option value="">-- {{ __('Unassigned') }} --</option>
+                        @foreach ($assignableUsers as $u)<option value="{{ $u->id }}">{{ $u->name }}</option>@endforeach
+                    </select>
+                    <x-jet-input-error for="assigned_to" class="mt-2" />
+                </div>
             </div>
         </x-slot>
         <x-slot name="footer">

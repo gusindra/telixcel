@@ -20,7 +20,7 @@ class Add extends Component
     public function rules()
     {
         return [
-            'type' => 'required',
+            'type' => 'required|in:selling,saas,referral',
             'name' => 'required',
             'entity' => 'required',
         ];
@@ -42,6 +42,7 @@ class Add extends Component
             'type'          => $this->type,
             'name'          => $this->name,
             'entity_party'  => $this->entity,
+            'user_id'       => Auth::user()->id,
             'team_id'       => !Auth::user()->currentTeam ? null : Auth::user()->currentTeam->id ,
         ];
     }
