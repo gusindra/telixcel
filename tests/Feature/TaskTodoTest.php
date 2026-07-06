@@ -90,6 +90,41 @@ class TaskTodoTest extends TestCase
     }
 
     /** @test */
+    public function it_creates_a_task_assigned_to_a_user(): void
+    {
+        $this->actingAsAdmin();
+        $project = $this->makeProject();
+        $assignee = User::create(['name' => 'Assignee', 'email' => uniqid('asg') . '@test.com', 'password' => bcrypt('x'), 'current_team_id' => 1]);
+
+        Livewire::test(Todo::class, ['id' => $project->id])
+            ->set('title', 'Assigned Task')
+            ->set('type', 'admin')
+            ->set('assigned_to', $assignee->id)
+            ->set('target_date', now()->addDays(7)->toDateString())
+            ->call('create')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('tasks', [
+            'title' => 'Assigned Task',
+            'assigned_to' => $assignee->id,
+        ]);
+    }
+
+    /** @test */
+    public function assignable_users_include_project_members_and_owner(): void
+    {
+        $admin = $this->actingAsAdmin();
+        $project = $this->makeProject();
+        $member = User::create(['name' => 'Member', 'email' => uniqid('m') . '@test.com', 'password' => bcrypt('x'), 'current_team_id' => 1]);
+        $project->members()->attach($member->id);
+
+        $users = Livewire::test(Todo::class, ['id' => $project->id])->viewData('assignableUsers');
+
+        $this->assertTrue($users->contains('id', $member->id));  // project member
+        $this->assertTrue($users->contains('id', $admin->id));   // current user
+    }
+
+    /** @test */
     public function it_creates_a_sub_task_that_inherits_type_from_parent(): void
     {
         $this->actingAsAdmin();

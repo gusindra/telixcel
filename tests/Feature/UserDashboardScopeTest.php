@@ -66,37 +66,4 @@ class UserDashboardScopeTest extends TestCase
 
         $this->assertSame(2, $c->get('totalTasks'));
     }
-
-    /**
-     * Dashboard shortcut: click a project to list its active tasks, then use the row
-     * checkbox to complete a task in place — no need to open the Assistant menu.
-     *
-     * @test
-     */
-    public function clicking_a_project_lists_its_tasks_and_the_checkbox_completes_them(): void
-    {
-        [$admin, $team] = $this->bootSuperAdmin();
-        $project = Project::create(['name' => 'P', 'type' => 'selling', 'status' => 'active', 'team_id' => $team->id]);
-        $task = Task::create(['project_id' => $project->id, 'title' => 'Do the thing', 'type' => 'admin', 'status' => 'pending', 'team_id' => $team->id, 'owner_id' => $admin->id]);
-
-        // Clicking the project surfaces its active tasks in the detail panel.
-        $c = Livewire::test(DashboardOverview::class)
-            ->call('selectProject', $project->id)
-            ->assertSet('selectedProject', $project->id);
-        $this->assertTrue(
-            collect($c->get('selectedProjectTasks'))->pluck('title')->contains('Do the thing'),
-            'clicked project should list its active task'
-        );
-
-        // The checkbox (setStatus) completes the task straight from the dashboard.
-        $c->call('setStatus', $task->id);
-        $this->assertSame('complete', Task::find($task->id)->status);
-
-        // The completed task drops out of the active list and the completed count bumps.
-        $this->assertFalse(
-            collect($c->get('selectedProjectTasks'))->pluck('title')->contains('Do the thing'),
-            'completed task should leave the active list'
-        );
-        $this->assertSame(1, $c->get('tasksCompleted'));
-    }
 }

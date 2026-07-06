@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
             PermissionSeeder::class,
             PermissionRoleSeeder::class,
             RoleUserSeeder::class,
+            FlowSettingSeeder::class,
             // DemoDataSeeder::class,  // run manually when needed
         ]);
     }
