@@ -129,7 +129,7 @@
                             <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                                 @php $totaltask = 0; @endphp
                                 @foreach($projectStats as $stat)
-                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition cursor-pointer" wire:click="selectProject({{ $stat['id'] }})">
+                                    <tr wire:click="selectProject({{ $stat['id'] }})" class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition cursor-pointer">
                                         <td class="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
                                             <div class="flex items-center">
                                                 <div class="ml-3">
@@ -163,7 +163,13 @@
                                         </td>
                                     </tr>
                                 @endforeach
-                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition cursor-pointer" wire:click="loadProjectTasks(0)">
+                                @php
+                                    $allCompleted = $projectStats->sum('completed_tasks');
+                                    $allInProgress = $projectStats->sum('in_progress_tasks');
+                                    $allTotal = $projectStats->sum('total_tasks');
+                                    $allProgress = $allTotal > 0 ? round(($allCompleted / $allTotal) * 100) : 0;
+                                @endphp
+                                <tr wire:click="loadProjectTasks(0, 'all')" class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition cursor-pointer">
                                         <td class="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
                                             <div class="flex items-center">
                                                 <div class="ml-3">
@@ -173,24 +179,24 @@
                                         </td>
                                         <td class="px-6 py-4 text-sm text-center">
                                             <span class="inline-flex items-center justify-center h-8 w-8 rounded-full bg-gray-100 dark:bg-gray-700 font-semibold text-gray-900 dark:text-white">
-                                                {{ $totaltask }}
+                                                {{ $allTotal }}
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 text-sm">
                                             <div class="flex items-center justify-center">
                                                 <div class="w-32 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                                                    <div class="bg-gradient-to-r from-green-400 to-green-600 h-2 rounded-full transition-all duration-300"></div>
+                                                    <div class="bg-gradient-to-r from-green-400 to-green-600 h-2 rounded-full transition-all duration-300" style="width: {{ $allProgress }}%"></div>
                                                 </div>
-                                                <span class="ml-2 text-xs font-semibold text-gray-700 dark:text-gray-300"> %</span>
+                                                <span class="ml-2 text-xs font-semibold text-gray-700 dark:text-gray-300">{{ $allProgress }}%</span>
                                             </div>
                                         </td>
                                         <td class="px-6 py-4 text-sm">
                                             <div class="flex items-center justify-center space-x-2">
                                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300">
-                                                    <i class="fas fa-spinner text-xs mr-1"></i>  
+                                                    <i class="fas fa-spinner text-xs mr-1"></i> {{ $allInProgress }}
                                                 </span>
                                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300">
-                                                    <i class="fas fa-check text-xs mr-1"></i>  
+                                                    <i class="fas fa-check text-xs mr-1"></i> {{ $allCompleted }}
                                                 </span>
                                             </div>
                                         </td>
@@ -210,16 +216,15 @@
             </div>
 
             <!-- Selected Project Tasks Details -->
-            @if($selectedProject && $projectStats->isNotEmpty())
+            @if($selectedProject !== null && ($selectedProject == 0 || ($projectStats->isNotEmpty() && $projectStats->firstWhere('id', $selectedProject))))
                 @php
-                    $selectedStat = $projectStats->firstWhere('id', $selectedProject);
+                    $selectedStat = $selectedProject == 0 ? null : $projectStats->firstWhere('id', $selectedProject);
                 @endphp
-                @if($selectedStat)
                     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden animate-fadeIn">
                         <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-700/50 dark:to-gray-700/50 flex justify-between items-center">
                             <h2 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
-                                <i class="fas fa-tasks mr-3 text-blue-600 dark:text-blue-400"></i>
-                                Task Details for <span class="ml-2 text-blue-600 dark:text-blue-400">{{ $selectedStat['name'] }}</span>
+                                <svg class="w-5 h-5 mr-3 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                                Task Details for <span class="ml-2 text-blue-600 dark:text-blue-400">{{ $selectedStat ? $selectedStat['name'] : 'All Tasks' }}</span>
                             </h2>
                             <button wire:click="clearSelection()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition">
                                 <i class="fas fa-times text-xl"></i>
@@ -227,6 +232,7 @@
                         </div>
 
                         <div class="p-6">
+                            @if($selectedStat)
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                                 <div wire:click="loadProjectTasks({{ $selectedProject }}, 'all')" class="bg-gradient-to-br from-gray-50 to-gray-100 hover:cursor-pointer dark:from-gray-700/50 dark:to-gray-700 rounded-lg p-4">
                                     <p class="text-sm text-gray-600 dark:text-gray-400">Total Tasks</p>
@@ -245,6 +251,7 @@
                                     <p class="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">{{ $selectedStat['pending_tasks'] }}</p>
                                 </div>
                             </div>
+                            @endif
 
                             <!-- Active Tasks List -->
                             @if(count($selectedProjectTasks) > 0)
@@ -288,7 +295,9 @@
                                                                 {{ ucfirst($task['priority'] ?? 'medium') }}
                                                             </span>
                                                             @if ($task['status'] !== 'complete')
-                                                                <input type="checkbox" class="form-checkbox h-4 w-4 text-blue-600" wire:change="setStatus({{ $task['id'] }}, $event.target.value)" value="{{ $task['id'] }}">                                                            
+                                                                <input type="checkbox" class="form-checkbox h-4 w-4 text-blue-600 cursor-pointer" wire:click="setStatus({{ $task['id'] }})">
+                                                            @else
+                                                                <svg wire:click="setStatus({{ $task['id'] }})" class="w-4 h-4 text-green-500 cursor-pointer hover:text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                                                             @endif
                                                         </div>
                                                     </div>
@@ -305,7 +314,6 @@
                             @endif
                         </div>
                     </div>
-                @endif
             @endif
         </div>
     </div>
