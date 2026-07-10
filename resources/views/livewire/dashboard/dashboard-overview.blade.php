@@ -11,6 +11,10 @@
                     <div class="text-right">
                         <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Last updated: <span class="text-gray-700 dark:text-gray-200">Just now</span></p>
                     </div>
+                    <a href="{{ route('gantt.view') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition shadow-md">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h12M4 12h8M4 18h14"/></svg>
+                        <span>Gantt Chart</span>
+                    </a>
                     <a href="{{ route('calendar.view') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition shadow-md">
                         <i class="fas fa-calendar-alt"></i>
                         <span>Monthly View</span>

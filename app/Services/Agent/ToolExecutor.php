@@ -181,9 +181,16 @@ class ToolExecutor
     private function applyFilters($query, array $filters, array $reg): void
     {
         foreach ($filters as $f) {
-            $field = $f['field'] ?? null;
-            $op = $f['op'] ?? '=';
-            $value = $f['value'] ?? null;
+            // Accept both {field,op,value} objects AND [field,op,value] indexed arrays
+            if (array_is_list($f) && count($f) >= 3) {
+                $field = $f[0];
+                $op    = $f[1];
+                $value = $f[2];
+            } else {
+                $field = $f['field'] ?? null;
+                $op    = $f['op']    ?? '=';
+                $value = $f['value'] ?? null;
+            }
 
             if (! in_array($field, $reg['readable'], true)) {
                 continue;

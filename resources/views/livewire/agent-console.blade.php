@@ -11,28 +11,53 @@
         .agent-md th, .agent-md td { border: 1px solid rgba(0,0,0,.12); padding: 4px 8px; text-align: left; }
     </style>
     <script>
-        // True while the user is selecting/highlighting text (so we don't disrupt copy).
+        let agentForceScroll = false;
+
         function agentHasSelection() {
             const s = window.getSelection ? window.getSelection().toString() : '';
             return !!s && s.length > 0;
         }
         function agentRefocus() {
-            if (agentHasSelection()) return; // never steal focus mid text-selection
+            if (agentHasSelection()) return;
             const a = document.activeElement;
-            // Don't steal focus while the user is typing in another field (e.g. the search box).
             if (a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA') && a.id !== 'agent-input') return;
             const input = document.getElementById('agent-input');
             if (input && !input.disabled) input.focus();
         }
+        function agentIsNearBottom(el) {
+            return el.scrollHeight - el.scrollTop - el.clientHeight < 60;
+        }
+        function agentScrollToBottom() {
+            const el = document.getElementById('agent-messages');
+            if (el) el.scrollTop = el.scrollHeight;
+        }
+        function agentOnUserScroll() {
+            const el = document.getElementById('agent-messages');
+            if (el && !agentIsNearBottom(el)) {
+                agentForceScroll = false;
+            }
+        }
+        function agentOnSend() {
+            agentForceScroll = true;
+            agentScrollToBottom();
+        }
         document.addEventListener('livewire:update', () => {
-            // Background polls (e.g. notifications every few seconds) trigger this too —
-            // if the user is selecting text to copy, don't scroll or refocus (it clears the selection).
             if (agentHasSelection()) return;
             const el = document.getElementById('agent-messages');
-            if (el) setTimeout(() => { el.scrollTop = el.scrollHeight; }, 50);
+            if (!el) return;
+            if (agentForceScroll || agentIsNearBottom(el)) {
+                setTimeout(agentScrollToBottom, 50);
+            }
             setTimeout(agentRefocus, 60);
         });
-        document.addEventListener('livewire:load', () => setTimeout(agentRefocus, 150));
+        document.addEventListener('livewire:load', () => {
+            setTimeout(agentScrollToBottom, 100);
+            setTimeout(agentRefocus, 150);
+        });
+        document.addEventListener('DOMContentLoaded', () => {
+            const el = document.getElementById('agent-messages');
+            if (el) el.addEventListener('scroll', agentOnUserScroll, {passive: true});
+        });
     </script>
 @endpush
 
@@ -159,7 +184,7 @@
 
             {{-- Input (ChatGPT-style pill) --}}
             <div class="px-4 pb-3 pt-1">
-                <form wire:submit.prevent="send" class="max-w-3xl mx-auto">
+                <form wire:submit.prevent="send" @submit="agentOnSend()" class="max-w-3xl mx-auto">
                     <div class="flex items-center gap-2 bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 px-3 py-1.5 shadow-sm"
                          style="border-radius:9999px">
                         <input type="text" id="agent-input" wire:model.defer="input" :disabled="$wire.isThinking"
