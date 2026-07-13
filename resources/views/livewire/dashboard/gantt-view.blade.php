@@ -25,6 +25,15 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         <!-- Project Info Cards -->
         @if(count($chartProjects) > 0)
+            <div class="flex items-center justify-between gap-3">
+                <p class="text-xs text-gray-500 dark:text-gray-400">Klik salah satu project untuk menampilkan timeline-nya saja.</p>
+                @if($selectedProjectId !== null)
+                    <button wire:click="clearProjectFilter" class="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline whitespace-nowrap">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        Tampilkan semua project
+                    </button>
+                @endif
+            </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 @foreach($chartProjects as $idx => $proj)
                     @php
@@ -36,7 +45,8 @@
                         };
                         $initials = collect(explode(' ', $proj['name']))->map(fn($s) => mb_substr($s, 0, 1))->join('');
                     @endphp
-                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md border-l-4 {{ $accent }} p-4">
+                    <div wire:click="selectProject({{ $proj['id'] }})"
+                        class="bg-white dark:bg-gray-800 rounded-lg shadow-md border-l-4 {{ $accent }} p-4 cursor-pointer transition hover:shadow-lg {{ ($selectedProjectId !== null && (int) $selectedProjectId === (int) $proj['id']) ? 'ring-2 ring-indigo-500 ring-offset-1 dark:ring-offset-gray-800' : '' }}">
                         <div class="flex items-center gap-3 min-w-0">
                             <div class="flex-shrink-0 w-9 h-9 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 rounded-lg flex items-center justify-center">
                                 <span class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">{{ mb_substr($initials, 0, 2) }}</span>
