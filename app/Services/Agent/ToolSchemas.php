@@ -15,7 +15,7 @@ class ToolSchemas
         return [
             self::tool(
                 'query_records',
-                'Read / list records of a whitelisted model with optional filters. Executes immediately.',
+                'Read / list records of a whitelisted model with optional filters. Executes immediately. Always returns the "id" field — use it to target single records in update/delete.',
                 [
                     'model' => ['type' => 'string', 'enum' => $models],
                     'filters' => [
@@ -40,23 +40,25 @@ class ToolSchemas
 
             self::tool(
                 'update_record',
-                'Propose an UPDATE. Does NOT write — returns a pending change for the user to approve.',
+                'Propose an UPDATE. Does NOT write — returns a pending change for the user to approve. Use "id" for a single record or "filters" for bulk.',
                 [
                     'model' => ['type' => 'string', 'enum' => $models],
-                    'filters' => ['type' => 'array', 'description' => 'Which records to update.', 'items' => self::filterItem()],
+                    'id' => ['type' => 'integer', 'description' => 'Single record ID to update (mutually exclusive with filters). Use this when you know the exact ID from a previous query.'],
+                    'filters' => ['type' => 'array', 'description' => 'Which records to update (bulk). Ignored when id is provided.', 'items' => self::filterItem()],
                     'values' => ['type' => 'object', 'description' => 'column => new value pairs (writable columns only).'],
                 ],
-                ['model', 'filters', 'values']
+                ['model', 'values']
             ),
 
             self::tool(
                 'delete_record',
-                'Propose a DELETE. Does NOT delete — returns a pending change for the user to approve.',
+                'Propose a DELETE. Does NOT delete — returns a pending change for the user to approve. Use "id" for a single record or "filters" for bulk.',
                 [
                     'model' => ['type' => 'string', 'enum' => $models],
-                    'filters' => ['type' => 'array', 'description' => 'Which records to delete.', 'items' => self::filterItem()],
+                    'id' => ['type' => 'integer', 'description' => 'Single record ID to delete (mutually exclusive with filters). Use this when you know the exact ID from a previous query.'],
+                    'filters' => ['type' => 'array', 'description' => 'Which records to delete (bulk). Ignored when id is provided.', 'items' => self::filterItem()],
                 ],
-                ['model', 'filters']
+                ['model']
             ),
         ];
     }

@@ -33,23 +33,81 @@ class ApprovalExecutor
             $values = collect($action['values'] ?? [])->only($reg['writable'])->all();
             $count = $class::whereIn($key, $ids)->update($values);
 
-            return $this->result(true, "Updated {$count} {$reg['label']} record(s).", $action);
+            $message = $this->buildUpdateDetail($action, $reg, $count);
+
+            return $this->result(true, $message, $action);
         }
 
         if (($action['type'] ?? null) === 'delete') {
             $count = 0;
+            $deletedLabels = [];
             foreach ($ids as $id) {
                 $record = $class::find($id);
                 if ($record) {
+                    $label = $record->name
+                        ?? $record->title
+                        ?? ($record->no ? (string) $record->no : null)
+                        ?? ('#' . $record->getKey());
+                    $deletedLabels[] = $label;
                     $record->delete();
                     $count++;
                 }
             }
 
-            return $this->result(true, "Deleted {$count} {$reg['label']} record(s).", $action);
+            $message = $this->buildDeleteDetail($action, $reg, $count, $deletedLabels);
+
+            return $this->result(true, $message, $action);
         }
 
         return $this->result(false, 'Unknown action type.', $action);
+    }
+
+    /**
+     * Build a detailed update confirmation message showing what changed.
+     */
+    private function buildUpdateDetail(array $action, array $reg, int $count): string
+    {
+        $label = $reg['label'];
+        $diff = $action['diff'] ?? [];
+        $ids = $action['ids'] ?? [];
+
+        $lines = ["Berhasil update {$count} {$label}:"];
+        $lines[] = '';
+
+        foreach ($diff as $i => $row) {
+            $recordId = $ids[$i] ?? '?';
+            $lines[] = "**{$row['label']}** (ID: {$recordId})";
+
+            foreach ($row['after'] as $field => $newValue) {
+                $oldValue = $row['before'][$field] ?? '—';
+                $lines[] = "- `{$field}`: ~~{$oldValue}~~ → **{$newValue}**";
+            }
+
+            if ($i < count($diff) - 1) {
+                $lines[] = '';
+            }
+        }
+
+        return implode("\n", $lines);
+    }
+
+    /**
+     * Build a detailed delete confirmation message.
+     */
+    private function buildDeleteDetail(array $action, array $reg, int $count, array $labels): string
+    {
+        $label = $reg['label'];
+        $soft = $action['soft'] ?? false;
+        $type = $soft ? 'soft-delete' : 'hapus permanen';
+
+        $lines = ["Berhasil {$type} {$count} {$label}:"];
+        $lines[] = '';
+
+        foreach ($labels as $i => $name) {
+            $lines[] = "- **{$name}**";
+        }
+
+        return implode("\n", $lines);
     }
 
     private function result(bool $ok, string $message, array $action): array

@@ -99,7 +99,14 @@ class ToolExecutor
         }
 
         $q = $reg['class']::query();
-        $this->applyFilters($q, $a['filters'] ?? [], $reg);
+
+        // Single-record by ID takes precedence over filters.
+        if (! empty($a['id'])) {
+            $q->where($q->getModel()->getKeyName(), (int) $a['id']);
+        } else {
+            $this->applyFilters($q, $a['filters'] ?? [], $reg);
+        }
+
         $targets = $q->limit(self::MAX_LIMIT)->get();
 
         if ($targets->isEmpty()) {
@@ -136,7 +143,14 @@ class ToolExecutor
         }
 
         $q = $reg['class']::query();
-        $this->applyFilters($q, $a['filters'] ?? [], $reg);
+
+        // Single-record by ID takes precedence over filters.
+        if (! empty($a['id'])) {
+            $q->where($q->getModel()->getKeyName(), (int) $a['id']);
+        } else {
+            $this->applyFilters($q, $a['filters'] ?? [], $reg);
+        }
+
         $targets = $q->limit(self::MAX_LIMIT)->get();
 
         if ($targets->isEmpty()) {
