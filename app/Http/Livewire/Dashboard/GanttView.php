@@ -2,6 +2,7 @@
 
 namespace App\Http\Livewire\Dashboard;
 
+use App\Models\Project;
 use App\Models\Task;
 use Carbon\Carbon;
 use Livewire\Component;
@@ -87,7 +88,7 @@ class GanttView extends Component
         }
         $invited = my_invited_project_ids();
 
-        return Task::whereHas('project', function ($p) use ($teamId, $invited) {
+        $task = Task::whereHas('project', function ($p) use ($teamId, $invited) {
                 $p->where('team_id', $teamId);
                 if ($invited !== null) {
                     $p->whereIn('id', $invited);
@@ -97,6 +98,20 @@ class GanttView extends Component
             ->with(['project', 'owner', 'assignedTo', 'children' => fn ($q) => $q->orderBy('created_at')])
             ->orderBy('created_at')
             ->get();
+
+        if($task->count()==0){ 
+            $project = Project::whereHas('members', function ($query) {
+                        $query->where('user_id', auth()->user()->id);
+                    })
+                    ->with(['tasks'])
+                    ->get();
+            $task = Task::whereIn('project_id', $project->pluck('id'))
+                    ->forMyType()
+                    ->with(['project', 'owner', 'assignedTo', 'children' => fn ($q) => $q->orderBy('created_at')])
+                    ->orderBy('created_at')
+                    ->get();
+        }
+        return $task;
     }
 
     private function build()

@@ -37,21 +37,21 @@ class DashboardOverview extends Component
         // Only projects the user is invited to (Super Admin -> all). Tasks then
         // follow the ACTIVE role's type (changes when the user switches role).
         $invited = my_invited_project_ids();
-        $projectsQuery = Project::where('team_id', $teamId);
+        $projectsQuery = Project::where('team_id', '=', $teamId);
+
         if ($invited !== null) {
             $projectsQuery->whereIn('id', $invited);
         }
         $this->projects = $projectsQuery
-            ->with(['tasks' => fn ($q) => $q->forMyType()])
-            ->get();
-        // }else{
-        //     // Get all projects for the team
-        //     $this->projects = Project::whereHas('members', function ($query) {
-        //             $query->where('user_id', auth()->user()->id);
-        //         })
-        //         ->with(['tasks'])
-        //         ->get();
-        // }
+        ->with(['tasks' => fn ($q) => $q->forMyType()])
+        ->get(); 
+        if($this->projects->count() == 0){ 
+            $this->projects = Project::whereHas('members', function ($query) {
+                    $query->where('user_id', auth()->user()->id);
+                })
+                ->with(['tasks'])
+                ->get();
+        }
 
         $this->totalProjects = $this->projects->count();
 
