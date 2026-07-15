@@ -346,8 +346,8 @@ function my_task_types(): array
     // Fallback by role name when the type column isn't set yet.
     $map = [
         'Accounting' => 'finance', 'Commercial' => 'finance',
-        'Operational' => 'operasional', 'Project Manager' => 'operasional',
-        'Agent' => 'operasional', 'Admin' => 'admin',
+        'Operational' => 'operasional', 'Project Manager' => 'operasional', 'Agent' => 'operasional', 
+        'Admin' => 'admin',
     ];
     foreach ($map as $needle => $type) {
         if (str_contains($name, $needle)) {

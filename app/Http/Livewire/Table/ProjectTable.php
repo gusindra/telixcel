@@ -23,14 +23,13 @@ class ProjectTable extends LivewireDatatable
         // they are an approver for.
         if ($this->isManager()) {
             return $query;
-        }
-
+        } 
         $uid = auth()->id();
         $myRoleIds = auth()->user()->role->map(fn ($r) => optional($r->role)->id)->filter()->all();
         $approverRoleIds = FlowSetting::where('model', 'PROJECT')->pluck('role_id')->all();
         $iAmApprover = ! empty(array_intersect($myRoleIds, $approverRoleIds));
 
-        return $query->where(function ($q) use ($uid, $iAmApprover) {
+        $query = $query->where(function ($q) use ($uid, $iAmApprover) {
             $q->where('status', 'approved')
               ->orWhere('user_id', $uid)
               // projects this user is assigned to (project_user pivot) — e.g. Project Manager
@@ -39,6 +38,14 @@ class ProjectTable extends LivewireDatatable
                 $q->orWhere('status', 'submit');
             }
         });
+        if($query->get()->count() == 0){ 
+            $query = Project::whereHas('members', function ($query) {
+                    $query->where('user_id', auth()->user()->id);
+                })
+                ->with(['tasks'])
+                ->get();
+        }
+        return $query;
     }
 
     private function isManager(): bool
@@ -50,7 +57,7 @@ class ProjectTable extends LivewireDatatable
         if ($user->super->first()?->role === 'superadmin') {
             return true;
         }
-        return $user->activeRole && str_contains($user->activeRole->role->name ?? '', 'Admin');
+        return false; //$user->activeRole && str_contains($user->activeRole->role->name ?? '', 'Admin');
     }
 
     public function columns()

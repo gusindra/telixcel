@@ -148,6 +148,7 @@ class CalendarView extends Component
                 ->whereIn('project_id', $project);
         }
         $tasks = $tasks->whereNotNull('target_date')*/
+        //dd(my_task_types());
         $tasks = Task::where('team_id', $team->id)
             ->forMyType()
             ->whereNotNull('target_date')
@@ -155,6 +156,18 @@ class CalendarView extends Component
             ->with(['project', 'owner'])
             ->orderBy('created_at', 'desc')
             ->get();
+        if($tasks->count()==0){ 
+            $project = Project::whereHas('members', function ($query) {
+                        $query->where('user_id', auth()->user()->id);
+                    })
+                    ->with(['tasks'])
+                    ->get();
+            $tasks = Task::whereIn('project_id', $project->pluck('id'))
+                    ->forMyType()
+                    ->with(['project', 'owner', 'assignedTo', 'children' => fn ($q) => $q->orderBy('created_at')])
+                    ->orderBy('created_at')
+                    ->get();
+        }
 
         // Group tasks by date
         $this->monthTasks = [];
