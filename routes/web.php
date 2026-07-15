@@ -61,7 +61,12 @@ use Illuminate\Support\Facades\Http;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    // return view('welcome');
+    if (Auth::check()) {
+        return redirect()->route('dashboard');
+    } else {
+        return redirect()->route('login');
+    }
 })->name('welcome');
 
 // Language switcher — stores chosen locale in session, applied by SetLocale middleware.
