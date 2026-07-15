@@ -29,6 +29,9 @@ class GanttView extends Component
     /** Projects shown in the chart (with name and metadata). */
     public $chartProjects = [];
 
+    /** When set, the timeline shows only this project's rows; the cards stay clickable. */
+    public $selectedProjectId = null;
+
     public function mount()
     {
         $earliest = $this->visibleTasks()->min('created_at');
@@ -58,6 +61,20 @@ class GanttView extends Component
     public function today()
     {
         $this->periodStartIso = Carbon::now()->startOfMonth()->toDateString();
+        $this->build();
+    }
+
+    /** Click a project card to show only its timeline; click it again to show all. */
+    public function selectProject($projectId)
+    {
+        $this->selectedProjectId = ((int) $this->selectedProjectId === (int) $projectId) ? null : (int) $projectId;
+        $this->build();
+    }
+
+    /** Clear the project filter and show every project's timeline again. */
+    public function clearProjectFilter()
+    {
+        $this->selectedProjectId = null;
         $this->build();
     }
 
@@ -124,10 +141,16 @@ class GanttView extends Component
             }
 
             $chartProjects[] = [
+                'id' => $projectId,
                 'name' => $project->name,
                 'type' => $project->type,
                 'status' => $project->status,
             ];
+
+            // When a project is selected, build rows for that project only (cards stay clickable).
+            if ($this->selectedProjectId !== null && (int) $this->selectedProjectId !== (int) $projectId) {
+                continue;
+            }
 
             // Project row
             $minStart = $projectTasks->pluck('created_at')->filter()->min();

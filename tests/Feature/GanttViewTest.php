@@ -115,4 +115,33 @@ class GanttViewTest extends TestCase
         $this->assertNotContains('Finance Task', $labels);  // wrong type
         $this->assertNotContains('Outsider', $labels);      // not invited
     }
+
+    /** @test */
+    public function clicking_a_project_card_filters_the_timeline_to_that_project(): void
+    {
+        $u = $this->bootUser();
+        $teamId = $u->currentTeam->id;
+        $a = Project::create(['name' => 'Proyek A', 'type' => 'selling', 'status' => 'active', 'team_id' => $teamId]);
+        $b = Project::create(['name' => 'Proyek B', 'type' => 'selling', 'status' => 'active', 'team_id' => $teamId]);
+        $this->task(['project_id' => $a->id, 'title' => 'Task A', 'team_id' => $teamId, 'owner_id' => $u->id]);
+        $this->task(['project_id' => $b->id, 'title' => 'Task B', 'team_id' => $teamId, 'owner_id' => $u->id]);
+
+        $c = Livewire::test(GanttView::class);
+
+        // By default both projects' timelines are shown.
+        $this->assertContains('Task A', collect($c->get('rows'))->pluck('label')->all());
+        $this->assertContains('Task B', collect($c->get('rows'))->pluck('label')->all());
+
+        // Click project A -> only A's rows remain; the cards for both stay clickable.
+        $c->call('selectProject', $a->id)->assertSet('selectedProjectId', $a->id);
+        $labels = collect($c->get('rows'))->pluck('label')->all();
+        $this->assertContains('Task A', $labels);
+        $this->assertNotContains('Task B', $labels);
+        $this->assertNotContains('Proyek B', $labels);   // B's project header filtered out too
+        $this->assertCount(2, $c->get('chartProjects'));  // both cards still shown
+
+        // Clicking the same project again clears the filter (show all).
+        $c->call('selectProject', $a->id)->assertSet('selectedProjectId', null);
+        $this->assertContains('Task B', collect($c->get('rows'))->pluck('label')->all());
+    }
 }

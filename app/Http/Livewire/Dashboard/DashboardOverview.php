@@ -18,27 +18,9 @@ class DashboardOverview extends Component
     public $tasksByStatus = [];
     public $selectedProjectTasks = [];
 
-    /** When set, the dashboard is scoped to one user's owned/assigned tasks (per-user view). */
-    public $forUserId = null;
-
-    public function mount($forUserId = null)
+    public function mount()
     {
-        $this->forUserId = $forUserId;
         $this->loadDashboardData();
-    }
-
-    /** Apply task visibility: a specific user's owned/assigned tasks, or the active-role type scope. */
-    private function scopeTasks($query)
-    {
-        if ($this->forUserId) {
-            $uid = $this->forUserId;
-
-            return $query->where(function ($w) use ($uid) {
-                $w->where('owner_id', $uid)->orWhere('assigned_to', $uid);
-            });
-        }
-
-        return $query->forMyType();
     }
 
     public function loadDashboardData()
@@ -54,18 +36,13 @@ class DashboardOverview extends Component
 
         // Only projects the user is invited to (Super Admin -> all). Tasks then
         // follow the ACTIVE role's type (changes when the user switches role).
+        $invited = my_invited_project_ids();
         $projectsQuery = Project::where('team_id', $teamId);
-        if ($this->forUserId) {
-            $uid = $this->forUserId;
-            $projectsQuery->whereHas('tasks', fn ($q) => $q->where(fn ($w) => $w->where('owner_id', $uid)->orWhere('assigned_to', $uid)));
-        } else {
-            $invited = my_invited_project_ids();
-            if ($invited !== null) {
-                $projectsQuery->whereIn('id', $invited);
-            }
+        if ($invited !== null) {
+            $projectsQuery->whereIn('id', $invited);
         }
         $this->projects = $projectsQuery
-            ->with(['tasks' => fn ($q) => $this->scopeTasks($q)])
+            ->with(['tasks' => fn ($q) => $q->forMyType()])
             ->get();
         // }else{
         //     // Get all projects for the team
@@ -79,7 +56,7 @@ class DashboardOverview extends Component
         $this->totalProjects = $this->projects->count();
 
         // Calculate statistics (invited projects + active role type)
-        $allTasks = $this->scopeTasks(Task::whereIn('project_id', $this->projects->pluck('id')))->get();
+        $allTasks = Task::whereIn('project_id', $this->projects->pluck('id'))->forMyType()->get();
         $this->totalTasks = $allTasks->count();
         $this->tasksInProgress = $allTasks->where('status', 'progress')->count();
         $this->tasksCompleted = $allTasks->where('status', 'complete')->count();
@@ -117,6 +94,8 @@ class DashboardOverview extends Component
 
     public function loadProjectTasks($projectId, $status = null)
     {
+        $this->selectedProject = $projectId;
+
         $statusArr = ['progress', 'pending'];
         if(!is_null($status)){
             if($status == 'all'){
@@ -126,14 +105,11 @@ class DashboardOverview extends Component
             }
         }
         if($projectId==0){
-            $base = Task::whereIn('status', ['progress', 'pending']);
-            if ($this->forUserId) {
-                $base->whereIn('project_id', $this->projects->pluck('id'));
-            } else {
-                $invited = my_invited_project_ids();
-                $base->when($invited !== null, fn ($q) => $q->whereIn('project_id', $invited));
-            }
-            $this->selectedProjectTasks = $this->scopeTasks($base)
+            $invited = my_invited_project_ids();
+            $this->selectedProjectTasks = [];
+            $this->selectedProjectTasks = Task::whereIn('status', $statusArr)
+                    ->when($invited !== null, fn ($q) => $q->whereIn('project_id', $invited))
+                    ->forMyType()
                     ->orderBy('status', 'desc')
                     ->orderBy('created_at', 'desc')
                     ->get()
@@ -143,7 +119,7 @@ class DashboardOverview extends Component
                             'title' => $task->title,
                             'status' => $task->status,
                             'priority' => $task->priority ?? 'medium',
-                            'owner_name' => $task->assignedTo?->name ?? $task->owner?->name ?? 'Unassigned',
+                            'owner_name' => $task->owner?->name ?? 'Unassigned',
                             'target_date' => $task->target_date,
                             'created_at' => $task->created_at,
                         ];
@@ -152,7 +128,9 @@ class DashboardOverview extends Component
         }else{
             $project = Project::find($projectId);
             if ($project) {
-                $this->selectedProjectTasks = $this->scopeTasks($project->tasks()->whereIn('status', $statusArr))
+                $this->selectedProjectTasks = $project->tasks()
+                    ->whereIn('status', $statusArr)
+                    ->forMyType()
                     ->orderBy('status', 'desc')
                     ->orderBy('created_at', 'desc')
                     ->get()
@@ -162,7 +140,7 @@ class DashboardOverview extends Component
                             'title' => $task->title,
                             'status' => $task->status,
                             'priority' => $task->priority ?? 'medium',
-                            'owner_name' => $task->assignedTo?->name ?? $task->owner?->name ?? 'Unassigned',
+                            'owner_name' => $task->owner?->name ?? 'Unassigned',
                             'target_date' => $task->target_date,
                             'created_at' => $task->created_at,
                         ];
@@ -179,19 +157,29 @@ class DashboardOverview extends Component
 
     public function setStatus($taskId)
     {
-        //dd($taskId);
-
         $task = Task::find($taskId);
         if ($task) {
             $from = $task->status;
             if ($from === 'pending') {
                 $status = 'complete';
-            }elseif($from === 'progress') {
+            } elseif ($from === 'progress') {
                 $status = 'complete';
-            }elseif($from === 'complete') {
+            } elseif ($from === 'complete') {
                 $status = 'pending';
+            } else {
+                $status = $from;
             }
             $task->update(['status' => $status]);
+        }
+
+        // Refresh dashboard stats
+        $this->loadDashboardData();
+
+        // Refresh selected project task list if a project is selected
+        if ($this->selectedProject !== null) {
+            // Keep 'all' filter for All Tasks view
+            $statusParam = ($this->selectedProject == 0) ? 'all' : null;
+            $this->loadProjectTasks($this->selectedProject, $statusParam);
         }
     }
 

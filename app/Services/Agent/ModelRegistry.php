@@ -2,10 +2,12 @@
 
 namespace App\Services\Agent;
 
+use App\Models\Billing;
 use App\Models\BlastMessage;
 use App\Models\Contract;
 use App\Models\Order;
 use App\Models\Project;
+use App\Models\Quotation;
 use App\Models\Task;
 use App\Models\Ticket;
 
@@ -76,6 +78,23 @@ class ModelRegistry
                 'readable' => ['id', 'msg_id', 'type', 'status', 'msisdn', 'title', 'price', 'currency', 'created_at'],
                 'writable' => ['status'],
                 'statuses' => ['DELIVERED', 'SENT', 'UNDELIVERED', 'PROCESSED', 'ACCEPTED'],
+            ],
+            'quotation' => [
+                'class' => Quotation::class,
+                'permission' => 'QUOTATION',
+                'label' => 'Quotation',
+                'readable' => ['id', 'quote_no', 'title', 'type', 'status', 'price', 'discount', 'client_id', 'date', 'valid_day', 'created_at'],
+                'writable' => ['title', 'type', 'status', 'price', 'discount', 'date', 'valid_day'],
+                'statuses' => ['draft', 'submit', 'approved', 'done', 'decline'],
+                'types'    => ['selling', 'saas', 'referral'],
+            ],
+            'invoice' => [
+                'class' => Billing::class,
+                'permission' => 'INVOICE',
+                'label' => 'Invoice',
+                'readable' => ['id', 'code', 'order_id', 'period', 'status', 'amount', 'currency', 'description', 'invoice_date', 'created_at'],
+                'writable' => ['status', 'amount', 'description', 'period', 'invoice_date'],
+                'statuses' => ['draft', 'unpaid', 'paid', 'overdue', 'cancelled'],
             ],
         ];
     }

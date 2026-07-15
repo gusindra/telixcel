@@ -99,7 +99,14 @@ class ToolExecutor
         }
 
         $q = $reg['class']::query();
-        $this->applyFilters($q, $a['filters'] ?? [], $reg);
+
+        // Single-record by ID takes precedence over filters.
+        if (! empty($a['id'])) {
+            $q->where($q->getModel()->getKeyName(), (int) $a['id']);
+        } else {
+            $this->applyFilters($q, $a['filters'] ?? [], $reg);
+        }
+
         $targets = $q->limit(self::MAX_LIMIT)->get();
 
         if ($targets->isEmpty()) {
@@ -136,7 +143,14 @@ class ToolExecutor
         }
 
         $q = $reg['class']::query();
-        $this->applyFilters($q, $a['filters'] ?? [], $reg);
+
+        // Single-record by ID takes precedence over filters.
+        if (! empty($a['id'])) {
+            $q->where($q->getModel()->getKeyName(), (int) $a['id']);
+        } else {
+            $this->applyFilters($q, $a['filters'] ?? [], $reg);
+        }
+
         $targets = $q->limit(self::MAX_LIMIT)->get();
 
         if ($targets->isEmpty()) {
@@ -181,9 +195,16 @@ class ToolExecutor
     private function applyFilters($query, array $filters, array $reg): void
     {
         foreach ($filters as $f) {
-            $field = $f['field'] ?? null;
-            $op = $f['op'] ?? '=';
-            $value = $f['value'] ?? null;
+            // Accept both {field,op,value} objects AND [field,op,value] indexed arrays
+            if (array_is_list($f) && count($f) >= 3) {
+                $field = $f[0];
+                $op    = $f[1];
+                $value = $f[2];
+            } else {
+                $field = $f['field'] ?? null;
+                $op    = $f['op']    ?? '=';
+                $value = $f['value'] ?? null;
+            }
 
             if (! in_array($field, $reg['readable'], true)) {
                 continue;
