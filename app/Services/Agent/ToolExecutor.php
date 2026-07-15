@@ -23,9 +23,9 @@ class ToolExecutor
         try {
             $result = match ($tool) {
                 'query_records' => $this->query($args),
-                'create_record' => $this->create($args),
                 'update_record' => $this->proposeUpdate($args),
-                'delete_record' => $this->proposeDelete($args),
+                'generate_report'  => $this->generateReport($args),
+                'download_report'  => $this->downloadReport($args),
                 default => $this->err("Unknown tool: {$tool}"),
             };
         } catch (\Throwable $e) {
@@ -264,6 +264,65 @@ class ToolExecutor
     private function err(string $message): array
     {
         return ['status' => 'error', 'message' => $message];
+    }
+
+    private function generateReport(array $a): array
+    {
+        $type = $a['type'] ?? 'user';
+        if (! in_array($type, ['admin', 'user'], true)) {
+            return $this->err('Report type must be "admin" or "user".');
+        }
+
+        if ($type === 'admin' && ! is_task_manager()) {
+            return $this->err('Only Super Admin can generate admin reports. Use type "user" for personal reports.');
+        }
+
+        $month = max(1, min(12, (int) ($a['month'] ?? now()->month)));
+        $year  = max(2020, (int) ($a['year'] ?? now()->year));
+
+        $user = \App\Models\User::find(auth()->id());
+        $data = app(\App\Services\ReportService::class)->generate($user, $month, $year);
+
+        // Save report record so we can later dispatch PDF generation
+        $report = \App\Models\Report::create([
+            'user_id'  => auth()->id(),
+            'type'     => $type,
+            'month'    => $month,
+            'year'     => $year,
+            'status'   => 'generated',
+            'metadata' => $data['summary'],
+        ]);
+
+        return [
+            'status'  => 'ok',
+            'message' => "Report data for {$type} — {$month}/{$year} ready. Display the summary to the user and ask if they want to download as PDF.",
+            'data'    => array_merge($data, ['report_id' => $report->id]),
+        ];
+    }
+
+    private function downloadReport(array $a): array
+    {
+        $reportId = (int) ($a['report_id'] ?? 0);
+        if (! $reportId) {
+            return $this->err('report_id is required.');
+        }
+
+        $report = \App\Models\Report::where('user_id', auth()->id())->find($reportId);
+        if (! $report) {
+            return $this->err('Report not found.');
+        }
+        if ($report->status !== 'generated') {
+            return $this->err("Report status is '{$report->status}', not 'generated'. Cannot generate PDF.");
+        }
+
+        $report->update(['status' => 'pending']);
+        \App\Jobs\GenerateMonthlyReport::dispatch($report->id);
+
+        return [
+            'status'  => 'ok',
+            'message' => 'PDF sedang digenerate di background. Anda akan diberi notifikasi saat sudah siap.',
+            'data'    => ['report_id' => $report->id],
+        ];
     }
 
     private function log(string $tool, array $args, array $result): void

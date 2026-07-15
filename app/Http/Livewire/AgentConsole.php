@@ -4,6 +4,7 @@ namespace App\Http\Livewire;
 
 use App\Models\AgentChat;
 use App\Models\AgentChatMessage;
+use App\Models\Report;
 use App\Services\Agent\ApprovalExecutor;
 use App\Services\Agent\OllamaAgentService;
 use Illuminate\Support\Str;
@@ -30,6 +31,9 @@ class AgentConsole extends Component
     public bool $confirmingDelete = false;
     public ?int $deleteTargetId = null;
     public string $deleteTargetTitle = '';
+
+    /** Latest ready report for notification (null = none). */
+    public ?array $readyReport = null;
 
     public function mount(): void
     {
@@ -241,7 +245,8 @@ class AgentConsole extends Component
                 . "- *Kontrak yang akan expired bulan ini*\n"
                 . "- *Ringkasan task per status untuk project tertentu*\n"
                 . "- *Order dengan status unpaid minggu ini*\n"
-                . "- *Task yang sudah melewati target date*\n\n"
+                . "- *Task yang sudah melewati target date*\n"
+                . "- *Buat laporan bulanan (PDF)*\n\n"
                 . "Saya juga bisa **ubah status** record — tapi perlu konfirmasi Anda dulu sebelum dieksekusi.\n\n"
                 . "Saya **tidak bisa** membuat atau menghapus data.",
         ];
@@ -272,6 +277,40 @@ class AgentConsole extends Component
 
         return $user->activeRole
             && str_contains($user->activeRole->role->name ?? '', 'Admin');
+    }
+
+    /** Polled — checks if user has a recently ready report. */
+    public function checkReportStatus(): void
+    {
+        if ($this->readyReport) {
+            return; // already showing a ready report
+        }
+
+        $report = Report::where('user_id', auth()->id())
+            ->where('status', 'ready')
+            ->where('created_at', '>=', now()->subHour())
+            ->orderByDesc('created_at')
+            ->first();
+
+        if ($report) {
+            $this->readyReport = [
+                'id' => $report->id,
+                'label' => $report->label(),
+                'download_url' => url("/reports/{$report->id}/download"),
+            ];
+
+            $message = "✅ Laporan sudah siap!\n\n"
+                . "**{$report->label()}**\n\n"
+                . "[Download PDF]({$this->readyReport['download_url']})";
+            $this->messages[] = ['role' => 'assistant', 'content' => $message];
+            $this->persistMessage('assistant', $message);
+        }
+    }
+
+    /** Dismiss the ready report notification. */
+    public function dismissReport(): void
+    {
+        $this->readyReport = null;
     }
 
     public function render()

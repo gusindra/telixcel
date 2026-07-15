@@ -4,7 +4,7 @@ namespace App\Services\Agent;
 
 /**
  * OpenAI-compatible tool definitions passed to Ollama's /api/chat `tools` param.
- * Kept deliberately small (4 tools) for reliable tool-calling.
+ * Only query, update, and generate_report — no create/delete.
  */
 class ToolSchemas
 {
@@ -15,27 +15,17 @@ class ToolSchemas
         return [
             self::tool(
                 'query_records',
-                'Read / list records of a whitelisted model with optional filters. Executes immediately. Always returns the "id" field — use it to target single records in update/delete.',
+                'Read / list records of a whitelisted model with optional filters. Executes immediately. Always returns the "id" field.',
                 [
                     'model' => ['type' => 'string', 'enum' => $models],
                     'filters' => [
                         'type' => 'array',
-                        'description' => 'List of {field, op, value}. op must be one of =, !=, like, in, >, <, >=, <=. Use > or < for date/number comparisons (e.g. expired_at < "2025-12-31", target_date < "2025-07-01").',
+                        'description' => 'List of {field, op, value}. op: =, !=, like, in, >, <, >=, <=.',
                         'items' => self::filterItem(),
                     ],
-                    'limit' => ['type' => 'integer', 'description' => 'Max rows to return (1-50, default 20).'],
+                    'limit' => ['type' => 'integer', 'description' => 'Max rows (1-50, default 20).'],
                 ],
                 ['model']
-            ),
-
-            self::tool(
-                'create_record',
-                'Create one new record of a whitelisted model. Executes immediately.',
-                [
-                    'model' => ['type' => 'string', 'enum' => $models],
-                    'values' => ['type' => 'object', 'description' => 'column => value pairs (writable columns only).'],
-                ],
-                ['model', 'values']
             ),
 
             self::tool(
@@ -43,22 +33,31 @@ class ToolSchemas
                 'Propose an UPDATE. Does NOT write — returns a pending change for the user to approve. Use "id" for a single record or "filters" for bulk.',
                 [
                     'model' => ['type' => 'string', 'enum' => $models],
-                    'id' => ['type' => 'integer', 'description' => 'Single record ID to update (mutually exclusive with filters). Use this when you know the exact ID from a previous query.'],
-                    'filters' => ['type' => 'array', 'description' => 'Which records to update (bulk). Ignored when id is provided.', 'items' => self::filterItem()],
+                    'id' => ['type' => 'integer', 'description' => 'Single record ID. Use this when you know the exact ID from a previous query.'],
+                    'filters' => ['type' => 'array', 'description' => 'Bulk filter. Ignored when id is provided.', 'items' => self::filterItem()],
                     'values' => ['type' => 'object', 'description' => 'column => new value pairs (writable columns only).'],
                 ],
                 ['model', 'values']
             ),
 
             self::tool(
-                'delete_record',
-                'Propose a DELETE. Does NOT delete — returns a pending change for the user to approve. Use "id" for a single record or "filters" for bulk.',
+                'generate_report',
+                'Generate monthly task report DATA. Returns summary and task lists for display in chat. Does NOT create PDF — use download_report for that. Admin gets all users; user gets personal.',
                 [
-                    'model' => ['type' => 'string', 'enum' => $models],
-                    'id' => ['type' => 'integer', 'description' => 'Single record ID to delete (mutually exclusive with filters). Use this when you know the exact ID from a previous query.'],
-                    'filters' => ['type' => 'array', 'description' => 'Which records to delete (bulk). Ignored when id is provided.', 'items' => self::filterItem()],
+                    'type' => ['type' => 'string', 'enum' => ['admin', 'user'], 'description' => '"admin" or "user". Super Admin only for admin.'],
+                    'month' => ['type' => 'integer', 'description' => 'Month (1-12). Default: current.'],
+                    'year' => ['type' => 'integer', 'description' => 'Year. Default: current.'],
                 ],
-                ['model']
+                ['type']
+            ),
+
+            self::tool(
+                'download_report',
+                'Generate PDF from a previously generated report. Dispatches background Job — user gets notified when ready. Requires report_id from generate_report result.',
+                [
+                    'report_id' => ['type' => 'integer', 'description' => 'The report_id returned by generate_report.'],
+                ],
+                ['report_id']
             ),
         ];
     }
@@ -70,7 +69,7 @@ class ToolSchemas
             'properties' => [
                 'field' => ['type' => 'string'],
                 'op' => ['type' => 'string', 'enum' => ['=', '!=', 'like', 'in', '>', '<', '>=', '<=']],
-                'value' => ['description' => 'string|number, or array of values when op is "in".'],
+                'value' => ['description' => 'string|number, or array for "in".'],
             ],
             'required' => ['field', 'op', 'value'],
         ];
