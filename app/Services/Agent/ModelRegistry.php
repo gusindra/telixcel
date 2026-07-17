@@ -46,7 +46,7 @@ class ModelRegistry
                 'class' => Task::class,
                 'permission' => 'PROJECT',
                 'label' => 'Task',
-                'readable' => ['id', 'project_id', 'title', 'type', 'status', 'priority', 'target_date', 'owner_id', 'created_at'],
+                'readable' => ['id', 'project_id', 'title', 'type', 'status', 'priority', 'target_date', 'owner_id', 'created_at', 'updated_at'],
                 'writable' => ['title', 'type', 'status', 'priority', 'target_date'],
                 'statuses'   => ['progress', 'pending', 'complete'],
                 'types'      => ['finance', 'admin', 'operasional'],
