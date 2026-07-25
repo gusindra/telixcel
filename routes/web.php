@@ -203,7 +203,9 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/ticket', fn () => view('ticket.index'))->name('ticket');
 
     Route::get('report', [ReportController::class, 'index'])->name('report.index');
-    Route::get('report/{key}', [ReportController::class, 'show'])->name('report.show');
+        Route::get('report/{key}', [ReportController::class, 'show'])->name('report.show');
+        Route::get('/reports/{id}/download', [ReportController::class, 'download'])->name('reports.download');
+        Route::get('/reports/{id}/view', [ReportController::class, 'view'])->name('reports.view');
 
     Route::get('commercial/{key}/{id}', [CommercialController::class, 'edit'])->name('commercial.edit.show');
     Route::get('commercial/{id}/{type}/print', [CommercialController::class, 'template'])->name('commercial.print');

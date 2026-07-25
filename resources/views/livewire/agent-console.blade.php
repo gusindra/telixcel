@@ -61,7 +61,7 @@
     </script>
 @endpush
 
-<div class="w-full px-3 py-2" x-data @agent-run.window="$wire.runAgent()">
+<div class="w-full px-3 py-2" x-data @agent-run.window="$wire.runAgent()" wire:poll.10s="checkReportStatus">
     <div class="flex bg-white dark:bg-slate-800 shadow rounded-xl overflow-hidden border border-gray-100 dark:border-slate-700" style="height: calc(100vh - 110px)">
 
         {{-- ============ SIDEBAR ============ --}}
@@ -147,6 +147,38 @@
                 </div>
             </div>
 
+            {{-- Report ready notification --}}
+            @if ($readyReport)
+                <div class="max-w-3xl mx-auto w-full px-4">
+                    <div class="mb-3 border border-green-400 bg-green-50 dark:bg-green-900/20 p-4 flex items-center justify-between"
+                         style="border-radius:0.75rem">
+                        <div class="flex items-center gap-3">
+                            <svg class="h-5 w-5 flex-shrink-0 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <div>
+                                <div class="text-sm font-semibold text-green-700 dark:text-green-300">Laporan Siap!</div>
+                                <div class="text-xs text-green-600 dark:text-green-400">{{ $readyReport['label'] }}</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <a href="{{ url('/reports/' . $readyReport['id'] . '/view') }}" target="_blank"
+                               class="inline-flex items-center gap-1.5 bg-white border border-green-600 text-green-700 hover:bg-green-50 text-sm font-medium px-3 py-1.5 rounded-lg transition">
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                Lihat
+                            </a>
+                            <a href="{{ $readyReport['download_url'] }}"
+                               class="inline-flex items-center gap-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium px-3 py-1.5 rounded-lg transition">
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                Download
+                            </a>
+                            <button wire:click="dismissReport"
+                                    class="text-gray-400 hover:text-gray-600 dark:hover:text-slate-200 transition p-1">
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
             {{-- Approval card (ubah status) --}}
             @if ($pendingAction)
                 <div class="max-w-3xl mx-auto w-full px-4">
@@ -189,9 +221,10 @@
                          style="border-radius:9999px">
                         <input type="text" id="agent-input" wire:model.defer="input" :disabled="$wire.isThinking"
                                autocomplete="off" autofocus
+                               @keydown.enter.shift.prevent
                                class="flex-1 border-0 bg-transparent text-sm text-gray-800 dark:text-white focus:ring-0 focus:outline-none"
                                placeholder="Ask anything" />
-                        <button type="submit" wire:loading.attr="disabled" :disabled="$wire.isThinking"
+                        <button type="submit" wire:loading.attr="disabled" wire:target="send,runAgent" :disabled="$wire.isThinking"
                                 class="flex-shrink-0 flex items-center justify-center h-8 w-8 rounded-full bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white focus:outline-none">
                             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19V5M5 12l7-7 7 7"/></svg>
                         </button>
