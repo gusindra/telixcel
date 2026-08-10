@@ -5,11 +5,8 @@ namespace App\Services\Agent;
 use Illuminate\Support\Facades\Http;
 
 /**
- * Drives the Ollama tool-calling loop for one user turn.
- *
- * Calls POST {base_url}/api/chat with the tool schemas, executes any tool
- * calls via ToolExecutor, feeds results back, and repeats until the model
- * returns a plain-text answer or a destructive op needs approval.
+ * Ollama / local OpenAI-compatible tool-calling loop for AI Console.
+ * Used when AI_DRIVER=ollama (query/update DB via ToolExecutor).
  */
 class OllamaAgentService
 {
@@ -24,7 +21,10 @@ class OllamaAgentService
      */
     public function run(array $history, string $userMessage, ?string $model = null): array
     {
-        $model = $model ?: (config('services.ai.model') ?: config('services.ollama.model'));
+        $model = $model
+            ?: config('services.ollama.model')
+            ?: config('services.ai.model')
+            ?: 'gemma4:31b-cloud';
 
         $messages = array_merge(
             [['role' => 'system', 'content' => $this->systemPrompt()]],
@@ -34,7 +34,7 @@ class OllamaAgentService
 
         $pending = null;
         $metrics = [];
-        $max = (int) (config('services.ai.max_iterations') ?: config('services.ollama.max_iterations', 6));
+        $max = max(1, (int) (config('services.ollama.max_iterations') ?: config('services.ai.max_iterations', 6)));
 
         for ($i = 0; $i < $max; $i++) {
             $response = $this->chat($messages, $model);
@@ -100,9 +100,9 @@ class OllamaAgentService
         ];
     }
 
-    private function normalizeResponse(array $response): array
+    private function normalizeResponse(array $response, ?bool $isOpenAI = null): array
     {
-        $isOpenAI = config('services.ai.is_openai', false);
+        $isOpenAI = $isOpenAI ?? str_contains((string) config('services.ollama.base_url', ''), '/v1');
 
         if ($isOpenAI) {
             return [
@@ -119,10 +119,10 @@ class OllamaAgentService
 
     private function chat(array $messages, string $model): array
     {
-        $baseUrl = config('services.ai.base_url') ?: config('services.ollama.base_url', 'http://localhost:11434');
-        $apiKey = config('services.ai.api_key') ?: config('services.ollama.api_key');
-        $timeout = (int) (config('services.ai.timeout') ?: config('services.ollama.timeout', 120));
-        $isOpenAI = config('services.ai.is_openai', false);
+        $baseUrl = rtrim((string) config('services.ollama.base_url', 'http://localhost:11434'), '/');
+        $apiKey = config('services.ollama.api_key') ?: config('services.ai.api_key');
+        $timeout = (int) (config('services.ollama.timeout') ?: config('services.ai.timeout', 120));
+        $isOpenAI = str_contains($baseUrl, '/v1');
 
         $request = Http::timeout($timeout)->acceptJson();
 
@@ -131,8 +131,8 @@ class OllamaAgentService
         }
 
         $url = $isOpenAI
-            ? rtrim($baseUrl, '/') . '/chat/completions'
-            : rtrim($baseUrl, '/') . '/api/chat';
+            ? $baseUrl . '/chat/completions'
+            : $baseUrl . '/api/chat';
 
         $payload = $isOpenAI
             ? [
@@ -153,7 +153,7 @@ class OllamaAgentService
         $response = $request->post($url, $payload);
         $response->throw();
 
-        return $this->normalizeResponse($response->json() ?? []);
+        return $this->normalizeResponse($response->json() ?? [], $isOpenAI);
     }
 
     /**

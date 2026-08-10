@@ -34,6 +34,14 @@ class ToolExecutor
 
         $this->log($tool, $args, $result);
 
+        // Hermes/API path: surface pending proposals to the Livewire approval card.
+        if (($result['status'] ?? '') === 'pending' && ! empty($result['action'])) {
+            $uid = (int) (auth()->id() ?? 0);
+            if ($uid > 0) {
+                PendingActionStore::put($uid, $result['action']);
+            }
+        }
+
         return $result;
     }
 
@@ -48,12 +56,32 @@ class ToolExecutor
         $this->applyFilters($q, $a['filters'] ?? [], $reg);
 
         $limit = min(self::MAX_LIMIT, max(1, (int) ($a['limit'] ?? 20)));
+
+        // Task queries: load names so "siapa ditugaskan" answers without extra joins.
+        $modelKey = strtolower((string) ($a['model'] ?? ''));
+        if ($modelKey === 'task') {
+            $q->with([
+                'assignedTo:id,name',
+                'owner:id,name',
+                'project:id,name',
+            ]);
+        }
+
         $rows = $q->limit($limit)->get($reg['readable']);
 
         return [
             'status' => 'ok',
             'message' => "Found {$rows->count()} {$reg['label']} record(s).",
-            'data' => $rows->map(fn ($r) => $r->only($reg['readable']))->all(),
+            'data' => $rows->map(function ($r) use ($reg, $modelKey) {
+                $row = $r->only($reg['readable']);
+                if ($modelKey === 'task') {
+                    $row['assigned_to_name'] = $r->assignedTo?->name;
+                    $row['owner_name'] = $r->owner?->name;
+                    $row['project_name'] = $r->project?->name;
+                }
+
+                return $row;
+            })->all(),
         ];
     }
 
@@ -201,7 +229,8 @@ class ToolExecutor
                 $op    = $f[1];
                 $value = $f[2];
             } else {
-                $field = $f['field'] ?? null;
+                // Accept field (tool schema) or column (Hermes skill / API docs).
+                $field = $f['field'] ?? $f['column'] ?? null;
                 $op    = $f['op']    ?? '=';
                 $value = $f['value'] ?? null;
             }
