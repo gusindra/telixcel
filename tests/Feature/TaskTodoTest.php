@@ -102,12 +102,40 @@ class TaskTodoTest extends TestCase
             ->set('assigned_to', $assignee->id)
             ->set('target_date', now()->addDays(7)->toDateString())
             ->call('create')
-            ->assertHasNoErrors();
+            ->assertHasNoErrors()
+            ->assertSee('Assignee'); // assignee is visible on the task row
 
         $this->assertDatabaseHas('tasks', [
             'title' => 'Assigned Task',
             'assigned_to' => $assignee->id,
         ]);
+    }
+
+    /** @test */
+    public function assignee_can_update_task_status(): void
+    {
+        $this->actingAsAdmin();
+        $project = $this->makeProject();
+        $assignee = User::create([
+            'name' => 'Worker',
+            'email' => uniqid('wk') . '@test.com',
+            'password' => bcrypt('x'),
+            'current_team_id' => 1,
+        ]);
+        $task = $this->makeTask([
+            'project_id' => $project->id,
+            'title' => 'Do work',
+            'type' => 'finance', // different type so only assignee privilege applies
+            'status' => 'pending',
+            'assigned_to' => $assignee->id,
+        ]);
+
+        $this->actingAs($assignee);
+
+        Livewire::test(Todo::class, ['id' => $project->id])
+            ->call('setStatus', $task->id, 'progress');
+
+        $this->assertSame('progress', $task->fresh()->status);
     }
 
     /** @test */
@@ -391,6 +419,43 @@ class TaskTodoTest extends TestCase
         $types = $ref->invoke($component)->pluck('type')->unique()->sort()->values()->all();
         $this->assertContains('finance', $types);
         $this->assertContains('operasional', $types);
+    }
+
+    /** @test */
+    public function assignee_sees_assigned_task_in_project_todo_even_if_type_mismatches_role(): void
+    {
+        // Admin role type = admin; assigned task type = finance → previously hidden.
+        $assignee = $this->actingAsAdmin();
+        $project = $this->makeProject();
+        $project->members()->attach($assignee->id);
+
+        $assigned = $this->makeTask([
+            'project_id' => $project->id,
+            'title' => 'Task assigned to me',
+            'type' => 'finance',
+            'owner_id' => 999,
+            'assigned_to' => $assignee->id,
+        ]);
+        $hiddenOther = $this->makeTask([
+            'project_id' => $project->id,
+            'title' => 'Someone else finance task',
+            'type' => 'finance',
+            'owner_id' => 888,
+            'assigned_to' => null,
+        ]);
+
+        $component = Livewire::test(Todo::class, ['id' => $project->id])->instance();
+        $ref = new \ReflectionMethod($component, 'scopedQuery');
+        $ref->setAccessible(true);
+        $ids = $ref->invoke($component)->pluck('id')->all();
+
+        $this->assertContains($assigned->id, $ids);
+        $this->assertNotContains($hiddenOther->id, $ids);
+
+        // Also visible in the rendered list.
+        Livewire::test(Todo::class, ['id' => $project->id])
+            ->assertSee('Task assigned to me')
+            ->assertDontSee('Someone else finance task');
     }
 
     // ──────────────────── OWNER SCOPE ────────────────────

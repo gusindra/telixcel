@@ -45,7 +45,15 @@
             </div>
             <div class="flex items-center gap-3 mt-0.5 text-[11px] text-gray-400">
                 @if($task->target_date)<span>{{ $task->target_date->format('d M Y') }}</span>@endif
-                @if(($dashboard ?? false) && $isRoot && $task->owner)<span>{{ $task->owner->name }}</span>@endif
+                @php
+                    $assigneeName = $task->assignedTo?->name ?? $task->owner?->name;
+                @endphp
+                @if($assigneeName)
+                    <span class="inline-flex items-center gap-1" title="{{ __('Assigned to') }}">
+                        <svg class="h-3 w-3 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                        {{ $assigneeName }}
+                    </span>
+                @endif
                 @if($cTotal)<span>{{ $cDone }}/{{ $cTotal }} {{ __('sub') }}</span>@endif
             </div>
             @if($isReason && $task->status_note)

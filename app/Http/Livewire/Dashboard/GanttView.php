@@ -99,17 +99,18 @@ class GanttView extends Component
             ->orderBy('created_at')
             ->get();
 
-        if($task->count()==0){ 
+        if ($task->count() == 0) {
+            // Fallback for members: pivot uses users.id (not user_id on users table).
             $project = Project::whereHas('members', function ($query) {
-                        $query->where('user_id', auth()->user()->id);
-                    })
-                    ->with(['tasks'])
-                    ->get();
+                $query->where('users.id', auth()->id());
+            })
+                ->with(['tasks'])
+                ->get();
             $task = Task::whereIn('project_id', $project->pluck('id'))
-                    ->forMyType()
-                    ->with(['project', 'owner', 'assignedTo', 'children' => fn ($q) => $q->orderBy('created_at')])
-                    ->orderBy('created_at')
-                    ->get();
+                ->forMyType()
+                ->with(['project', 'owner', 'assignedTo', 'children' => fn ($q) => $q->orderBy('created_at')])
+                ->orderBy('created_at')
+                ->get();
         }
         return $task;
     }
