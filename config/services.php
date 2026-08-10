@@ -38,43 +38,31 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | AI Console — 1 endpoint (simple)
+    | AI Console — AI_* only (telixcel)
     |--------------------------------------------------------------------------
     |
-    | AI_ENDPOINT = full chat URL (paling simple), contoh:
-    |   http://127.0.0.1:8645/v1/chat/completions
-    |
-    | Atau AI_BASE_URL = …/v1  → otomatis + /chat/completions
-    |
-    | AI_DRIVER=hermes → POST ke endpoint itu (stream:false)
-    | AI_DRIVER=ollama → tool-loop lokal (OLLAMA_*)
+    | AI_ENDPOINT=http://127.0.0.1:8645/v1/chat/completions
+    | AI_DRIVER=hermes → POST AI_ENDPOINT
+    | AI_DRIVER=ollama → tool-loop (OLLAMA_*)
     |
     */
     'ai' => [
         'driver' => env('AI_DRIVER', 'hermes'),
-        // Full URL (preferred). Example: http://127.0.0.1:8645/v1/chat/completions
-        'endpoint' => env('AI_ENDPOINT'),
-        // Base …/v1 if AI_ENDPOINT empty
-        'base_url' => env('AI_BASE_URL', env('HERMES_BASE_URL', 'http://127.0.0.1:8645/v1')),
-        'api_key' => env('AI_API_KEY', env('HERMES_API_KEY', env('OLLAMA_API_KEY'))),
-        'model' => env('AI_MODEL', env('HERMES_MODEL', env('OLLAMA_MODEL', 'telixcel'))),
-        'timeout' => (int) (env('AI_TIMEOUT') ?: env('HERMES_TIMEOUT') ?: env('OLLAMA_TIMEOUT', 180)),
-        'max_iterations' => (int) (env('AI_MAX_ITERATIONS') ?: env('OLLAMA_MAX_ITERATIONS', 6)),
+        'endpoint' => env('AI_ENDPOINT', 'http://127.0.0.1:8645/v1/chat/completions'),
+        'base_url' => env('AI_BASE_URL', 'http://127.0.0.1:8645/v1'),
+        'api_key' => env('AI_API_KEY'),
+        'model' => env('AI_MODEL', 'telixcel'),
+        'timeout' => (int) env('AI_TIMEOUT', 180),
+        'max_iterations' => (int) env('AI_MAX_ITERATIONS', 6),
         'warmup' => filter_var(env('AI_WARMUP', true), FILTER_VALIDATE_BOOLEAN),
         'warmup_ttl' => (int) env('AI_WARMUP_TTL', 240),
         'warmup_timeout' => (int) env('AI_WARMUP_TIMEOUT', 8),
     ],
 
-    'hermes' => [
-        'base_url' => env('HERMES_BASE_URL', 'http://127.0.0.1:8645/v1'),
-        'api_key' => env('HERMES_API_KEY'),
-        'model' => env('HERMES_MODEL', 'telixcel'),
-        'timeout' => (int) env('HERMES_TIMEOUT', 180),
-    ],
-
+    // Console chat: per-user AgentUserToken (agt_…) + url('/api/agent') from APP_URL.
+    // Optional shared service token (legacy): X-Agent-Token without agt_ prefix.
     'agent_api' => [
         'token' => env('AGENT_API_TOKEN'),
-        'public_base_url' => env('AGENT_API_BASE_URL', env('APP_URL', 'http://127.0.0.1:8000')),
     ],
 
     'ollama' => [

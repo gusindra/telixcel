@@ -7,16 +7,15 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 /**
- * AI Console — satu endpoint OpenAI-compatible.
+ * AI Console — OpenAI-compatible via AI_* env only (telixcel).
  *
- * Env minimal:
+ *   AI_DRIVER=hermes|ollama
  *   AI_ENDPOINT=http://127.0.0.1:8645/v1/chat/completions
  *   AI_API_KEY=...
  *   AI_MODEL=telixcel
- *   AI_DRIVER=hermes|ollama   (default hermes)
+ *   AI_TIMEOUT=180
  *
- * Hermes: POST ke AI_ENDPOINT (stream:false).
- * Ollama: tool-loop lokal (pakai OLLAMA_* / AI_BASE_URL host Ollama).
+ * Hermes: POST AI_ENDPOINT. Ollama: tool-loop (OLLAMA_*).
  */
 class AgentRunner
 {
@@ -73,11 +72,7 @@ class AgentRunner
             return self::forceChatCompletions(rtrim($full, '/'));
         }
 
-        $base = rtrim((string) (
-            config('services.ai.base_url')
-            ?: config('services.hermes.base_url')
-            ?: 'http://127.0.0.1:8645/v1'
-        ), '/');
+        $base = rtrim((string) (config('services.ai.base_url') ?: 'http://127.0.0.1:8645/v1'), '/');
 
         if ($base === '') {
             return '';
@@ -121,7 +116,7 @@ class AgentRunner
 
         try {
             $endpoint = self::endpoint();
-            $key = (string) (config('services.ai.api_key') ?: config('services.hermes.api_key') ?: '');
+            $key = (string) (config('services.ai.api_key') ?: '');
             if ($endpoint === '') {
                 return;
             }
@@ -152,13 +147,13 @@ class AgentRunner
     private function runRemoteChat(array $history, string $userMessage, ?int $chatId): array
     {
         $endpoint = self::endpoint();
-        $apiKey = (string) (config('services.ai.api_key') ?: config('services.hermes.api_key') ?: '');
-        $model = (string) (config('services.ai.model') ?: config('services.hermes.model') ?: 'telixcel');
-        $timeout = (int) (config('services.ai.timeout') ?: config('services.hermes.timeout') ?: 180);
+        $apiKey = (string) (config('services.ai.api_key') ?: '');
+        $model = (string) (config('services.ai.model') ?: 'telixcel');
+        $timeout = (int) (config('services.ai.timeout') ?: 180);
 
         if ($endpoint === '') {
             throw new \RuntimeException(
-                'AI endpoint kosong. Set AI_ENDPOINT=http://127.0.0.1:8645/v1/chat/completions'
+                'AI endpoint kosong. Set AI_ENDPOINT (contoh: http://127.0.0.1:8645/v1/chat/completions)'
             );
         }
 
@@ -168,19 +163,28 @@ class AgentRunner
 
         $user = auth()->user();
 
-        // Per-user data API token (mint on first chat): read + update_limited
+        // Token per user dari DB (read + update_limited). Mint if belum ada.
         $agentPlain = null;
         $agentAbilities = [];
         if ($user) {
             try {
                 [$tokenRow, $agentPlain] = \App\Models\AgentUserToken::ensureForUser($user);
                 $agentAbilities = $tokenRow->abilities ?? \App\Models\AgentUserToken::DEFAULT_ABILITIES;
+                // Pastikan ability read ada (query_records).
+                if (! in_array('read', $agentAbilities, true)) {
+                    $agentAbilities = array_values(array_unique(array_merge(
+                        $agentAbilities,
+                        \App\Models\AgentUserToken::DEFAULT_ABILITIES
+                    )));
+                    $tokenRow->forceFill(['abilities' => $agentAbilities])->save();
+                }
             } catch (\Throwable $e) {
-                Log::debug('Agent user token mint skipped: ' . $e->getMessage());
+                Log::debug('Agent user token skipped: ' . $e->getMessage());
             }
         }
 
-        $agentApiBase = rtrim((string) config('services.agent_api.public_base_url', config('app.url')), '/');
+        // Base URL API = APP_URL + /api/agent (tanpa AGENT_API_BASE_URL terpisah).
+        $agentApiUrl = url('/api/agent');
         $ctx = [
             'current_user' => [
                 'id' => $user->id ?? 0,
@@ -190,13 +194,12 @@ class AgentRunner
             'conversation_id' => $chatId,
             'datetime' => now()->toDateTimeString(),
             'source' => 'telixcel-ai-console',
-            // For Hermes skill: call Laravel data API as this user
+            // Hermes: panggil API Laravel dengan token user ini saja (agt_…).
             'agent_api' => [
-                'base_url' => $agentApiBase . '/api/agent',
+                'base_url' => $agentApiUrl,
                 'token' => $agentPlain,
                 'abilities' => $agentAbilities,
                 'auth_header' => 'X-Agent-Token',
-                // One-shot examples (POST body JSON)
                 'examples' => [
                     'health' => ['action' => 'health'],
                     'list_tasks' => ['action' => 'query', 'model' => 'task', 'limit' => 30],
@@ -230,9 +233,11 @@ class AgentRunner
                     . 'When listing tasks, ALWAYS use a Markdown table with columns: '
                     . 'ID | Judul | Status | Priority | Tipe | Assignee | Project | Target. '
                     . 'NEVER use terminal/shell to dig files, MySQL, or Hermes sessions for Telixcel CRM data. '
-                    . 'If you need more data: one curl POST to agent_api.base_url with header '
-                    . 'X-Agent-Token: <agent_api.token> and JSON body action=query model=task (or execute/tool=query_records). '
-                    . 'Stop after 1-2 API calls. Updates only via update_record (pending approval).',
+                    . 'If you need more data: one curl POST agent_api.base_url with header '
+                    . 'X-Agent-Token: agent_api.token (token agt_ milik current_user di DB, ability read). '
+                    . 'Body: action=query model=task (atau execute tool=query_records). '
+                    . 'Jangan pakai token lain / service token. Stop after 1-2 API calls. '
+                    . 'Updates only via update_record (pending approval).',
             ]],
             collect($history)
                 ->filter(fn ($m) => in_array($m['role'] ?? '', ['user', 'assistant'], true))
