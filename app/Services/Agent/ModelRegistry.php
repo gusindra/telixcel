@@ -108,4 +108,30 @@ class ModelRegistry
     {
         return array_keys(self::map());
     }
+
+    /**
+     * Columns whose values are tokenized (PII / financial) before any data
+     * reaches the LLM. field => TYPE (NAME|PHONE|EMAIL|MONEY|TEXT).
+     * TEXT = free-text scanned for embedded PII; others = whole value tokenized.
+     * (assigned_to_name / owner_name etc. are auto-detected by the Tokenizer.)
+     */
+    private static function sensitiveMap(): array
+    {
+        return [
+            'order'         => ['total' => 'MONEY'],
+            'project'       => ['customer_name' => 'NAME'],
+            'task'          => [],
+            'contract'      => [],
+            'ticket'        => ['reasons' => 'TEXT', 'solution' => 'TEXT'],
+            'blast-message' => ['msisdn' => 'PHONE', 'price' => 'MONEY'],
+            'quotation'     => ['price' => 'MONEY', 'discount' => 'MONEY'],
+            'invoice'       => ['amount' => 'MONEY', 'description' => 'TEXT'],
+        ];
+    }
+
+    /** @return array<string,string> field => TYPE for the given model key. */
+    public static function sensitive(string $key): array
+    {
+        return self::sensitiveMap()[strtolower(trim($key))] ?? [];
+    }
 }

@@ -13,7 +13,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
-/** AI Console → AgentRunner (hermes driver, simple chat/completions). */
+/** AI Console → AgentRunner (Hermes + model-chosen tools). */
 class HermesAgentServiceTest extends TestCase
 {
     use RefreshDatabase;
@@ -48,14 +48,14 @@ class HermesAgentServiceTest extends TestCase
     }
 
     /** @test */
-    public function hermes_driver_posts_chat_completions_non_stream(): void
+    public function hermes_posts_chat_completions_with_tools(): void
     {
         config([
-            'services.ai.driver' => 'hermes',
             'services.ai.endpoint' => 'http://ai.test/v1/chat/completions',
             'services.ai.api_key' => 'test-key',
             'services.ai.model' => 'telixcel',
             'services.ai.timeout' => 30,
+            'services.ai.max_iterations' => 6,
         ]);
 
         $user = $this->admin();
@@ -65,14 +65,14 @@ class HermesAgentServiceTest extends TestCase
                 'id' => 'chatcmpl_1',
                 'model' => 'telixcel',
                 'choices' => [
-                    ['index' => 0, 'message' => ['role' => 'assistant', 'content' => 'Halo simple API'], 'finish_reason' => 'stop'],
+                    ['index' => 0, 'message' => ['role' => 'assistant', 'content' => 'Halo'], 'finish_reason' => 'stop'],
                 ],
             ], 200),
         ]);
 
-        $result = app(AgentRunner::class)->run([], 'Berapa project aktif?', 42);
+        $result = app(AgentRunner::class)->run([], 'Halo apa kabar?', 42);
 
-        $this->assertSame('Halo simple API', $result['reply']);
+        $this->assertSame('Halo', $result['reply']);
         $this->assertSame('hermes', $result['driver']);
         $this->assertNull($result['pending']);
         $this->assertSame('http://ai.test/v1/chat/completions', AgentRunner::endpoint());
@@ -81,29 +81,110 @@ class HermesAgentServiceTest extends TestCase
             $body = $request->data();
             $headers = $request->headers();
             $sessionKey = $headers['X-Hermes-Session-Key'][0] ?? ($headers['x-hermes-session-key'][0] ?? null);
-            $msgs = $body['messages'] ?? [];
-            $last = end($msgs);
+            $tools = $body['tools'] ?? [];
+            $names = collect($tools)->map(fn ($t) => $t['function']['name'] ?? null)->filter()->all();
 
             return $request->url() === 'http://ai.test/v1/chat/completions'
                 && ($body['stream'] ?? true) === false
-                && str_contains((string) ($last['content'] ?? ''), 'Berapa project aktif?')
+                && ($body['tool_choice'] ?? null) === 'auto'
+                && in_array('query_records', $names, true)
+                && in_array('update_record', $names, true)
                 && str_contains((string) $sessionKey, "user-{$user->id}:chat-42");
         });
     }
 
     /** @test */
-    public function task_list_request_goes_through_hermes_with_snapshot_context(): void
+    public function model_tool_call_query_records_then_final_reply(): void
     {
         config([
-            'services.ai.driver' => 'hermes',
             'services.ai.endpoint' => 'http://ai.test/v1/chat/completions',
             'services.ai.api_key' => 'test-key',
             'services.ai.model' => 'telixcel',
             'services.ai.timeout' => 30,
+            'services.ai.max_iterations' => 6,
         ]);
         $user = $this->admin();
 
-        Task::create([
+        $task = Task::create([
+            'project_id' => null,
+            'title' => 'Write Articles',
+            'type' => 'operasional',
+            'status' => 'complete',
+            'priority' => 'medium',
+            'team_id' => 1,
+            'owner_id' => $user->id,
+            'assigned_to' => $user->id,
+            'target_date' => now()->addDays(7),
+        ]);
+
+        $callCount = 0;
+        Http::fake(function ($request) use (&$callCount, $task) {
+            $callCount++;
+            if ($callCount === 1) {
+                return Http::response([
+                    'choices' => [[
+                        'message' => [
+                            'role' => 'assistant',
+                            'content' => null,
+                            'tool_calls' => [[
+                                'id' => 'call_1',
+                                'type' => 'function',
+                                'function' => [
+                                    'name' => 'query_records',
+                                    'arguments' => json_encode([
+                                        'model' => 'task',
+                                        'filters' => [
+                                            ['field' => 'title', 'op' => 'like', 'value' => 'Write Articles'],
+                                        ],
+                                        'limit' => 10,
+                                    ]),
+                                ],
+                            ]],
+                        ],
+                        'finish_reason' => 'tool_calls',
+                    ]],
+                ], 200);
+            }
+
+            // Second call: model sees tool result and answers
+            $body = $request->data();
+            $msgs = $body['messages'] ?? [];
+            $toolMsg = collect($msgs)->first(fn ($m) => ($m['role'] ?? '') === 'tool');
+            $this->assertNotNull($toolMsg);
+            $this->assertStringContainsString('Write Articles', (string) ($toolMsg['content'] ?? ''));
+
+            return Http::response([
+                'choices' => [[
+                    'message' => [
+                        'role' => 'assistant',
+                        'content' => "Task #{$task->id} Write Articles status: complete",
+                    ],
+                    'finish_reason' => 'stop',
+                ]],
+            ], 200);
+        });
+
+        $result = app(AgentRunner::class)->run([], 'status Write Articles', null);
+
+        $this->assertSame('hermes', $result['driver']);
+        $this->assertStringContainsString('complete', $result['reply']);
+        $this->assertContains('query_records', $result['metrics']['tools_called'] ?? []);
+        $this->assertSame(2, $callCount);
+    }
+
+    /** @test */
+    public function model_update_record_returns_pending_approval(): void
+    {
+        config([
+            'services.ai.endpoint' => 'http://ai.test/v1/chat/completions',
+            'services.ai.api_key' => 'test-key',
+            'services.ai.model' => 'telixcel',
+            'services.ai.timeout' => 30,
+            'services.ai.max_iterations' => 6,
+        ]);
+        $user = $this->admin();
+
+        $task = Task::create([
             'project_id' => null,
             'title' => 'Write Articles',
             'type' => 'operasional',
@@ -111,7 +192,6 @@ class HermesAgentServiceTest extends TestCase
             'priority' => 'medium',
             'team_id' => 1,
             'owner_id' => $user->id,
-            'assigned_to' => $user->id,
             'target_date' => now()->addDays(7),
         ]);
 
@@ -120,34 +200,162 @@ class HermesAgentServiceTest extends TestCase
                 'choices' => [[
                     'message' => [
                         'role' => 'assistant',
-                        'content' => "| ID | Judul |\n|---:|:------|\n| 1 | Write Articles |",
+                        'content' => null,
+                        'tool_calls' => [[
+                            'id' => 'call_u1',
+                            'type' => 'function',
+                            'function' => [
+                                'name' => 'update_record',
+                                'arguments' => json_encode([
+                                    'model' => 'task',
+                                    'id' => $task->id,
+                                    'values' => ['status' => 'complete'],
+                                ]),
+                            ],
+                        ]],
+                    ],
+                    'finish_reason' => 'tool_calls',
+                ]],
+            ], 200),
+        ]);
+
+        $result = app(AgentRunner::class)->run([], 'Write Articles ubah jadi complete', null);
+
+        $this->assertSame('hermes', $result['driver']);
+        $this->assertNotNull($result['pending']);
+        $this->assertContains($task->id, $result['pending']['ids']);
+        $this->assertSame('complete', $result['pending']['values']['status']);
+        $this->assertStringContainsString('konfirmasi', strtolower($result['reply']));
+        $this->assertNotNull(PendingActionStore::get($user->id));
+        $this->assertContains('update_record', $result['metrics']['tools_called'] ?? []);
+    }
+
+    /** @test */
+    public function jadiin_complete_local_path_shows_pending_card(): void
+    {
+        $user = $this->admin();
+
+        $task = Task::create([
+            'project_id' => null,
+            'title' => 'Laporan bulanan untuk User B',
+            'type' => 'admin',
+            'status' => 'pending',
+            'priority' => 'medium',
+            'team_id' => 1,
+            'owner_id' => $user->id,
+            'target_date' => now()->addDays(7),
+        ]);
+
+        Http::fake(); // must not call Hermes
+
+        $result = app(AgentRunner::class)->run(
+            [],
+            'Laporan bulanan untuk User B jadiin complete',
+            null
+        );
+
+        $this->assertSame('local', $result['driver']);
+        $this->assertNotNull($result['pending']);
+        $this->assertContains($task->id, $result['pending']['ids']);
+        $this->assertSame('complete', $result['pending']['values']['status']);
+        $this->assertStringContainsString('kartu', strtolower($result['reply']));
+        $this->assertStringNotContainsString('curl', strtolower($result['reply']));
+        Http::assertNothingSent();
+    }
+
+    /** @test */
+    public function list_request_does_not_show_approval_card(): void
+    {
+        config([
+            'services.ai.endpoint' => 'http://ai.test/v1/chat/completions',
+            'services.ai.api_key' => 'test-key',
+            'services.ai.model' => 'telixcel',
+            'services.ai.timeout' => 30,
+            'services.ai.max_iterations' => 6,
+        ]);
+        $user = $this->admin();
+
+        Task::create([
+            'project_id' => null,
+            'title' => 'Public Relations',
+            'type' => 'finance',
+            'status' => 'pending',
+            'priority' => 'medium',
+            'team_id' => 1,
+            'owner_id' => $user->id,
+            'target_date' => now()->addDays(7),
+        ]);
+
+        Http::fake([
+            'ai.test/*' => Http::response([
+                'choices' => [[
+                    'message' => [
+                        'role' => 'assistant',
+                        'content' => "Here are the pending tasks:\n| ID | Judul | Status |\n| 7 | Public Relations | pending |",
                     ],
                     'finish_reason' => 'stop',
                 ]],
             ], 200),
         ]);
 
-        $result = app(AgentRunner::class)->run([], 'berikan table task yang ada', null);
+        $result = app(AgentRunner::class)->run([], 'list task', null);
 
-        $this->assertSame('hermes', $result['driver']);
-        $this->assertStringContainsString('Write Articles', $result['reply']);
-        Http::assertSent(function ($request) {
-            $body = $request->data();
-            $msgs = $body['messages'] ?? [];
-            $blob = json_encode($msgs);
-
-            // Snapshot is in context for the model; reply is not short-circuited locally.
-            return str_contains((string) $blob, 'data_snapshot')
-                && str_contains((string) $blob, 'Write Articles')
-                && str_contains((string) $blob, 'Markdown table');
-        });
+        $this->assertNull($result['pending'], 'list must not open approval card');
+        $this->assertStringNotContainsString('Terapkan', $result['reply']);
     }
 
     /** @test */
-    public function hermes_path_picks_up_pending_from_api_store(): void
+    public function hermes_text_only_update_still_materializes_approval_card(): void
     {
         config([
-            'services.ai.driver' => 'hermes',
+            'services.ai.endpoint' => 'http://ai.test/v1/chat/completions',
+            'services.ai.api_key' => 'test-key',
+            'services.ai.model' => 'telixcel',
+            'services.ai.timeout' => 30,
+            'services.ai.max_iterations' => 6,
+        ]);
+        $user = $this->admin();
+
+        $task = Task::create([
+            'project_id' => null,
+            'title' => 'Laporan bulanan untuk User B',
+            'type' => 'operasional',
+            'status' => 'pending',
+            'priority' => 'medium',
+            'team_id' => 1,
+            'owner_id' => $user->id,
+            'target_date' => now()->addDays(7),
+        ]);
+
+        // Model only *talks* about approve — no tool_calls.
+        Http::fake([
+            'ai.test/*' => Http::response([
+                'choices' => [[
+                    'message' => [
+                        'role' => 'assistant',
+                        'content' => 'Update task "Laporan bulanan untuk User B" (ID: '.$task->id.') jadi complete — tunggu lu approve di UI ya.',
+                    ],
+                    'finish_reason' => 'stop',
+                ]],
+            ], 200),
+        ]);
+
+        $result = app(AgentRunner::class)->run(
+            [],
+            'ubah Laporan bulanan untuk User B jadi complete',
+            null
+        );
+
+        $this->assertNotNull($result['pending'], 'pending must be set so Livewire shows the card');
+        $this->assertContains($task->id, $result['pending']['ids']);
+        $this->assertSame('complete', $result['pending']['values']['status']);
+        $this->assertNotNull(PendingActionStore::get($user->id));
+    }
+
+    /** @test */
+    public function hermes_path_picks_up_existing_pending_from_store(): void
+    {
+        config([
             'services.ai.endpoint' => 'http://ai.test/v1/chat/completions',
             'services.ai.api_key' => 'test-key',
             'services.ai.model' => 'telixcel',
@@ -156,91 +364,30 @@ class HermesAgentServiceTest extends TestCase
 
         $user = $this->admin();
 
-        // Simulate Hermes calling POST /api/agent *during* the chat request,
-        // which writes the pending proposal for this user mid-run.
-        Http::fake(function ($request) use ($user) {
-            PendingActionStore::put($user->id, [
-                'type' => 'update',
-                'model' => 'task',
-                'ids' => [99],
-                'values' => ['status' => 'complete'],
-                'diff' => [],
-                'summary' => 'Update 1 Task record(s).',
-            ]);
+        PendingActionStore::put($user->id, [
+            'type' => 'update',
+            'model' => 'task',
+            'ids' => [99],
+            'values' => ['status' => 'complete'],
+            'diff' => [],
+            'summary' => 'Update 1 Task record(s).',
+        ]);
 
-            return Http::response([
+        Http::fake([
+            'ai.test/*' => Http::response([
                 'choices' => [
-                    ['message' => ['role' => 'assistant', 'content' => 'Sudah diajukan approval.'], 'finish_reason' => 'stop'],
+                    ['message' => ['role' => 'assistant', 'content' => 'OK'], 'finish_reason' => 'stop'],
                 ],
-            ], 200);
-        });
-
-        $result = app(AgentRunner::class)->run([], 'cek status project saya', null);
-
-        $this->assertSame('hermes', $result['driver']);
-        $this->assertNotNull($result['pending']);
-        $this->assertSame([99], $result['pending']['ids']);
-        // Stays until approve/reject.
-        $this->assertNotNull(PendingActionStore::get($user->id));
-    }
-
-    /** @test */
-    public function status_change_returns_pending_immediately(): void
-    {
-        config(['services.ai.driver' => 'hermes']);
-        $user = $this->admin();
-
-        $task = Task::create([
-            'project_id' => null,
-            'title' => 'Write Articles',
-            'type' => 'operasional',
-            'status' => 'pending',
-            'priority' => 'medium',
-            'team_id' => 1,
-            'owner_id' => $user->id,
-            'target_date' => now()->addDays(7),
+            ], 200),
         ]);
 
-        Http::fake();
+        // List/read must NOT surface a stale approval card.
+        $list = app(AgentRunner::class)->run([], 'list task', null);
+        $this->assertNull($list['pending']);
 
-        $result = app(AgentRunner::class)->run([], 'Write Articles ubah jadi complete', null);
-
-        $this->assertSame('local', $result['driver']);
-        $this->assertNotNull($result['pending']);
-        $this->assertContains($task->id, $result['pending']['ids']);
-        $this->assertSame('complete', $result['pending']['values']['status']);
-        $this->assertNotNull(PendingActionStore::get($user->id));
-        Http::assertNothingSent();
-    }
-
-    /** @test */
-    public function short_follow_up_resolves_task_from_history(): void
-    {
-        config(['services.ai.driver' => 'hermes']);
-        $user = $this->admin();
-
-        $task = Task::create([
-            'project_id' => null,
-            'title' => 'Write Articles',
-            'type' => 'operasional',
-            'status' => 'pending',
-            'priority' => 'medium',
-            'team_id' => 1,
-            'owner_id' => $user->id,
-            'target_date' => now()->addDays(7),
-        ]);
-
-        Http::fake();
-
-        $history = [
-            ['role' => 'user', 'content' => 'status Write Articles'],
-            ['role' => 'assistant', 'content' => "Status Write Articles masih pending. task ID {$task->id}."],
-        ];
-
-        $result = app(AgentRunner::class)->run($history, 'coba ubah jadi complete ya', null);
-
-        $this->assertSame('local', $result['driver']);
-        $this->assertNotNull($result['pending']);
-        $this->assertContains($task->id, $result['pending']['ids']);
+        // Update intent may still pick up store if no new proposal.
+        $upd = app(AgentRunner::class)->run([], 'ubah #99 jadi complete', null);
+        $this->assertSame('hermes', $upd['driver']);
+        $this->assertNotNull($upd['pending']);
     }
 }

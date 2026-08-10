@@ -24,20 +24,5 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-/*
-|--------------------------------------------------------------------------
-| AI agent data API — 1 endpoint
-|--------------------------------------------------------------------------
-|
-| POST /api/agent
-| Auth: X-Agent-Token + X-Agent-User-Id (middleware agent.api)
-|
-| Body examples:
-|   { "action": "health" }
-|   { "action": "schema" }
-|   { "action": "query", "model": "task", "filters": [], "limit": 20 }
-|   { "action": "execute", "tool": "query_records", "arguments": { ... } }
-|   { "tool": "query_records", "arguments": { "model": "task" } }  // shorthand execute
-*/
-Route::post('/agent', \App\Http\Controllers\AgentApiController::class)
-    ->middleware(['agent.api', 'throttle:60,1']);
+// AI Console does NOT expose a public data API.
+// Tools (query/update) run inside Laravel via ToolExecutor → Hermes only formats replies.

@@ -497,11 +497,12 @@
                 <div class="mx-auto max-w-3xl space-y-3">
 
                     @if ($pendingAction)
-                        <div id="agent-approval-card" class="rounded-2xl border-2 border-[color:var(--mint)] bg-[color:var(--surface)] p-4 shadow-sm ring-2 ring-[color:var(--mint)]/20">
-                            <p class="text-xs font-bold uppercase tracking-wider text-[color:var(--mint)]">Konfirmasi perubahan</p>
-                            <p class="mt-1 text-sm font-semibold text-[color:var(--text)]">{{ $pendingAction['summary'] }}</p>
+                        <div id="agent-approval-card" wire:key="agent-approval-{{ implode('-', $pendingAction['ids'] ?? []) }}-{{ md5(json_encode($pendingAction['values'] ?? [])) }}"
+                             class="rounded-2xl border-2 border-amber-400 bg-amber-50 dark:bg-amber-950/30 p-4 shadow-sm ring-2 ring-amber-400/30">
+                            <p class="text-xs font-bold uppercase tracking-wider text-amber-700 dark:text-amber-300">Konfirmasi perubahan</p>
+                            <p class="mt-1 text-sm font-semibold text-[color:var(--text)]">{{ $pendingAction['summary'] ?? 'Perubahan diajukan' }}</p>
                             <div class="mt-3 max-h-36 space-y-2 overflow-y-auto scrollbar">
-                                @foreach ($pendingAction['diff'] as $row)
+                                @foreach (($pendingAction['diff'] ?? []) as $row)
                                     <div class="rounded-xl border border-[color:var(--line)] bg-[color:var(--cloud)] px-3 py-2">
                                         <p class="text-xs font-medium text-[color:var(--text-muted)]">{{ $row['label'] }}</p>
                                         @if ($pendingAction['type'] === 'update')

@@ -7,63 +7,91 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 /**
- * AI Console — OpenAI-compatible via AI_* env only (telixcel).
+ * AI Console — model-chosen tools (OpenAI tool calling) + Hermes LLM.
  *
- *   AI_DRIVER=hermes|ollama
- *   AI_ENDPOINT=http://127.0.0.1:8645/v1/chat/completions
- *   AI_API_KEY=...
- *   AI_MODEL=telixcel
- *   AI_TIMEOUT=180
+ * Flow per user turn:
+ *   1. POST AI_ENDPOINT with messages + tools (ToolSchemas)
+ *   2. If assistant returns tool_calls → ToolExecutor on Laravel DB
+ *   3. Append tool results → call Hermes again (loop, max AI_MAX_ITERATIONS)
+ *   4. Final text reply; update_record → PendingActionStore → Approve UI
  *
- * Hermes: POST AI_ENDPOINT. Ollama: tool-loop (OLLAMA_*).
+ * Env:
+ *   AI_ENDPOINT, AI_API_KEY, AI_MODEL, AI_TIMEOUT, AI_MAX_ITERATIONS
  */
 class AgentRunner
 {
-    public function __construct(private OllamaAgentService $ollama)
-    {
-    }
+    private const ALLOWED_TOOLS = [
+        'query_records',
+        'update_record',
+        'generate_report',
+        'download_report',
+    ];
 
     /**
      * @return array{reply:string, pending:?array, model:string, metrics:array, driver:string}
      */
     public function run(array $history, string $userMessage, ?int $chatId = null): array
     {
-        // Status updates → propose locally so the yellow approval card appears immediately.
-        // Hermes often only *talks* about approval without calling /api/agent.
+        // Status changes: Laravel first (real pending + yellow card). Skip Hermes chatter.
         if ($local = $this->tryLocalStatusUpdate($userMessage, $history)) {
             return $local;
         }
 
-        if ($this->driver() === 'ollama') {
-            $result = $this->ollama->run($history, $userMessage);
-            $result['driver'] = 'ollama';
-            if (empty($result['pending'])) {
-                $result['pending'] = PendingActionStore::get(auth()->id());
-            }
+        // Per-request PII tokenizer: DB values are masked before reaching the LLM,
+        // then un-masked in the final reply. The model never sees real PII/financials.
+        $tok = new Tokenizer();
 
-            return $result;
-        }
-
-        $result = $this->runRemoteChat($history, $userMessage, $chatId);
+        $result = $this->runToolLoop($history, $userMessage, $chatId, $tok);
         $result['driver'] = 'hermes';
-        // Hermes may have called POST /api/agent mid-request → store has the proposal.
-        if (empty($result['pending'])) {
+
+        $isUpdateTurn = $this->looksLikeStatusChangeIntent($userMessage)
+            || in_array('update_record', $result['metrics']['tools_called'] ?? [], true)
+            || in_array('update_record', $result['metrics']['pre_tools'] ?? [], true)
+            || in_array(($result['metrics']['source'] ?? ''), [
+                'laravel_pre_update',
+                'hermes_tool_calling_pending',
+            ], true);
+
+        if (empty($result['pending']) && $isUpdateTurn) {
             $result['pending'] = PendingActionStore::get(auth()->id());
         }
+
+        if (empty($result['pending']) && $this->looksLikeStatusChangeIntent($userMessage)) {
+            $materialized = $this->materializePendingFromTexts(
+                $userMessage,
+                (string) ($result['reply'] ?? ''),
+                $history
+            );
+            if ($materialized) {
+                $result['pending'] = $materialized;
+                $result['metrics'] = array_merge($result['metrics'] ?? [], [
+                    'pending_source' => 'materialized_from_text',
+                ]);
+                $result['reply'] = $this->formatPendingReply($materialized);
+            }
+        }
+
+        if (! $isUpdateTurn) {
+            $result['pending'] = null;
+            $result['reply'] = $this->stripApprovalChatter((string) ($result['reply'] ?? ''));
+        }
+
+        // Never show architecture/curl noise to the user.
+        $result['reply'] = $this->stripInfraChatter((string) ($result['reply'] ?? ''));
+
+        // Un-mask PII tokens so the user sees real values (the LLM never did).
+        $result['reply'] = $tok->detokenize((string) ($result['reply'] ?? ''));
 
         return $result;
     }
 
     public function driver(): string
     {
-        return strtolower(trim((string) config('services.ai.driver', 'hermes'))) === 'ollama'
-            ? 'ollama'
-            : 'hermes';
+        return 'hermes';
     }
 
     /**
-     * Satu URL penuh ke chat completions (never /responses — that path hangs/times out).
-     * AI_ENDPOINT full URL, or AI_BASE_URL (+ /chat/completions).
+     * Full URL to chat completions (never /responses).
      */
     public static function endpoint(): string
     {
@@ -73,15 +101,12 @@ class AgentRunner
         }
 
         $base = rtrim((string) (config('services.ai.base_url') ?: 'http://127.0.0.1:8645/v1'), '/');
-
         if ($base === '') {
             return '';
         }
-
         if (str_ends_with($base, '/chat/completions')) {
             return $base;
         }
-
         if (str_ends_with($base, '/v1') || str_contains($base, '/v1/')) {
             return self::forceChatCompletions($base . '/chat/completions');
         }
@@ -89,7 +114,6 @@ class AgentRunner
         return self::forceChatCompletions($base . '/v1/chat/completions');
     }
 
-    /** Normalize any mistaken /responses URL to /chat/completions. */
     private static function forceChatCompletions(string $url): string
     {
         $url = preg_replace('#/responses/?$#', '/chat/completions', $url) ?? $url;
@@ -102,9 +126,6 @@ class AgentRunner
 
     public static function maybeWarm(): void
     {
-        if (strtolower((string) config('services.ai.driver', 'hermes')) === 'ollama') {
-            return;
-        }
         if (! filter_var(config('services.ai.warmup', true), FILTER_VALIDATE_BOOLEAN)) {
             return;
         }
@@ -125,7 +146,6 @@ class AgentRunner
             if ($key !== '') {
                 $http = $http->withToken($key);
             }
-            // health: strip /v1/chat/completions → host root
             $root = preg_replace('#/v1(?:/chat/completions)?$#', '', $endpoint) ?: $endpoint;
             try {
                 $http->get($root . '/health');
@@ -142,14 +162,17 @@ class AgentRunner
     }
 
     /**
+     * Model picks tools; Laravel executes them; Hermes formats final answer.
+     *
      * @return array{reply:string, pending:?array, model:string, metrics:array, hermes_response_id:?string}
      */
-    private function runRemoteChat(array $history, string $userMessage, ?int $chatId): array
+    private function runToolLoop(array $history, string $userMessage, ?int $chatId, Tokenizer $tok): array
     {
         $endpoint = self::endpoint();
         $apiKey = (string) (config('services.ai.api_key') ?: '');
         $model = (string) (config('services.ai.model') ?: 'telixcel');
         $timeout = (int) (config('services.ai.timeout') ?: 180);
+        $maxIter = max(1, (int) (config('services.ai.max_iterations') ?: 6));
 
         if ($endpoint === '') {
             throw new \RuntimeException(
@@ -166,7 +189,6 @@ class AgentRunner
                 ->first();
         }
 
-        // Stable Hermes session id per Laravel chat (resume tools/memory/sandbox).
         $hermesSessionId = $chat?->hermes_session_id
             ?: ($chatId ? "telixcel-chat-{$chatId}" : null);
         $conversation = "telixcel-user-{$userId}-chat-" . ($chatId ?: 'new');
@@ -174,28 +196,28 @@ class AgentRunner
 
         $user = auth()->user();
 
-        // Token per user dari DB (read + update_limited). Mint if belum ada.
-        $agentPlain = null;
-        $agentAbilities = [];
-        if ($user) {
-            try {
-                [$tokenRow, $agentPlain] = \App\Models\AgentUserToken::ensureForUser($user);
-                $agentAbilities = $tokenRow->abilities ?? \App\Models\AgentUserToken::DEFAULT_ABILITIES;
-                // Pastikan ability read ada (query_records).
-                if (! in_array('read', $agentAbilities, true)) {
-                    $agentAbilities = array_values(array_unique(array_merge(
-                        $agentAbilities,
-                        \App\Models\AgentUserToken::DEFAULT_ABILITIES
-                    )));
-                    $tokenRow->forceFill(['abilities' => $agentAbilities])->save();
-                }
-            } catch (\Throwable $e) {
-                Log::debug('Agent user token skipped: ' . $e->getMessage());
-            }
+        // Safety net: Laravel may pre-query so Hermes cannot invent "API down" stories.
+        // Model can still call more tools via OpenAI tool_calls.
+        $preTools = $this->preQueryIfDataIntent($userMessage, $history, $tok);
+        $pending = $preTools['pending'] ?? null;
+        $toolsCalled = $preTools['called'] ?? [];
+
+        if ($pending) {
+            $summary = (string) ($pending['summary'] ?? 'Perubahan diajukan.');
+
+            return [
+                'reply' => $summary."\n\nSilakan **konfirmasi di kartu di bawah** (Terapkan / Batalkan). "
+                    .'Belum tersimpan ke database sampai Anda setujui.',
+                'pending' => $pending,
+                'model' => 'laravel-tools',
+                'metrics' => [
+                    'tools_called' => $toolsCalled,
+                    'source' => 'laravel_pre_update',
+                ],
+                'hermes_response_id' => null,
+            ];
         }
 
-        // Base URL API = APP_URL + /api/agent (tanpa AGENT_API_BASE_URL terpisah).
-        $agentApiUrl = url('/api/agent');
         $ctx = [
             'current_user' => [
                 'id' => $user->id ?? 0,
@@ -205,29 +227,22 @@ class AgentRunner
             'conversation_id' => $chatId,
             'datetime' => now()->toDateTimeString(),
             'source' => 'telixcel-ai-console',
-            // Hermes: panggil API Laravel dengan token user ini saja (agt_…).
-            'agent_api' => [
-                'base_url' => $agentApiUrl,
-                'token' => $agentPlain,
-                'abilities' => $agentAbilities,
-                'auth_header' => 'X-Agent-Token',
-                'examples' => [
-                    'health' => ['action' => 'health'],
-                    'list_tasks' => ['action' => 'query', 'model' => 'task', 'limit' => 30],
-                    'query_records' => [
-                        'action' => 'execute',
-                        'tool' => 'query_records',
-                        'arguments' => ['model' => 'task', 'limit' => 30],
-                    ],
+            'architecture' => [
+                'llm' => 'hermes',
+                'data_tools' => 'laravel-tool-executor-only',
+                'updates' => 'pending-approval-in-ui',
+                'forbidden' => [
+                    'curl',
+                    'POST /api/agent',
+                    '172.22.96.1',
+                    ':8020',
+                    'X-Agent-Token',
+                    'telixcel-data skill HTTP',
                 ],
             ],
+            'tool_results' => $preTools['results'] ?? [],
+            'tool_generated_at' => now()->toDateTimeString(),
         ];
-
-        // Preload tasks for context only — AI still answers (no instant skip of thinking).
-        $snapshot = $this->maybeTaskAssignmentSnapshot($userMessage);
-        if ($snapshot !== null) {
-            $ctx['data_snapshot'] = $snapshot;
-        }
 
         $input = "<request_context>\n"
             . json_encode($ctx, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)
@@ -236,37 +251,20 @@ class AgentRunner
 
         $system = [
             'role' => 'system',
-            'content' => 'You are the Telixcel AI Console assistant. '
-                . 'Use current_user for isolation. Be concise. Prefer user language (ID/EN). '
-                . 'Do not invent business data. '
-                . 'If request_context.data_snapshot.tasks is present, answer from that data (no tools). '
-                . 'When listing tasks, ALWAYS use a Markdown table with columns: '
-                . 'ID | Judul | Status | Priority | Tipe | Assignee | Project | Target. '
-                . 'NEVER use terminal/shell to dig files, MySQL, or Hermes sessions for Telixcel CRM data. '
-                . 'If you need more data: one curl POST agent_api.base_url with header '
-                . 'X-Agent-Token: agent_api.token (token agt_ milik current_user di DB, ability read). '
-                . 'Body: action=query model=task (atau execute tool=query_records). '
-                . 'Jangan pakai token lain / service token. Stop after 1-2 API calls. '
-                . 'Updates only via update_record (pending approval).',
+            'content' => $this->systemPrompt(),
         ];
 
-        // Resume Hermes session: only send the new turn (Hermes loads prior history by Session-Id).
-        // First turn / no session: include Laravel history as fallback context.
-        $hasHermesSession = $hermesSessionId && $chat && filled($chat->hermes_session_id);
-        if ($hasHermesSession) {
-            $messages = [$system, ['role' => 'user', 'content' => $input]];
-        } else {
-            $messages = array_merge(
-                [$system],
-                collect($history)
-                    ->filter(fn ($m) => in_array($m['role'] ?? '', ['user', 'assistant'], true))
-                    ->map(fn ($m) => ['role' => $m['role'], 'content' => (string) ($m['content'] ?? '')])
-                    ->slice(-20)
-                    ->values()
-                    ->all(),
-                [['role' => 'user', 'content' => $input]],
-            );
-        }
+        // Full transcript for this turn (tools need tool_call messages in-loop).
+        // History content is scanned for embedded PII (email/phone/NIK) too.
+        $historyMsgs = array_map(
+            fn ($m) => ['role' => $m['role'], 'content' => $tok->tokenizeText((string) $m['content'])],
+            $this->sanitizeHistory($history)
+        );
+        $messages = array_merge(
+            [$system],
+            $historyMsgs,
+            [['role' => 'user', 'content' => $input]],
+        );
 
         $http = Http::timeout($timeout)->acceptJson();
         if ($apiKey !== '') {
@@ -274,361 +272,576 @@ class AgentRunner
         }
 
         $headers = [
-            // Long-term memory scope (stable per Laravel chat)
             'X-Hermes-Session-Key' => $sessionKey,
         ];
-        // Server-side transcript continuity (tools, sandbox, Hermes session DB)
         if ($hermesSessionId) {
             $headers['X-Hermes-Session-Id'] = $hermesSessionId;
         }
 
-        try {
-            $response = $http->withHeaders($headers)->post($endpoint, [
-                'model' => $model,
-                'messages' => $messages,
-                'stream' => false,
-                'user' => $conversation,
-            ]);
-            $response->throw();
-            $json = $response->json() ?? [];
-        } catch (\Throwable $e) {
-            // Local fallback if Hermes hangs but we already loaded a snapshot for related questions.
-            if ($snapshot !== null) {
-                Log::warning('Hermes timeout/error; using data_snapshot fallback: '.$e->getMessage());
+        $executor = app(ToolExecutor::class);
+        $lastJson = [];
+        $returnedSessionId = $hermesSessionId;
+        $usageTotal = [];
+
+        for ($i = 0; $i < $maxIter; $i++) {
+            try {
+                $response = $http->withHeaders($headers)->post($endpoint, [
+                    'model' => $model,
+                    'messages' => $messages,
+                    'tools' => ToolSchemas::all(),
+                    'tool_choice' => 'auto',
+                    'stream' => false,
+                    'temperature' => 0.1,
+                    'user' => $conversation,
+                ]);
+                $response->throw();
+                $json = $response->json() ?? [];
+                $lastJson = $json;
+            } catch (\Throwable $e) {
+                Log::warning('Hermes tool-loop error: ' . $e->getMessage());
+                throw $e;
+            }
+
+            $returnedSessionId = $response->header('X-Hermes-Session-Id')
+                ?: ($json['hermes']['session_id'] ?? null)
+                ?: $returnedSessionId;
+
+            if (! empty($json['usage']) && is_array($json['usage'])) {
+                foreach ($json['usage'] as $k => $v) {
+                    if (is_numeric($v)) {
+                        $usageTotal[$k] = ($usageTotal[$k] ?? 0) + (int) $v;
+                    }
+                }
+            }
+
+            if (! empty($json['hermes']['failed']) || ($json['choices'][0]['finish_reason'] ?? '') === 'error') {
+                $err = $json['hermes']['error']
+                    ?? ($json['choices'][0]['message']['content'] ?? 'AI error');
+                throw new \RuntimeException('AI error: ' . $err);
+            }
+
+            $msg = $json['choices'][0]['message'] ?? [];
+            $toolCalls = $this->extractToolCalls($msg);
+
+            if ($toolCalls === []) {
+                $content = $msg['content'] ?? '';
+                $reply = trim(is_string($content) ? $content : json_encode($content)) ?: '(no response)';
+
+                // Hermes skill legacy: invents network errors instead of using tool_results.
+                if ($this->looksLikeNetworkExcuse($reply) && ! empty($preTools['results'])) {
+                    Log::warning('Hermes network-excuse reply overridden with Laravel tool_results');
+                    $reply = $this->formatFromToolResults($preTools['results'], $userMessage);
+                }
+
+                if ($chat && $returnedSessionId && $chat->hermes_session_id !== $returnedSessionId) {
+                    $chat->forceFill(['hermes_session_id' => $returnedSessionId])->save();
+                }
 
                 return [
-                    'reply' => $this->formatTaskTableReply($snapshot, $userMessage),
-                    'pending' => null,
-                    'model' => 'local-snapshot',
+                    'reply' => $reply,
+                    'pending' => $pending,
+                    'model' => $json['model'] ?? $model,
                     'metrics' => [
-                        'fallback' => 'data_snapshot',
-                        'error' => $e->getMessage(),
+                        'usage' => $usageTotal ?: ($json['usage'] ?? null),
                         'conversation' => $conversation,
                         'endpoint' => $endpoint,
-                        'hermes_session_id' => $hermesSessionId,
+                        'hermes_session_id' => $returnedSessionId,
+                        'tools_called' => $toolsCalled,
+                        'iterations' => $i + 1,
+                        'source' => 'hermes_tool_calling',
+                        'pre_tools' => $preTools['called'] ?? [],
                     ],
-                    'hermes_response_id' => null,
+                    'hermes_response_id' => $json['id'] ?? null,
                 ];
             }
-            throw $e;
-        }
 
-        // Persist Hermes session id for resume (header preferred)
-        $returnedSessionId = $response->header('X-Hermes-Session-Id')
-            ?: ($json['hermes']['session_id'] ?? null)
-            ?: $hermesSessionId;
+            // Append assistant message with tool_calls (OpenAI format)
+            $messages[] = [
+                'role' => 'assistant',
+                'content' => is_string($msg['content'] ?? null) ? $msg['content'] : '',
+                'tool_calls' => $toolCalls,
+            ];
 
-        if ($chat && $returnedSessionId && $chat->hermes_session_id !== $returnedSessionId) {
-            $chat->forceFill(['hermes_session_id' => $returnedSessionId])->save();
-        }
+            foreach ($toolCalls as $call) {
+                $name = (string) ($call['function']['name'] ?? '');
+                $args = $this->decodeArgs($call['function']['arguments'] ?? []);
+                // LLM may echo a token as an argument → restore the real value first.
+                $args = $tok->detokenizeArgs($args);
+                $callId = (string) ($call['id'] ?? ('call_' . uniqid()));
 
-        $content = $json['choices'][0]['message']['content'] ?? '';
-        $reply = trim(is_string($content) ? $content : json_encode($content)) ?: '(no response)';
+                if (! in_array($name, self::ALLOWED_TOOLS, true)) {
+                    $result = [
+                        'status' => 'error',
+                        'message' => "Unknown or disallowed tool: {$name}",
+                    ];
+                } else {
+                    $result = $executor->execute($name, $args);
+                    $toolsCalled[] = $name;
+                }
 
-        if (! empty($json['hermes']['failed']) || ($json['choices'][0]['finish_reason'] ?? '') === 'error') {
-            throw new \RuntimeException('AI error: ' . ($json['hermes']['error'] ?? $reply));
+                if (($result['status'] ?? '') === 'pending' && ! empty($result['action'])) {
+                    $pending = $result['action'];
+                    $toolPayload = [
+                        'status' => 'awaiting_user_approval',
+                        'summary' => $result['action']['summary'] ?? 'Pending approval',
+                        'message' => 'Tell the user to Approve or Reject in the UI card. Do not claim the change is saved.',
+                    ];
+                } else {
+                    // Mask PII in read results before they go back to the LLM.
+                    $toolPayload = $name === 'query_records'
+                        ? $this->tokenizeQueryResult($result, (string) ($args['model'] ?? ''), $tok)
+                        : $result;
+                }
+
+                $messages[] = [
+                    'role' => 'tool',
+                    'tool_call_id' => $callId,
+                    'content' => json_encode($toolPayload, JSON_UNESCAPED_UNICODE),
+                ];
+            }
+
+            // Short-circuit after update proposal so Approve card shows immediately
+            if ($pending) {
+                $summary = (string) ($pending['summary'] ?? 'Perubahan diajukan.');
+
+                if ($chat && $returnedSessionId && $chat->hermes_session_id !== $returnedSessionId) {
+                    $chat->forceFill(['hermes_session_id' => $returnedSessionId])->save();
+                }
+
+                return [
+                    'reply' => $summary . "\n\nSilakan **konfirmasi di kartu di bawah** (Terapkan / Batalkan). "
+                        . 'Belum tersimpan ke database sampai Anda setujui.',
+                    'pending' => $pending,
+                    'model' => $lastJson['model'] ?? $model,
+                    'metrics' => [
+                        'usage' => $usageTotal ?: null,
+                        'conversation' => $conversation,
+                        'endpoint' => $endpoint,
+                        'hermes_session_id' => $returnedSessionId,
+                        'tools_called' => $toolsCalled,
+                        'iterations' => $i + 1,
+                        'source' => 'hermes_tool_calling_pending',
+                    ],
+                    'hermes_response_id' => $lastJson['id'] ?? null,
+                ];
+            }
         }
 
         return [
-            'reply' => $reply,
-            'pending' => null,
-            'model' => $json['model'] ?? $model,
+            'reply' => 'Batas langkah tool tercapai. Coba sederhanakan atau pecah permintaan Anda.',
+            'pending' => $pending,
+            'model' => $model,
             'metrics' => [
-                'usage' => $json['usage'] ?? null,
-                'conversation' => $conversation,
-                'endpoint' => $endpoint,
-                'snapshot' => $snapshot !== null,
-                'hermes_session_id' => $returnedSessionId,
-                'resumed' => (bool) $hasHermesSession,
+                'tools_called' => $toolsCalled,
+                'iterations' => $maxIter,
+                'source' => 'hermes_tool_calling_limit',
             ],
-            'hermes_response_id' => $json['id'] ?? null,
+            'hermes_response_id' => null,
         ];
     }
 
-    private function looksLikeAssignmentQuestion(string $message): bool
+    private function systemPrompt(): string
     {
-        return (bool) preg_match(
-            '/\b(tugas|task|assign|ditugaskan|tugaskan|assignee|siapa\s+aja|yang\s+di\s*tugas)\b/iu',
-            $message
-        );
-    }
+        $user = auth()->user();
+        $schema = SchemaContext::build();
+        $name = $user->name ?? 'admin';
+        $id = $user->id ?? 0;
+        $now = now()->toDateTimeString();
 
-    private function looksLikeTaskDataQuestion(string $message): bool
-    {
-        return (bool) preg_match(
-            '/\b(tugas|task|assign|ditugaskan|tugaskan|assignee|project|proyek|job\s*list|status\s+task|daftar\s+task|table|tabel)\b/iu',
-            $message
-        );
+        return <<<PROMPT
+You are the Telixcel AI Console assistant (project / ops data).
+
+{$schema}
+
+CURRENT USER: {$name} (ID: {$id})
+CURRENT DATETIME: {$now}
+
+ARCHITECTURE (critical — read carefully):
+- Live data tools run ONLY on Laravel (ToolExecutor). You never reach MySQL yourself.
+- Prefer OpenAI function tools: query_records, update_record, generate_report, download_report.
+- If request_context.tool_results is non-empty, that data is LIVE — answer from it.
+- LIST/READ: table only. No approve/kartu language.
+- Do NOT mention curl, API, network, retired paths, tools architecture, or localhost to the user.
+- Never invent IDs/statuses. Prefer user language (ID/EN). Be short.
+
+TOOLS:
+- query_records — list/filter whitelisted models (immediate, live data).
+- update_record — propose UPDATE only (pending approval in UI; not written until Approve).
+- generate_report / download_report — monthly report then optional PDF.
+
+STATUS CHANGE (very important — act, don't ask):
+- Any phrasing/language where the user reports a task is done/finished/complete/selesai/kelar/beres,
+  OR asks to change a status ("jadikan complete", "set pending", "i have finished X", "close X"):
+  1) FIRST call query_records (model=task, filters title LIKE the task name) to find the exact id.
+  2) THEN call update_record (model=task, id=<found id>, values={"status":"complete|pending|progress"}).
+- NEVER ask the user for the ID — resolve it yourself with query_records.
+- NEVER say the change is saved/applied/done. update_record only PROPOSES; the UI shows an approval card.
+- If query_records returns multiple matches, ask which one (show id + title). If none, say so.
+
+PATTERNS:
+- Cross-model: query child first → collect ids → parent with op "in".
+- List tasks as Markdown table: ID | Judul | Status | Priority | Tipe | Assignee | Project | Target.
+- If a tool returns awaiting_user_approval → tell the user to Approve in the UI card (do not claim it's saved).
+
+RULES:
+- UPDATE only via tools (no create/delete). Be concise. Answer in the user's language.
+PROMPT;
     }
 
     /**
-     * Compact task list with assignee names for the current user (RBAC via forMyType).
+     * Mask sensitive columns of a query_records result before it reaches the LLM.
+     * Returns a copy; the caller's raw result (used for id resolution) is untouched.
+     */
+    private function tokenizeQueryResult(array $result, string $model, Tokenizer $tok): array
+    {
+        if (($result['status'] ?? '') !== 'ok' || empty($result['data']) || ! is_array($result['data'])) {
+            return $result;
+        }
+
+        $sensitive = ModelRegistry::sensitive($model);
+        $result['data'] = array_map(
+            fn ($row) => is_array($row) ? $tok->tokenizeRow($row, $sensitive) : $row,
+            $result['data']
+        );
+
+        return $result;
+    }
+
+    /**
+     * Laravel-side query when the user clearly asks for data (safety net vs Hermes skills).
      *
-     * @return array{tasks:list<array>,count:int,generated_at:string}|null
+     * @param  array<int,array{role?:string,content?:string}>  $history
+     * @return array{results:list<array>,called:list<string>,pending:?array}
      */
-    private function maybeTaskAssignmentSnapshot(string $userMessage): ?array
+    private function preQueryIfDataIntent(string $message, array $history, Tokenizer $tok): array
     {
-        if (! $this->looksLikeTaskDataQuestion($userMessage)) {
-            return null;
-        }
-        if (! auth()->check()) {
-            return null;
-        }
-
-        try {
-            $tasks = \App\Models\Task::query()
-                ->forMyType()
-                ->with([
-                    'assignedTo:id,name',
-                    'owner:id,name',
-                    'project:id,name',
-                ])
-                ->orderByDesc('updated_at')
-                ->limit(40)
-                ->get([
-                    'id', 'project_id', 'title', 'type', 'status', 'priority',
-                    'target_date', 'owner_id', 'assigned_to', 'updated_at',
-                ]);
-
-            return [
-                'count' => $tasks->count(),
-                'generated_at' => now()->toDateTimeString(),
-                'tasks' => $tasks->map(fn ($t) => [
-                    'id' => $t->id,
-                    'title' => $t->title,
-                    'status' => $t->status,
-                    'priority' => $t->priority,
-                    'type' => $t->type,
-                    'project' => $t->project?->name,
-                    'owner' => $t->owner?->name,
-                    'assigned_to' => $t->assignedTo?->name,
-                    'assigned_to_id' => $t->assigned_to,
-                    'target_date' => optional($t->target_date)->toDateString(),
-                ])->all(),
-            ];
-        } catch (\Throwable $e) {
-            Log::debug('Task snapshot skipped: '.$e->getMessage());
-
-            return null;
-        }
-    }
-
-    /**
-     * Always answer list/assignment snapshots as a Markdown table (renders in AI Console).
-     */
-    private function formatTaskTableReply(array $snapshot, string $userMessage = ''): string
-    {
-        $tasks = $snapshot['tasks'] ?? [];
-        if ($tasks === []) {
-            return 'Tidak ada task yang terlihat untuk akun Anda saat ini.';
+        $isStatusChange = $this->looksLikeStatusChangeIntent($message);
+        $wants = $isStatusChange || (bool) preg_match(
+            '/\b(task|tugas|status|pending|progress|completed?|complete|selesai|daftar|list|tampil|lihat|cek|berapa|assign|project|proyek|ed\b|#\s*\d+)\b/iu',
+            $message
+        );
+        if (! $wants || ! auth()->check()) {
+            return ['results' => [], 'called' => [], 'pending' => null];
         }
 
-        $count = (int) ($snapshot['count'] ?? count($tasks));
-        $lines = [
-            "**Daftar task** ({$count} baris):",
-            '',
-            '| ID | Judul | Status | Priority | Tipe | Assignee | Project | Target |',
-            '|---:|:------|:-------|:---------|:-----|:---------|:--------|:-------|',
+        $executor = app(ToolExecutor::class);
+        $called = [];
+        $results = [];
+        $pending = null;
+
+        $args = ['model' => 'task', 'limit' => 30];
+        if (preg_match('/#\s*(\d+)\b/', $message, $m) || preg_match('/\b(?:task\s*)?id\s*[:=]?\s*(\d+)\b/iu', $message, $m)) {
+            $args['filters'] = [['field' => 'id', 'op' => '=', 'value' => (int) $m[1]]];
+            $args['limit'] = 5;
+        } elseif ($isStatusChange) {
+            // Find the task by title fragment before proposing update (never filter by target status).
+            $title = $this->extractTitleHint($message);
+            if ($title) {
+                $args['filters'] = [['field' => 'title', 'op' => 'like', 'value' => $title]];
+                $args['limit'] = 10;
+            }
+        } elseif (
+            // Explicit status list only: "list pending", "task status complete", NOT bare "list task".
+            preg_match('/\b(list|daftar|tampil|lihat|cek|tampilkan).{0,40}\b(pending|progress|completed?|complete|selesai)\b/iu', $message)
+            || preg_match('/\b(pending|progress|completed?|complete|selesai).{0,40}\b(task|tugas)\b/iu', $message)
+            || preg_match('/\btask\s+(pending|progress|completed?|complete|selesai)\b/iu', $message)
+            || preg_match('/\bstatus\s+(pending|progress|completed?|complete|selesai)\b/iu', $message)
+        ) {
+            if (preg_match('/\b(pending|progress|completed?|complete|selesai)\b/iu', $message, $sm)) {
+                $st = strtolower($sm[1]);
+                if ($st === 'selesai') {
+                    $st = 'complete';
+                }
+                $args['filters'] = [['field' => 'status', 'op' => '=', 'value' => $st]];
+            }
+        }
+        // else: bare "list task" / "daftar task" → no status filter (all tasks)
+
+        $r = $executor->execute('query_records', $args);
+        $called[] = 'query_records';
+        $results[] = [
+            'tool' => 'query_records',
+            'arguments' => $args,
+            'result' => $this->tokenizeQueryResult($r, (string) ($args['model'] ?? 'task'), $tok),
         ];
 
-        foreach ($tasks as $t) {
-            $lines[] = sprintf(
-                '| %s | %s | %s | %s | %s | %s | %s | %s |',
-                $this->mdCell($t['id'] ?? ''),
-                $this->mdCell($t['title'] ?? ''),
-                $this->mdCell($t['status'] ?? ''),
-                $this->mdCell($t['priority'] ?? ''),
-                $this->mdCell($t['type'] ?? ''),
-                $this->mdCell($t['assigned_to'] ?? '—'),
-                $this->mdCell($t['project'] ?? '—'),
-                $this->mdCell($t['target_date'] ?? '—')
-            );
-        }
-
-        // Optional short summary by assignee when the user asked "siapa ditugaskan".
-        if ($this->looksLikeAssignmentQuestion($userMessage)
-            && preg_match('/\b(siapa|assign|ditugaskan|tugaskan|assignee)\b/iu', $userMessage)) {
-            $by = [];
-            foreach ($tasks as $t) {
-                $name = $t['assigned_to'] ?? '(belum ditugaskan)';
-                $by[$name] = ($by[$name] ?? 0) + 1;
+        if ($isStatusChange) {
+            $status = $this->extractTargetStatus($message) ?? 'complete';
+            $uArgs = ['model' => 'task', 'values' => ['status' => $status], 'limit' => 5];
+            $id = $this->extractTaskIdFromText($message);
+            if ($id === null) {
+                $rows = $r['data'] ?? [];
+                if (is_array($rows) && count($rows) === 1 && isset($rows[0]['id'])) {
+                    $id = (int) $rows[0]['id'];
+                }
             }
-            ksort($by);
-            $lines[] = '';
-            $lines[] = '**Ringkas per assignee:** '.collect($by)
-                ->map(fn ($n, $name) => "{$name} ({$n})")
-                ->implode(', ');
+            if ($id !== null) {
+                $uArgs['id'] = $id;
+                $ur = $executor->execute('update_record', $uArgs);
+                $called[] = 'update_record';
+                $results[] = ['tool' => 'update_record', 'arguments' => $uArgs, 'result' => $ur];
+                if (($ur['status'] ?? '') === 'pending' && ! empty($ur['action'])) {
+                    $pending = $ur['action'];
+                }
+            }
         }
 
-        return implode("\n", $lines);
+        return ['results' => $results, 'called' => $called, 'pending' => $pending];
     }
 
-    private function mdCell(mixed $value): string
+    private function looksLikeStatusChangeIntent(string $message): bool
     {
-        $s = trim((string) $value);
-        // Escape pipes so markdown tables don't break.
-        $s = str_replace('|', '\\|', $s);
-        $s = str_replace(["\r\n", "\n", "\r"], ' ', $s);
+        // Include casual Indo: jadiin, bikin selesai, etc. (jadiin ≠ \bjadi\b)
+        $hasChange = (bool) preg_match(
+            '/\b(ubah|ubdah|ganti|set|jadiin|jadikan|jadi|mark|update|tandai|selesaikan|ajukan|bikin)\b/iu',
+            $message
+        );
+        $hasStatus = (bool) preg_match(
+            '/\b(selesai|selesaikan|kelar|beres|completed?|complete|done|pending|progress|berjalan)\b/iu',
+            $message
+        );
 
-        return $s === '' ? '—' : $s;
+        return $hasChange && $hasStatus;
     }
 
     /**
-     * Detect status-change intents and propose update_record immediately
-     * so Livewire can show the approval card in the same turn.
+     * Propose update_record immediately so Livewire shows the approval card.
+     * Does not call Hermes (avoids "curl retired" / fake approve chat).
      *
      * @param  array<int,array{role?:string,content?:string}>  $history
      * @return array{reply:string,pending:?array,model:string,metrics:array,driver:string}|null
      */
     private function tryLocalStatusUpdate(string $message, array $history = []): ?array
     {
-        if (! auth()->check()) {
+        if (! auth()->check() || ! $this->looksLikeStatusChangeIntent($message)) {
             return null;
         }
 
-        if (! preg_match('/\b(ubah|ubdah|ganti|set|jadi|jadikan|mark|update|status|ajukan|approve|terapkan)\b/iu', $message)) {
-            return null;
-        }
-        if (! preg_match('/\b(selesai|complete|done|pending|progress|berjalan)\b/iu', $message)) {
+        $status = $this->extractTargetStatus($message);
+        if ($status === null) {
             return null;
         }
 
-        $status = 'complete';
-        if (preg_match('/\b(pending)\b/iu', $message)) {
-            $status = 'pending';
-        } elseif (preg_match('/\b(progress|berjalan)\b/iu', $message)) {
-            $status = 'progress';
-        } elseif (preg_match('/\b(selesai|complete|done)\b/iu', $message)) {
-            $status = 'complete';
+        $id = $this->extractTaskIdFromText($message);
+        if ($id === null) {
+            $id = $this->resolveTaskIdByTitle($message, $history);
         }
 
-        $ref = $this->resolveTaskReference($message, $history);
-        if ($ref === null) {
+        if ($id === null) {
             return [
-                'reply' => 'Saya belum yakin task mana yang dimaksud. Sebutkan judul (mis. Write Articles) atau ID (mis. #5).',
+                'reply' => 'Saya belum yakin task mana. Sebutkan judul lengkap atau ID (mis. #12).',
                 'pending' => null,
                 'model' => 'local-update',
-                'metrics' => ['source' => 'local_status_update', 'need_context' => true],
+                'metrics' => ['source' => 'laravel_pre_update', 'need_context' => true],
                 'driver' => 'local',
-            ];
-        }
-
-        $args = [
-            'model' => 'task',
-            'values' => ['status' => $status],
-            'limit' => 5,
-        ];
-        if (isset($ref['id'])) {
-            $args['id'] = $ref['id'];
-        } else {
-            $args['filters'] = [
-                ['field' => 'title', 'op' => 'like', 'value' => $ref['title']],
             ];
         }
 
         try {
-            /** @var ToolExecutor $executor */
-            $executor = app(ToolExecutor::class);
-            $result = $executor->execute('update_record', $args);
+            $ur = app(ToolExecutor::class)->execute('update_record', [
+                'model' => 'task',
+                'id' => $id,
+                'values' => ['status' => $status],
+            ]);
         } catch (\Throwable $e) {
-            Log::debug('Local status update failed: '.$e->getMessage());
+            Log::debug('tryLocalStatusUpdate failed: '.$e->getMessage());
 
             return null;
         }
 
-        if (($result['status'] ?? '') === 'error') {
+        if (($ur['status'] ?? '') === 'error') {
             return [
-                'reply' => (string) ($result['message'] ?? 'Gagal mengajukan update.'),
+                'reply' => (string) ($ur['message'] ?? 'Gagal mengajukan update.'),
                 'pending' => null,
                 'model' => 'local-update',
-                'metrics' => ['source' => 'local_status_update', 'error' => true, 'ref' => $ref],
+                'metrics' => ['source' => 'laravel_pre_update', 'error' => true],
                 'driver' => 'local',
             ];
         }
 
-        if (($result['status'] ?? '') !== 'pending' || empty($result['action'])) {
+        if (($ur['status'] ?? '') !== 'pending' || empty($ur['action'])) {
             return null;
         }
 
-        $this->rememberTaskContext($result['action']);
-
-        $summary = (string) ($result['action']['summary'] ?? 'Perubahan diajukan.');
-        $label = $result['action']['diff'][0]['label'] ?? ($ref['title'] ?? ('#'.($ref['id'] ?? '?')));
+        $action = $ur['action'];
 
         return [
-            'reply' => $summary."\n\nTarget: **{$label}** → status `{$status}`.\n\n"
-                .'Silakan **konfirmasi di kartu di bawah** (Terapkan / Batalkan). '
-                .'Belum tersimpan ke database sampai Anda setujui.',
-            'pending' => $result['action'],
+            'reply' => $this->formatPendingReply($action),
+            'pending' => $action,
             'model' => 'local-update',
-            'metrics' => ['source' => 'local_status_update', 'ref' => $ref],
+            'metrics' => [
+                'source' => 'laravel_pre_update',
+                'tools_called' => ['update_record'],
+                'task_id' => $id,
+                'status' => $status,
+            ],
             'driver' => 'local',
         ];
     }
 
     /**
      * @param  array<int,array{role?:string,content?:string}>  $history
-     * @return array{id?:int,title?:string}|null
      */
-    private function resolveTaskReference(string $message, array $history): ?array
+    private function resolveTaskIdByTitle(string $message, array $history = []): ?int
     {
-        if (preg_match('/#\s*(\d+)\b/', $message, $m) || preg_match('/\b(?:task\s*)?id\s*[:=]?\s*(\d+)\b/iu', $message, $m)) {
-            return ['id' => (int) $m[1]];
-        }
-
-        $title = $this->extractTaskTitleFromText($message);
-        if ($title !== null) {
-            return ['title' => $title];
-        }
-
-        $blob = collect($history)
-            ->reverse()
-            ->take(12)
-            ->map(fn ($m) => (string) ($m['content'] ?? ''))
-            ->implode("\n");
-
-        if (preg_match('/\b(?:task\s*)?id\s*[:=]?\s*(\d+)\b/iu', $blob, $m)
-            || preg_match('/#\s*(\d+)\b/', $blob, $m)
-            || preg_match('/\bID\s+(\d+)\b/u', $blob, $m)) {
-            return ['id' => (int) $m[1]];
-        }
-
-        if (preg_match('/\*\*([^*]{2,80})\*\*/u', $blob, $m)) {
-            $t = $this->cleanTitleCandidate($m[1]);
-            if ($t) {
-                return ['title' => $t];
-            }
-        }
-        if (preg_match('/\b(?:task|tugas|status)\s+([A-Za-z0-9][A-Za-z0-9 \/\-_.]{1,60})/iu', $blob, $m)) {
-            $t = $this->cleanTitleCandidate($m[1]);
-            if ($t) {
-                return ['title' => $t];
-            }
-        }
-
-        return $this->lastRememberedTask();
-    }
-
-    private function extractTaskTitleFromText(string $text): ?string
-    {
-        $title = preg_replace(
-            '/\b(ubah|ubdah|ganti|set|jadi|jadikan|mark|update|status|selesai|complete|done|pending|progress|berjalan|ke|menjadi|task|tugas|please|tolong|ya|dong|coba|ulang|ajukan|masih|belum|sudah|mau|saya|lagi|itu|ini|nya|yang|untuk|di|dari|approve|terapkan)\b/iu',
-            ' ',
-            $text
-        ) ?? $text;
-        $title = $this->cleanTitleCandidate($title);
-
-        if ($title === null || preg_match('/^(coba|ya|dong|please|ok|oke)$/iu', $title)) {
+        $title = $this->extractTitleHint($message);
+        if ($title === null || mb_strlen($title) < 3) {
             return null;
         }
 
-        return $title;
+        try {
+            $found = app(ToolExecutor::class)->execute('query_records', [
+                'model' => 'task',
+                'filters' => [['field' => 'title', 'op' => 'like', 'value' => $title]],
+                'limit' => 10,
+            ]);
+        } catch (\Throwable $e) {
+            return null;
+        }
+
+        $rows = $found['data'] ?? [];
+        if (! is_array($rows) || $rows === []) {
+            // Retry with first 3 words if full title too strict
+            $words = preg_split('/\s+/u', $title) ?: [];
+            $short = implode(' ', array_slice($words, 0, 3));
+            if (mb_strlen($short) >= 3 && $short !== $title) {
+                try {
+                    $found = app(ToolExecutor::class)->execute('query_records', [
+                        'model' => 'task',
+                        'filters' => [['field' => 'title', 'op' => 'like', 'value' => $short]],
+                        'limit' => 10,
+                    ]);
+                    $rows = $found['data'] ?? [];
+                } catch (\Throwable $e) {
+                    return null;
+                }
+            }
+        }
+
+        if (! is_array($rows) || $rows === []) {
+            return null;
+        }
+        if (count($rows) === 1 && isset($rows[0]['id'])) {
+            return (int) $rows[0]['id'];
+        }
+
+        // Prefer exact-ish title match (case-insensitive)
+        $needle = mb_strtolower($title);
+        foreach ($rows as $row) {
+            $t = mb_strtolower((string) ($row['title'] ?? ''));
+            if ($t === $needle || str_contains($t, $needle) || str_contains($needle, $t)) {
+                return (int) $row['id'];
+            }
+        }
+
+        return null;
     }
 
-    private function cleanTitleCandidate(string $raw): ?string
+    private function formatPendingReply(array $action): string
     {
-        $title = trim(preg_replace('/\s+/u', ' ', $raw) ?? $raw);
-        $title = trim($title, " \t\n\r\0\x0B\"'.,!?:;—–-");
+        $summary = (string) ($action['summary'] ?? 'Perubahan diajukan.');
+        $label = $action['diff'][0]['label'] ?? null;
+        $before = $action['diff'][0]['before']['status'] ?? null;
+        $after = $action['values']['status'] ?? ($action['diff'][0]['after']['status'] ?? null);
+        $id = $action['ids'][0] ?? null;
+
+        $lines = [$summary];
+        if ($label || $id) {
+            $lines[] = '';
+            $lines[] = '**'.($label ?: 'Task').'**'.($id ? " (ID: {$id})" : '');
+        }
+        if ($before !== null || $after !== null) {
+            $lines[] = '- `status`: ~~'.($before ?? '—').'~~ → **'.($after ?? '—').'**';
+        }
+        $lines[] = '';
+        $lines[] = 'Silakan **konfirmasi di kartu kuning di bawah** (Terapkan / Batalkan).';
+        $lines[] = 'Belum tersimpan ke database sampai Anda setujui.';
+
+        return implode("\n", $lines);
+    }
+
+    private function stripApprovalChatter(string $reply): string
+    {
+        // Only called when there is NO real pending → drop any misleading "approve in UI" chatter
+        // so the user never sees "menunggu approval" without a card.
+        $lines = preg_split('/\r\n|\r|\n/', $reply) ?: [$reply];
+        $keep = [];
+        foreach ($lines as $line) {
+            if (preg_match(
+                '/\b(approval|approve|menunggu|konfirmasi|kartu\s+(kuning|update|approve)|card\s+update|terapkan|batalkan)\b/iu',
+                $line
+            )) {
+                continue;
+            }
+            $keep[] = $line;
+        }
+        $out = trim(implode("\n", $keep));
+
+        return $out !== '' ? $out : trim($reply);
+    }
+
+    private function stripInfraChatter(string $reply): string
+    {
+        // Drop model rambling about curl / retired API / network.
+        $lines = preg_split('/\r\n|\r|\n/', $reply) ?: [$reply];
+        $keep = [];
+        foreach ($lines as $line) {
+            if (preg_match(
+                '/\b(curl|172\.22|\/api\/agent|X-Agent-Token|retired|API unreachable|network blocker|service token)\b/iu',
+                $line
+            )) {
+                continue;
+            }
+            $keep[] = $line;
+        }
+        $out = trim(implode("\n", $keep));
+
+        return $out !== '' ? $out : trim($reply);
+    }
+
+    private function extractTargetStatus(string $text): ?string
+    {
+        if (preg_match('/\b(pending)\b/iu', $text)) {
+            return 'pending';
+        }
+        if (preg_match('/\b(progress|berjalan)\b/iu', $text)) {
+            return 'progress';
+        }
+        if (preg_match('/\b(selesai|selesaikan|kelar|beres|completed?|complete|done)\b/iu', $text)) {
+            return 'complete';
+        }
+
+        return null;
+    }
+
+    private function extractTaskIdFromText(string $text): ?int
+    {
+        if (preg_match('/#\s*(\d+)\b/', $text, $m)) {
+            return (int) $m[1];
+        }
+        if (preg_match('/\b(?:task\s*)?id\s*[:=]?\s*(\d+)\b/iu', $text, $m)) {
+            return (int) $m[1];
+        }
+        if (preg_match('/\(\s*ID\s*:\s*(\d+)\s*\)/iu', $text, $m)) {
+            return (int) $m[1];
+        }
+        if (preg_match('/\bID\s*:\s*(\d+)\b/iu', $text, $m)) {
+            return (int) $m[1];
+        }
+
+        return null;
+    }
+
+    private function extractTitleHint(string $message): ?string
+    {
+        // Strip common command words, keep a title-ish fragment.
+        $title = preg_replace(
+            '/\b(ubah|ubdah|ganti|set|jadiin|jadikan|jadi|mark|update|status|selesai|selesaikan|kelar|beres|completed?|complete|done|pending|progress|berjalan|ke|menjadi|task|tugas|please|tolong|ya|dong|coba|ulang|ajukan|masih|belum|sudah|mau|saya|lagi|itu|ini|nya|yang|di|dari|approve|terapkan|tandai|bikin)\b/iu',
+            ' ',
+            $message
+        ) ?? $message;
+        $title = trim(preg_replace('/\s+/u', ' ', $title) ?? $title);
+        $title = trim($title, " \t\n\r\0\x0B\"'.,!?:;—–-#");
         if (mb_strlen($title) < 2 || mb_strlen($title) > 120) {
             return null;
         }
@@ -636,42 +849,257 @@ class AgentRunner
         return $title;
     }
 
-    private function rememberTaskContext(array $action): void
+    /**
+     * When the model only describes an update (ID + status + "approve"), create a real pending action.
+     * Caller must already verify looksLikeStatusChangeIntent(userMessage).
+     *
+     * @param  array<int,array{role?:string,content?:string}>  $history
+     */
+    private function materializePendingFromTexts(string $userMessage, string $reply, array $history = []): ?array
     {
-        $uid = (int) (auth()->id() ?? 0);
-        if ($uid <= 0) {
-            return;
+        if (! auth()->check()) {
+            return null;
         }
-        $id = $action['ids'][0] ?? null;
-        $label = $action['diff'][0]['label'] ?? null;
-        $payload = array_filter([
-            'id' => $id ? (int) $id : null,
-            'title' => is_string($label) ? $label : null,
-        ]);
-        if ($payload === []) {
-            return;
-        }
-        Cache::put("agent:last_task:user:{$uid}", $payload, now()->addHours(2));
-    }
 
-    /** @return array{id?:int,title?:string}|null */
-    private function lastRememberedTask(): ?array
-    {
-        $uid = (int) (auth()->id() ?? 0);
-        if ($uid <= 0) {
+        // Target status from the USER message only (not from a list table full of "pending").
+        $status = $this->extractTargetStatus($userMessage);
+        if ($status === null) {
             return null;
         }
-        $v = Cache::get("agent:last_task:user:{$uid}");
-        if (! is_array($v)) {
+
+        $id = $this->extractTaskIdFromText($userMessage);
+        if ($id === null) {
+            // Prefer a single id the model named in an update sentence, not every id in a table.
+            if (preg_match(
+                '/\b(?:update|ubah|ganti|jadikan|mark).*?\b(?:ID|id|#)\s*[:=]?\s*(\d+)\b/iu',
+                $reply,
+                $m
+            )) {
+                $id = (int) $m[1];
+            } elseif (preg_match('/\(\s*ID\s*:\s*(\d+)\s*\)/iu', $reply, $m)
+                && preg_match('/\b(update|ubah|jadi|complete|pending|progress)\b/iu', $reply)) {
+                $id = (int) $m[1];
+            }
+        }
+        if ($id === null) {
+            $hist = collect($history)->map(fn ($m) => (string) ($m['content'] ?? ''))->implode("\n");
+            $id = $this->extractTaskIdFromText($hist);
+        }
+
+        if ($id === null) {
+            $title = $this->extractTitleHint($userMessage);
+            if ($title) {
+                try {
+                    $found = app(ToolExecutor::class)->execute('query_records', [
+                        'model' => 'task',
+                        'filters' => [['field' => 'title', 'op' => 'like', 'value' => $title]],
+                        'limit' => 5,
+                    ]);
+                    $rows = $found['data'] ?? [];
+                    if (is_array($rows) && count($rows) === 1 && isset($rows[0]['id'])) {
+                        $id = (int) $rows[0]['id'];
+                    }
+                } catch (\Throwable $e) {
+                    return null;
+                }
+            }
+        }
+
+        if ($id === null) {
             return null;
         }
-        if (! empty($v['id'])) {
-            return ['id' => (int) $v['id']];
+
+        try {
+            $ur = app(ToolExecutor::class)->execute('update_record', [
+                'model' => 'task',
+                'id' => $id,
+                'values' => ['status' => $status],
+            ]);
+        } catch (\Throwable $e) {
+            Log::debug('materializePending failed: ' . $e->getMessage());
+
+            return null;
         }
-        if (! empty($v['title']) && is_string($v['title'])) {
-            return ['title' => $v['title']];
+
+        if (($ur['status'] ?? '') === 'pending' && ! empty($ur['action'])) {
+            return $ur['action'];
         }
 
         return null;
+    }
+
+    private function looksLikeNetworkExcuse(string $reply): bool
+    {
+        return (bool) preg_match(
+            '/172\.22|:\s*8020|\/api\/agent|API (server|unreachable|tidak bisa)|network (blocker|routing)|firewall|X-Agent-Token|service token|konektivitas|tidak bisa diakses|infrastructure/iu',
+            $reply
+        );
+    }
+
+    /**
+     * @param  list<array{tool?:string,result?:array}>  $toolResults
+     */
+    private function formatFromToolResults(array $toolResults, string $userMessage): string
+    {
+        foreach (array_reverse($toolResults) as $block) {
+            $result = $block['result'] ?? null;
+            if (! is_array($result) || ($result['status'] ?? '') !== 'ok') {
+                continue;
+            }
+            $rows = $result['data'] ?? null;
+            if (! is_array($rows)) {
+                continue;
+            }
+            if ($rows === []) {
+                return 'Tidak ada data yang cocok di database (query live dari Laravel).';
+            }
+
+            $lines = [
+                '**Hasil live dari database** (Laravel ToolExecutor):',
+                '',
+                '| ID | Judul | Status | Priority | Tipe | Assignee | Project | Target |',
+                '|---:|:------|:-------|:---------|:-----|:---------|:--------|:-------|',
+            ];
+            foreach ($rows as $row) {
+                if (! is_array($row)) {
+                    continue;
+                }
+                $lines[] = sprintf(
+                    '| %s | %s | %s | %s | %s | %s | %s | %s |',
+                    $this->mdCell($row['id'] ?? ''),
+                    $this->mdCell($row['title'] ?? ($row['name'] ?? '')),
+                    $this->mdCell($row['status'] ?? ''),
+                    $this->mdCell($row['priority'] ?? ''),
+                    $this->mdCell($row['type'] ?? ''),
+                    $this->mdCell($row['assigned_to_name'] ?? ($row['assigned_to'] ?? '—')),
+                    $this->mdCell($row['project_name'] ?? ($row['project'] ?? '—')),
+                    $this->mdCell($row['target_date'] ?? '—')
+                );
+            }
+            $lines[] = '';
+            $lines[] = '_Sumber: query_records di server app — bukan HTTP ke Hermes/API eksternal._';
+
+            return implode("\n", $lines);
+        }
+
+        return 'Query Laravel dijalankan, tetapi tidak ada baris untuk ditampilkan.';
+    }
+
+    private function mdCell(mixed $value): string
+    {
+        $s = trim((string) $value);
+        $s = str_replace('|', '\\|', $s);
+        $s = str_replace(["\r\n", "\n", "\r"], ' ', $s);
+
+        return $s === '' ? '—' : $s;
+    }
+
+    /**
+     * OpenAI native tool_calls, or JSON fallback in content for weak models.
+     *
+     * @return list<array{id?:string,type?:string,function:array{name:string,arguments:mixed}}>
+     */
+    private function extractToolCalls(array $msg): array
+    {
+        if (! empty($msg['tool_calls']) && is_array($msg['tool_calls'])) {
+            $out = [];
+            foreach ($msg['tool_calls'] as $i => $call) {
+                if (! is_array($call)) {
+                    continue;
+                }
+                $fn = $call['function'] ?? null;
+                if (! is_array($fn) || empty($fn['name'])) {
+                    continue;
+                }
+                $out[] = [
+                    'id' => (string) ($call['id'] ?? ('call_' . $i)),
+                    'type' => $call['type'] ?? 'function',
+                    'function' => [
+                        'name' => (string) $fn['name'],
+                        'arguments' => $fn['arguments'] ?? new \stdClass(),
+                    ],
+                ];
+            }
+            if ($out !== []) {
+                return $out;
+            }
+        }
+
+        // Fallback: model wrote a tool JSON in content
+        $json = $this->extractJsonObject((string) ($msg['content'] ?? ''));
+        if ($json && isset($json['name']) && in_array($json['name'], self::ALLOWED_TOOLS, true)) {
+            return [[
+                'id' => 'call_content_0',
+                'type' => 'function',
+                'function' => [
+                    'name' => (string) $json['name'],
+                    'arguments' => $json['arguments'] ?? ($json['parameters'] ?? []),
+                ],
+            ]];
+        }
+
+        // OpenAI-style { "tool_calls": [...] } inside content
+        if ($json && ! empty($json['tool_calls']) && is_array($json['tool_calls'])) {
+            return $this->extractToolCalls(['tool_calls' => $json['tool_calls'], 'content' => '']);
+        }
+
+        return [];
+    }
+
+    private function extractJsonObject(string $content): ?array
+    {
+        if ($content === '') {
+            return null;
+        }
+
+        $candidate = null;
+        if (preg_match('/```(?:json)?\s*(\{[\s\S]*?\})\s*```/', $content, $m)) {
+            $candidate = $m[1];
+        } else {
+            $start = strpos($content, '{');
+            $end = strrpos($content, '}');
+            if ($start !== false && $end !== false && $end > $start) {
+                $candidate = substr($content, $start, $end - $start + 1);
+            }
+        }
+
+        if ($candidate === null) {
+            return null;
+        }
+
+        $decoded = json_decode($candidate, true);
+
+        return (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) ? $decoded : null;
+    }
+
+    private function decodeArgs(mixed $args): array
+    {
+        if (is_array($args)) {
+            return $args;
+        }
+        if (is_string($args)) {
+            $decoded = json_decode($args, true);
+
+            return is_array($decoded) ? $decoded : [];
+        }
+
+        return [];
+    }
+
+    /**
+     * @param  array<int,array{role?:string,content?:string}>  $history
+     * @return list<array{role:string,content:string}>
+     */
+    private function sanitizeHistory(array $history): array
+    {
+        return collect($history)
+            ->filter(fn ($m) => in_array($m['role'] ?? '', ['user', 'assistant'], true))
+            ->map(fn ($m) => [
+                'role' => (string) $m['role'],
+                'content' => (string) ($m['content'] ?? ''),
+            ])
+            ->slice(-20)
+            ->values()
+            ->all();
     }
 }

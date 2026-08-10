@@ -205,10 +205,13 @@ class AgentConsole extends Component
             $result = $agent->run($this->historyForModel(), $lastUser, $this->chatId);
             $this->messages[] = ['role' => 'assistant', 'content' => $result['reply']];
             $this->persistMessage('assistant', $result['reply']);
-            // Prefer result.pending; also read store (Hermes API / ToolExecutor may have put it).
-            $this->pendingAction = $result['pending']
-                ?? \App\Services\Agent\PendingActionStore::get(auth()->id())
-                ?? null;
+            // Only show approval card when THIS turn returned a real update proposal.
+            // Do not pull stale PendingActionStore on list/read replies.
+            $this->pendingAction = $result['pending'] ?? null;
+
+            if (is_array($this->pendingAction) && empty($this->pendingAction['ids'])) {
+                $this->pendingAction = null;
+            }
             if ($this->pendingAction) {
                 $this->dispatchBrowserEvent('agent-pending');
             }
@@ -350,9 +353,8 @@ class AgentConsole extends Component
     }
 
     /**
-     * Polled — surfaces an approval card when the model has proposed an UPDATE via
-     * the data API (Hermes → POST /api/agent → PendingActionStore). Handles the case
-     * where the proposal lands after runAgent already returned.
+     * Polled — surfaces approval card when ToolExecutor proposed an UPDATE
+     * (PendingActionStore). Handles proposals that land after runAgent returns.
      */
     public function checkPendingAction(): void
     {
