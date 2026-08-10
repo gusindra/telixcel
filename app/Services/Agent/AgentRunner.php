@@ -158,6 +158,17 @@ class AgentRunner
         }
 
         $userId = auth()->id() ?? 0;
+        $chat = null;
+        if ($chatId) {
+            $chat = \App\Models\AgentChat::query()
+                ->where('id', $chatId)
+                ->where('user_id', $userId)
+                ->first();
+        }
+
+        // Stable Hermes session id per Laravel chat (resume tools/memory/sandbox).
+        $hermesSessionId = $chat?->hermes_session_id
+            ?: ($chatId ? "telixcel-chat-{$chatId}" : null);
         $conversation = "telixcel-user-{$userId}-chat-" . ($chatId ?: 'new');
         $sessionKey = "agent:telixcel:web:user-{$userId}:chat-" . ($chatId ?: 'new');
 
@@ -223,40 +234,56 @@ class AgentRunner
             . "\n</request_context>\n\n"
             . $userMessage;
 
-        $messages = array_merge(
-            [[
-                'role' => 'system',
-                'content' => 'You are the Telixcel AI Console assistant. '
-                    . 'Use current_user for isolation. Be concise. Prefer user language (ID/EN). '
-                    . 'Do not invent business data. '
-                    . 'If request_context.data_snapshot.tasks is present, answer from that data (no tools). '
-                    . 'When listing tasks, ALWAYS use a Markdown table with columns: '
-                    . 'ID | Judul | Status | Priority | Tipe | Assignee | Project | Target. '
-                    . 'NEVER use terminal/shell to dig files, MySQL, or Hermes sessions for Telixcel CRM data. '
-                    . 'If you need more data: one curl POST agent_api.base_url with header '
-                    . 'X-Agent-Token: agent_api.token (token agt_ milik current_user di DB, ability read). '
-                    . 'Body: action=query model=task (atau execute tool=query_records). '
-                    . 'Jangan pakai token lain / service token. Stop after 1-2 API calls. '
-                    . 'Updates only via update_record (pending approval).',
-            ]],
-            collect($history)
-                ->filter(fn ($m) => in_array($m['role'] ?? '', ['user', 'assistant'], true))
-                ->map(fn ($m) => ['role' => $m['role'], 'content' => (string) ($m['content'] ?? '')])
-                ->slice(-6)
-                ->values()
-                ->all(),
-            [['role' => 'user', 'content' => $input]],
-        );
+        $system = [
+            'role' => 'system',
+            'content' => 'You are the Telixcel AI Console assistant. '
+                . 'Use current_user for isolation. Be concise. Prefer user language (ID/EN). '
+                . 'Do not invent business data. '
+                . 'If request_context.data_snapshot.tasks is present, answer from that data (no tools). '
+                . 'When listing tasks, ALWAYS use a Markdown table with columns: '
+                . 'ID | Judul | Status | Priority | Tipe | Assignee | Project | Target. '
+                . 'NEVER use terminal/shell to dig files, MySQL, or Hermes sessions for Telixcel CRM data. '
+                . 'If you need more data: one curl POST agent_api.base_url with header '
+                . 'X-Agent-Token: agent_api.token (token agt_ milik current_user di DB, ability read). '
+                . 'Body: action=query model=task (atau execute tool=query_records). '
+                . 'Jangan pakai token lain / service token. Stop after 1-2 API calls. '
+                . 'Updates only via update_record (pending approval).',
+        ];
+
+        // Resume Hermes session: only send the new turn (Hermes loads prior history by Session-Id).
+        // First turn / no session: include Laravel history as fallback context.
+        $hasHermesSession = $hermesSessionId && $chat && filled($chat->hermes_session_id);
+        if ($hasHermesSession) {
+            $messages = [$system, ['role' => 'user', 'content' => $input]];
+        } else {
+            $messages = array_merge(
+                [$system],
+                collect($history)
+                    ->filter(fn ($m) => in_array($m['role'] ?? '', ['user', 'assistant'], true))
+                    ->map(fn ($m) => ['role' => $m['role'], 'content' => (string) ($m['content'] ?? '')])
+                    ->slice(-20)
+                    ->values()
+                    ->all(),
+                [['role' => 'user', 'content' => $input]],
+            );
+        }
 
         $http = Http::timeout($timeout)->acceptJson();
         if ($apiKey !== '') {
             $http = $http->withToken($apiKey);
         }
 
+        $headers = [
+            // Long-term memory scope (stable per Laravel chat)
+            'X-Hermes-Session-Key' => $sessionKey,
+        ];
+        // Server-side transcript continuity (tools, sandbox, Hermes session DB)
+        if ($hermesSessionId) {
+            $headers['X-Hermes-Session-Id'] = $hermesSessionId;
+        }
+
         try {
-            $response = $http->withHeaders([
-                'X-Hermes-Session-Key' => $sessionKey,
-            ])->post($endpoint, [
+            $response = $http->withHeaders($headers)->post($endpoint, [
                 'model' => $model,
                 'messages' => $messages,
                 'stream' => false,
@@ -278,11 +305,21 @@ class AgentRunner
                         'error' => $e->getMessage(),
                         'conversation' => $conversation,
                         'endpoint' => $endpoint,
+                        'hermes_session_id' => $hermesSessionId,
                     ],
                     'hermes_response_id' => null,
                 ];
             }
             throw $e;
+        }
+
+        // Persist Hermes session id for resume (header preferred)
+        $returnedSessionId = $response->header('X-Hermes-Session-Id')
+            ?: ($json['hermes']['session_id'] ?? null)
+            ?: $hermesSessionId;
+
+        if ($chat && $returnedSessionId && $chat->hermes_session_id !== $returnedSessionId) {
+            $chat->forceFill(['hermes_session_id' => $returnedSessionId])->save();
         }
 
         $content = $json['choices'][0]['message']['content'] ?? '';
@@ -301,6 +338,8 @@ class AgentRunner
                 'conversation' => $conversation,
                 'endpoint' => $endpoint,
                 'snapshot' => $snapshot !== null,
+                'hermes_session_id' => $returnedSessionId,
+                'resumed' => (bool) $hasHermesSession,
             ],
             'hermes_response_id' => $json['id'] ?? null,
         ];
