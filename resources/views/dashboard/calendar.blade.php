@@ -7,7 +7,9 @@
 
     @if(auth()->user()->currentTeam)
         <!-- Dashboard Livewire Component -->
-        @livewire('dashboard.calendar-view')
+        <x-page-section>
+            @livewire('dashboard.calendar-view')
+        </x-page-section>
     @endif
 
 </x-app-layout>

@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('token_hash', 64)->unique();
             // prefix for display/debug (e.g. agt_ab12…)
             $table->string('token_prefix', 16)->nullable();
-            // encrypted plain token so Laravel can re-inject into Hermes context
+            // encrypted plain token so Laravel can re-inject into AI context
             $table->text('token_encrypted');
             // JSON abilities: read, update_limited
             $table->json('abilities')->nullable();

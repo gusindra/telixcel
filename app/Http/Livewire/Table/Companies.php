@@ -29,9 +29,9 @@ class Companies extends LivewireDatatable
     		Column::name('name')->label('Name'),
     		Column::name('person_in_charge')->label('PIC'),
     		Column::name('address')->label('Address'),
-            NumberColumn::name('id')->label('Detail')->sortBy('id')->callback('id', function ($value) {
+            NumberColumn::name('id')->label('Detail')->sortBy('id')->callback(['uuid', 'id'], function ($uuid, $id) {
                 return view('datatables::link', [
-                    'href' => "/company/" . $value,
+                    'href' => '/company/'.($uuid ?: $id),
                     'slot' => 'View'
                 ]);
             }),

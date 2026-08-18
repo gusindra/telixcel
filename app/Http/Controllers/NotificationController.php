@@ -20,28 +20,36 @@ class NotificationController extends Controller
         if($notification->model=='Ticket'){
             $value =  $notification->ticket->request->client->id;
         }elseif($notification->model=='Order'){
-            return redirect()->to("/order/" . $notification->model_id);
+            $order = \App\Models\Order::find($notification->model_id);
+            return redirect()->to('/order/'.($order->uuid ?? $notification->model_id));
         }elseif($notification->model=='Invoice'){
             return redirect()->to("/invoice-order/". $notification->model_id);
         }elseif($notification->model=='Balance'){
             return redirect()->to("/payment/deposit/");
         }elseif($notification->model=='Contract'){
-            return redirect()->to("/commercial/contract/".$notification->model_id);
+            $contract = \App\Models\Contract::find($notification->model_id);
+            return redirect()->to('/commercial/contract/'.($contract->uuid ?? $notification->model_id));
         }elseif($notification->model=='FlowProcess'){
             $flow = FlowProcess::find($notification->model_id);
             if($flow){
                 if($flow->model=='QUOTATION'){
-                    return redirect()->to("/commercial/quotation/".$flow->model_id);
+                    $row = \App\Models\Quotation::find($flow->model_id);
+                    return redirect()->to('/commercial/quotation/'.($row->uuid ?? $flow->model_id));
                 }elseif($flow->model=='PROJECT'){
-                    return redirect()->to("/project/".$flow->model_id);
+                    $project = \App\Models\Project::find($flow->model_id);
+                    return redirect()->to('/project/'.($project->uuid ?? $flow->model_id));
                 }elseif($flow->model=='CONTRACT'){
-                    return redirect()->to("/commercial/contract/".$flow->model_id);
+                    $row = \App\Models\Contract::find($flow->model_id);
+                    return redirect()->to('/commercial/contract/'.($row->uuid ?? $flow->model_id));
                 }elseif($flow->model=='ORDER'){
-                    return redirect()->to("/order/".$flow->model_id);
+                    $row = \App\Models\Order::find($flow->model_id);
+                    return redirect()->to('/order/'.($row->uuid ?? $flow->model_id));
                 }elseif($flow->model=='COMMISSION'){
-                    return redirect()->to("/commission/".$flow->model_id);
+                    $row = \App\Models\Commision::find($flow->model_id);
+                    return redirect()->to('/commission/'.($row->uuid ?? $flow->model_id));
                 }elseif($flow->model=='INVOICE'){
-                    return redirect()->to("/invoice-order/". $flow->model_id);
+                    $row = \App\Models\Billing::find($flow->model_id);
+                    return redirect()->to('/invoice-order/'.($row->uuid ?? $flow->model_id));
                 }
             }
         }else{

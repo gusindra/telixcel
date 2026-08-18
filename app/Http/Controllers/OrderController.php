@@ -35,6 +35,11 @@ class OrderController extends Controller
 
     public function show(Order $order)
     {
-        return view('assistant.order.show', ['order'=>$order]);
+        $key = request()->segment(2);
+        if ($order->uuid && $key !== $order->uuid && ctype_digit((string) $key)) {
+            return redirect()->route('show.order', array_merge(['order' => $order], request()->query()));
+        }
+
+        return view('assistant.order.show', ['order' => $order]);
     }
 }

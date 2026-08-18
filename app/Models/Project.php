@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasUuid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class Project extends Model
 {
     use HasFactory;
+    use HasUuid;
 
     /**
      * The attributes that are mass assignable.
@@ -15,6 +18,7 @@ class Project extends Model
      * @var array
      */
     protected $fillable = [
+        'uuid',
         'name',
         'type',
         'status',
@@ -33,6 +37,23 @@ class Project extends Model
     ];
 
     protected $guarded = [];
+
+    public function resolveRouteBinding($value, $field = null)
+    {
+        if ($field) {
+            return $this->where($field, $value)->firstOrFail();
+        }
+
+        if (Str::isUuid((string) $value)) {
+            return $this->where('uuid', $value)->firstOrFail();
+        }
+
+        if (ctype_digit((string) $value)) {
+            return $this->whereKey($value)->firstOrFail();
+        }
+
+        return $this->where('uuid', $value)->firstOrFail();
+    }
 
     /**
      * Get all of customer.

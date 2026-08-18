@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Schema;
 
 /**
  * Removed: public agent API (POST /api/agent) + per-user AgentUserToken.
- * Tools now run only inside Laravel (ToolExecutor); Hermes is LLM-only.
+ * Tools now run only inside Laravel (ToolExecutor); AI is LLM-only.
  */
 return new class extends Migration
 {

@@ -39,7 +39,7 @@ class AgentConsole extends Component
     {
         abort_unless($this->isAdmin(), 403);
 
-        // Warm AI backend (Hermes) while the page loads.
+        // Warm AI backend (AI) while the page loads.
         AgentRunner::maybeWarm();
 
         // Restore the most recent session so a refresh keeps the conversation.
@@ -186,7 +186,7 @@ class AgentConsole extends Component
         $this->dispatchBrowserEvent('agent-run');
     }
 
-    /** Step 2: the actual (blocking) agent call — Hermes profile telixcel by default. */
+    /** Step 2: the actual (blocking) agent call — AI profile telixcel by default. */
     public function runAgent(AgentRunner $agent): void
     {
         abort_unless($this->isAdmin(), 403);
@@ -201,7 +201,7 @@ class AgentConsole extends Component
         }
 
         try {
-            // Pass chatId so Hermes conversation / session-key stay per-user + per-console session.
+            // Pass chatId so AI conversation / session-key stay per-user + per-console session.
             $result = $agent->run($this->historyForModel(), $lastUser, $this->chatId);
             $this->messages[] = ['role' => 'assistant', 'content' => $result['reply']];
             $this->persistMessage('assistant', $result['reply']);

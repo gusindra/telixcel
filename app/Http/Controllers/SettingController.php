@@ -36,6 +36,11 @@ class SettingController extends Controller
 
     public function company(Company $company)
     {
-        return view('settings.company.details', ['company'=>$company]);
+        $key = request()->segment(2);
+        if ($company->uuid && $key !== $company->uuid && ctype_digit((string) $key)) {
+            return redirect()->route('settings.company.show', array_merge(['company' => $company], request()->query()));
+        }
+
+        return view('settings.company.details', ['company' => $company]);
     }
 }

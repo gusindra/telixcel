@@ -1,90 +1,59 @@
 <x-app-layout>
-    <header class="bg-white dark:bg-slate-900 dark:border-slate-600 border-b shadow">
-        <div class="max-w-7xl mx-auto py-3 px-4 sm:px-6 lg:px-8">
-            <big class="font-semibold text-xl text-gray-800 dark:text-slate-300 leading-tight">
-                {{ __('User Name') }} : <span class="capitalize">{{$user->name}}</span>
-            </big>
-        </div>
-        <div class="max-w-7xl mx-auto py-3 px-4 sm:px-6 lg:px-8 justify-end flex">
-            <div>
-                <div class="items-center justify-end px-2 text-right">
-                    <x-jet-dropdown align="right" width="60">
-                        <x-slot name="trigger">
-                            <span class="inline-flex rounded-md mb-2">
-                                <button type="button" class="inline-flex items-center px-3 py-2 border text-xs leading-4 font-medium rounded-md text-gray-500  bg-gray-200 hover:bg-gray-300 hover:text-gray-700 focus:outline-none focus:bg-gray-400 active:bg-gray-400 transition">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
-                                        <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
-                                    </svg>
-                                </button>
-                            </span>
-                        </x-slot>
-
-                        <x-slot name="content">
-                            <div class="w-60">
-                                <div>
-                                    <form>
-                                        <a class="block px-4 py-2 text-sm leading-5 text-gray-700 dark:text-slate-400 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 transition" target="_blank" href="{{route('user.show.profile', ['user'=>$user->id])}}">
-                                            <div class="flex items-center justify-between">
-                                                <div class="truncate">Profile</div>
-                                            </div>
-                                        </a>
-                                    </form>
-                                </div>
-                            </div>
-                        </x-slot>
-                    </x-jet-dropdown>
-                </div>
-            </div>
-        </div>
-    </header>
+    <x-slot name="header">
+        <h2 class="capitalize">{{ $user->name }}</h2>
+    </x-slot>
 
     @if($user->id != 0)
-        {{-- Dashboard-style overview, scoped to this user's owned / assigned tasks --}}
-        <div class="py-4">
-            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 mb-2">
-                <h3 class="text-lg font-medium text-gray-900 dark:text-slate-200">{{ __('Tasks') }} — <span class="capitalize">{{ $user->name }}</span></h3>
-                <p class="text-sm text-gray-500 dark:text-slate-300">{{ __('Tasks owned by or assigned to this user.') }}</p>
+        <div class="tx-stack">
+            <div class="tx-toolbar">
+                <p class="tx-13 tx-fg-muted m-0">{{ __('Tasks owned by or assigned to this user.') }}</p>
+                <a href="{{ route('user.show.profile', $user) }}" class="tx-btn tx-btn-ghost">{{ __('Profile') }}</a>
+                <a href="{{ route('user.show.balance', $user) }}" class="tx-btn tx-btn-ghost">{{ __('Balance') }}</a>
             </div>
+
             @livewire('dashboard.dashboard-overview', ['forUserId' => $user->id], key('user-dashboard-'.$user->id))
-        </div>
 
-        {{-- Team projects overview --}}
-        @include('dashboard.project', ['ownerId' => $user->id])
+            <x-page-section :title="__('Projects')">
+                <x-slot name="toolbar">
+                    <a href="{{ route('project') }}" class="tx-btn tx-btn-ghost">{{ __('View all') }}</a>
+                </x-slot>
+                <livewire:table.project-table searchable="name" exportable :key="'user-project-table-'.$user->id" />
+            </x-page-section>
 
-        {{-- Teams this user belongs to --}}
-        <div class="py-3 mb-6">
-            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <div class="bg-white dark:bg-slate-600 overflow-hidden shadow-xl sm:rounded-lg">
-                    <div class="p-4 border-b border-gray-200 dark:border-slate-500 text-lg font-medium text-gray-900 dark:text-slate-200">{{ __('Team') }}</div>
-                    <div class="p-3">
-                        <div class="overflow-x-auto">
-                            <table class="table-auto w-full">
-                                <thead class="text-xs font-semibold uppercase text-gray-400 bg-gray-50 dark:bg-slate-700">
-                                    <tr>
-                                        <th class="p-2 text-left">Name</th>
-                                        <th class="p-2 text-left">No Member</th>
-                                        <th class="p-2 text-left">Created At</th>
-                                        <th class="p-2 text-center">Slug</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="text-sm divide-y divide-gray-100 dark:divide-slate-500">
-                                    @forelse ($user->teams as $team)
-                                        <tr>
-                                            <td class="p-2 whitespace-nowrap font-medium text-gray-800 dark:text-slate-200">{{ $team->name }}</td>
-                                            <td class="p-2 whitespace-nowrap">{{ $team->personal_team }}</td>
-                                            <td class="p-2 whitespace-nowrap">{{ $team->created_at->format('d M Y') }}</td>
-                                            <td class="p-2 whitespace-nowrap text-center"><a class="text-green-500 font-medium" href="{{ url('chatting', $team->slug) }}">{{ $team->slug }}</a></td>
-                                        </tr>
-                                    @empty
-                                        <tr><td colspan="4" class="p-4 text-center text-gray-400">{{ __('No team.') }}</td></tr>
-                                    @endforelse
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+            <x-page-section :title="__('To-do')">
+                @livewire('task.todo', ['ownerId' => $user->id], key('user-todo-'.$user->id))
+            </x-page-section>
+
+            <x-page-section :title="__('Teams')">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-sm">
+                        <thead>
+                            <tr class="text-left tx-fg-muted">
+                                <th class="py-2 pr-3 font-medium">{{ __('Name') }}</th>
+                                <th class="py-2 px-3 font-medium">{{ __('Members') }}</th>
+                                <th class="py-2 px-3 font-medium">{{ __('Created') }}</th>
+                                <th class="py-2 pl-3 font-medium">{{ __('Slug') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse ($user->teams as $team)
+                                <tr style="box-shadow: inset 0 -1px 0 var(--tx-border);">
+                                    <td class="py-2.5 pr-3 font-medium tx-fg">{{ $team->name }}</td>
+                                    <td class="py-2.5 px-3">{{ $team->users_count ?? $team->users()->count() }}</td>
+                                    <td class="py-2.5 px-3">{{ $team->created_at->format('d M Y') }}</td>
+                                    <td class="py-2.5 pl-3">
+                                        <a class="tx-row-link" href="{{ url('chatting', $team->slug) }}">{{ $team->slug }}</a>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="4" class="py-6 text-center tx-fg-muted">{{ __('No team.') }}</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
-            </div>
+            </x-page-section>
         </div>
     @endif
-
 </x-app-layout>

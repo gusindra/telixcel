@@ -42,11 +42,11 @@ class AllBillingTable extends LivewireDatatable
     		Column::callback(['status'], function ($y) {
                 return view('label.label', ['type' => $y]);
             })->label('Status')->filterable(['PAID', 'UNPAID']),
-            NumberColumn::name('id')->label('Detail')->sortBy('id')->callback('id, order_id', function ($value, $order) {
+            NumberColumn::name('id')->label('Detail')->sortBy('id')->callback('uuid, id, order_id', function ($uuid, $id, $order) {
                 $link = '';
                 if($order){
                     $link = view('datatables::link', [
-                        'href' => "invoice-order/". $value,
+                        'href' => 'invoice-order/'.($uuid ?: $id),
                         'slot' => 'View'
                     ]);
                 }

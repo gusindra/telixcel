@@ -1,5 +1,5 @@
-<div class="p-6">
-    <div class="flex items-center justify-end">
+<div>
+    <div class="flex items-center">
         <x-jet-button type="button" wire:click="actionShowModal">
             {{__('Add')}}
         </x-jet-button>

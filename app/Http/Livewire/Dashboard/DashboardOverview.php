@@ -15,6 +15,7 @@ class DashboardOverview extends Component
     public $tasksCompleted = 0;
     public $projectStats = [];
     public $selectedProject = null;
+    public $taskFilter = null;
     public $tasksByStatus = [];
     public $selectedProjectTasks = [];
 
@@ -138,14 +139,15 @@ class DashboardOverview extends Component
     public function loadProjectTasks($projectId, $status = null)
     {
         $this->selectedProject = $projectId;
+        $this->taskFilter = $status;
 
         $statusArr = ['progress', 'pending'];
-        if (! is_null($status)) {
-            if ($status == 'all') {
-                $statusArr = ['progress', 'pending', 'complete'];
-            } else {
-                $statusArr = [$status];
-            }
+        if ($status === 'complete') {
+            $statusArr = ['complete'];
+        } elseif ($status === 'progress') {
+            $statusArr = ['progress'];
+        } elseif ($status === 'pending') {
+            $statusArr = ['pending'];
         }
 
         if ($projectId == 0) {
@@ -202,30 +204,27 @@ class DashboardOverview extends Component
     {
         $task = Task::find($taskId);
         if ($task) {
-            $from = $task->status;
-            if ($from === 'pending') {
-                $status = 'complete';
-            } elseif ($from === 'progress') {
-                $status = 'complete';
-            } elseif ($from === 'complete') {
-                $status = 'pending';
-            } else {
-                $status = $from;
+            if ($task->status !== 'complete') {
+                $task->update(['status' => 'complete']);
             }
-            $task->update(['status' => $status]);
         }
 
         $this->loadDashboardData();
 
         if ($this->selectedProject !== null) {
-            $statusParam = ($this->selectedProject == 0) ? 'all' : null;
-            $this->loadProjectTasks($this->selectedProject, $statusParam);
+            $reloadFilter = $this->taskFilter === 'complete' ? 'complete' : $this->taskFilter;
+            if ($reloadFilter === 'all') {
+                $reloadFilter = null;
+            }
+            $this->loadProjectTasks($this->selectedProject, $reloadFilter);
         }
     }
 
     public function clearSelection()
     {
         $this->selectedProject = null;
+        $this->taskFilter = null;
+        $this->selectedProjectTasks = [];
     }
 
     public function render()

@@ -53,7 +53,7 @@
                 </div>
             </div>
 
-            <div class="flex items-center justify-end text-right pt-3">
+            <div class="flex items-center gap-2 pt-3">
                 <x-jet-action-message class="mr-3" on="saved">
                     {{ __('Endpoint saved.') }}
                 </x-jet-action-message>

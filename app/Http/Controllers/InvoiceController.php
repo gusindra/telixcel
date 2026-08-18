@@ -29,6 +29,11 @@ class InvoiceController extends Controller
 
     public function show(Billing $invoice)
     {
-        return view('assistant.invoice.show', ['invoice'=>$invoice, 'order'=>$invoice->order]);
+        $key = request()->segment(2);
+        if ($invoice->uuid && $key !== $invoice->uuid && ctype_digit((string) $key)) {
+            return redirect()->route('show.invoice', array_merge(['invoice' => $invoice], request()->query()));
+        }
+
+        return view('assistant.invoice.show', ['invoice' => $invoice, 'order' => $invoice->order]);
     }
 }

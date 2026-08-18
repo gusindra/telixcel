@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasUuid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Billing extends Model
 {
     use HasFactory;
+    use HasUuid;
 
     /**
      * The attributes that are mass assignable.

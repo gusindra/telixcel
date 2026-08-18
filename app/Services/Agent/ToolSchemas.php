@@ -3,7 +3,7 @@
 namespace App\Services\Agent;
 
 /**
- * OpenAI-compatible tool definitions for Hermes chat/completions `tools`.
+ * OpenAI-compatible tool definitions for AI chat/completions `tools`.
  * Executed only on Laravel via ToolExecutor (never on the VPS).
  */
 class ToolSchemas

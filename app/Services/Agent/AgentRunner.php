@@ -2,17 +2,19 @@
 
 namespace App\Services\Agent;
 
+use App\Models\AgentActionLog;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 
 /**
- * AI Console — model-chosen tools (OpenAI tool calling) + Hermes LLM.
+ * AI Console — model-chosen tools (OpenAI tool calling) + AI LLM.
  *
  * Flow per user turn:
  *   1. POST AI_ENDPOINT with messages + tools (ToolSchemas)
  *   2. If assistant returns tool_calls → ToolExecutor on Laravel DB
- *   3. Append tool results → call Hermes again (loop, max AI_MAX_ITERATIONS)
+ *   3. Append tool results → call AI again (loop, max AI_MAX_ITERATIONS)
  *   4. Final text reply; update_record → PendingActionStore → Approve UI
  *
  * Env:
@@ -32,7 +34,7 @@ class AgentRunner
      */
     public function run(array $history, string $userMessage, ?int $chatId = null): array
     {
-        // Status changes: Laravel first (real pending + yellow card). Skip Hermes chatter.
+        // Status changes: Laravel first (real pending + yellow card). Skip AI chatter.
         if ($local = $this->tryLocalStatusUpdate($userMessage, $history)) {
             return $local;
         }
@@ -42,14 +44,14 @@ class AgentRunner
         $tok = new Tokenizer();
 
         $result = $this->runToolLoop($history, $userMessage, $chatId, $tok);
-        $result['driver'] = 'hermes';
+        $result['driver'] = 'ai';
 
         $isUpdateTurn = $this->looksLikeStatusChangeIntent($userMessage)
             || in_array('update_record', $result['metrics']['tools_called'] ?? [], true)
             || in_array('update_record', $result['metrics']['pre_tools'] ?? [], true)
             || in_array(($result['metrics']['source'] ?? ''), [
                 'laravel_pre_update',
-                'hermes_tool_calling_pending',
+                'ai_tool_calling_pending',
             ], true);
 
         if (empty($result['pending']) && $isUpdateTurn) {
@@ -82,12 +84,45 @@ class AgentRunner
         // Un-mask PII tokens so the user sees real values (the LLM never did).
         $result['reply'] = $tok->detokenize((string) ($result['reply'] ?? ''));
 
+        $this->logLlmTurn($result);
+
         return $result;
+    }
+
+    /**
+     * Persist plain LLM turns (no tool call) into agent_action_logs so the
+     * AI Log page shows "what the AI did". Tool calls are already logged by
+     * ToolExecutor / ApprovalExecutor — never log those twice.
+     */
+    private function logLlmTurn(array $result): void
+    {
+        if (($result['driver'] ?? '') !== 'ai') {
+            return;
+        }
+        if (! empty($result['metrics']['tools_called'] ?? [])) {
+            return;
+        }
+
+        try {
+            if (! Schema::hasTable('agent_action_logs')) {
+                return;
+            }
+            AgentActionLog::create([
+                'user_id' => auth()->id(),
+                'tool' => 'chat',
+                'model_key' => null,
+                'arguments' => ['pending' => ! empty($result['pending'])],
+                'result' => ['reply' => mb_substr((string) ($result['reply'] ?? ''), 0, 2000)],
+                'status' => ! empty($result['pending']) ? 'proposed' : 'ok',
+            ]);
+        } catch (\Throwable $e) {
+            // Logging must never break the agent flow.
+        }
     }
 
     public function driver(): string
     {
-        return 'hermes';
+        return 'ai';
     }
 
     /**
@@ -95,12 +130,12 @@ class AgentRunner
      */
     public static function endpoint(): string
     {
-        $full = trim((string) config('services.ai.endpoint', ''));
+        $full = trim((string) config('ai.endpoint', ''));
         if ($full !== '') {
             return self::forceChatCompletions(rtrim($full, '/'));
         }
 
-        $base = rtrim((string) (config('services.ai.base_url') ?: 'http://127.0.0.1:8645/v1'), '/');
+        $base = rtrim((string) (config('ai.base_url') ?: 'http://127.0.0.1:8645/v1'), '/');
         if ($base === '') {
             return '';
         }
@@ -126,22 +161,22 @@ class AgentRunner
 
     public static function maybeWarm(): void
     {
-        if (! filter_var(config('services.ai.warmup', true), FILTER_VALIDATE_BOOLEAN)) {
+        if (! filter_var(config('ai.warmup', true), FILTER_VALIDATE_BOOLEAN)) {
             return;
         }
 
-        $ttl = max(30, (int) config('services.ai.warmup_ttl', 240));
+        $ttl = max(30, (int) config('ai.warmup_ttl', 240));
         if (! Cache::add('ai:warmup:lock', 1, now()->addSeconds($ttl))) {
             return;
         }
 
         try {
             $endpoint = self::endpoint();
-            $key = (string) (config('services.ai.api_key') ?: '');
+            $key = (string) (config('ai.api_key') ?: '');
             if ($endpoint === '') {
                 return;
             }
-            $timeout = max(3, (int) config('services.ai.warmup_timeout', 8));
+            $timeout = max(3, (int) config('ai.warmup_timeout', 8));
             $http = Http::timeout($timeout)->acceptJson();
             if ($key !== '') {
                 $http = $http->withToken($key);
@@ -162,17 +197,17 @@ class AgentRunner
     }
 
     /**
-     * Model picks tools; Laravel executes them; Hermes formats final answer.
+     * Model picks tools; Laravel executes them; AI formats final answer.
      *
-     * @return array{reply:string, pending:?array, model:string, metrics:array, hermes_response_id:?string}
+     * @return array{reply:string, pending:?array, model:string, metrics:array, ai_response_id:?string}
      */
     private function runToolLoop(array $history, string $userMessage, ?int $chatId, Tokenizer $tok): array
     {
         $endpoint = self::endpoint();
-        $apiKey = (string) (config('services.ai.api_key') ?: '');
-        $model = (string) (config('services.ai.model') ?: 'telixcel');
-        $timeout = (int) (config('services.ai.timeout') ?: 180);
-        $maxIter = max(1, (int) (config('services.ai.max_iterations') ?: 6));
+        $apiKey = (string) (config('ai.api_key') ?: '');
+        $model = (string) (config('ai.model') ?: 'telixcel');
+        $timeout = (int) (config('ai.timeout') ?: 180);
+        $maxIter = max(1, (int) (config('ai.max_iterations') ?: 6));
 
         if ($endpoint === '') {
             throw new \RuntimeException(
@@ -189,14 +224,14 @@ class AgentRunner
                 ->first();
         }
 
-        $hermesSessionId = $chat?->hermes_session_id
+        $aiSessionId = $chat?->ai_session_id
             ?: ($chatId ? "telixcel-chat-{$chatId}" : null);
         $conversation = "telixcel-user-{$userId}-chat-" . ($chatId ?: 'new');
         $sessionKey = "agent:telixcel:web:user-{$userId}:chat-" . ($chatId ?: 'new');
 
         $user = auth()->user();
 
-        // Safety net: Laravel may pre-query so Hermes cannot invent "API down" stories.
+        // Safety net: Laravel may pre-query so AI cannot invent "API down" stories.
         // Model can still call more tools via OpenAI tool_calls.
         $preTools = $this->preQueryIfDataIntent($userMessage, $history, $tok);
         $pending = $preTools['pending'] ?? null;
@@ -214,7 +249,7 @@ class AgentRunner
                     'tools_called' => $toolsCalled,
                     'source' => 'laravel_pre_update',
                 ],
-                'hermes_response_id' => null,
+                'ai_response_id' => null,
             ];
         }
 
@@ -228,7 +263,7 @@ class AgentRunner
             'datetime' => now()->toDateTimeString(),
             'source' => 'telixcel-ai-console',
             'architecture' => [
-                'llm' => 'hermes',
+                'llm' => 'ai',
                 'data_tools' => 'laravel-tool-executor-only',
                 'updates' => 'pending-approval-in-ui',
                 'forbidden' => [
@@ -272,15 +307,15 @@ class AgentRunner
         }
 
         $headers = [
-            'X-Hermes-Session-Key' => $sessionKey,
+            'X-AI-Session-Key' => $sessionKey,
         ];
-        if ($hermesSessionId) {
-            $headers['X-Hermes-Session-Id'] = $hermesSessionId;
+        if ($aiSessionId) {
+            $headers['X-AI-Session-Id'] = $aiSessionId;
         }
 
         $executor = app(ToolExecutor::class);
         $lastJson = [];
-        $returnedSessionId = $hermesSessionId;
+        $returnedSessionId = $aiSessionId;
         $usageTotal = [];
 
         for ($i = 0; $i < $maxIter; $i++) {
@@ -298,12 +333,12 @@ class AgentRunner
                 $json = $response->json() ?? [];
                 $lastJson = $json;
             } catch (\Throwable $e) {
-                Log::warning('Hermes tool-loop error: ' . $e->getMessage());
+                Log::warning('AI tool-loop error: ' . $e->getMessage());
                 throw $e;
             }
 
-            $returnedSessionId = $response->header('X-Hermes-Session-Id')
-                ?: ($json['hermes']['session_id'] ?? null)
+            $returnedSessionId = $response->header('X-AI-Session-Id')
+                ?: ($json['ai']['session_id'] ?? null)
                 ?: $returnedSessionId;
 
             if (! empty($json['usage']) && is_array($json['usage'])) {
@@ -314,8 +349,8 @@ class AgentRunner
                 }
             }
 
-            if (! empty($json['hermes']['failed']) || ($json['choices'][0]['finish_reason'] ?? '') === 'error') {
-                $err = $json['hermes']['error']
+            if (! empty($json['ai']['failed']) || ($json['choices'][0]['finish_reason'] ?? '') === 'error') {
+                $err = $json['ai']['error']
                     ?? ($json['choices'][0]['message']['content'] ?? 'AI error');
                 throw new \RuntimeException('AI error: ' . $err);
             }
@@ -327,14 +362,14 @@ class AgentRunner
                 $content = $msg['content'] ?? '';
                 $reply = trim(is_string($content) ? $content : json_encode($content)) ?: '(no response)';
 
-                // Hermes skill legacy: invents network errors instead of using tool_results.
+                // AI skill legacy: invents network errors instead of using tool_results.
                 if ($this->looksLikeNetworkExcuse($reply) && ! empty($preTools['results'])) {
-                    Log::warning('Hermes network-excuse reply overridden with Laravel tool_results');
+                    Log::warning('AI network-excuse reply overridden with Laravel tool_results');
                     $reply = $this->formatFromToolResults($preTools['results'], $userMessage);
                 }
 
-                if ($chat && $returnedSessionId && $chat->hermes_session_id !== $returnedSessionId) {
-                    $chat->forceFill(['hermes_session_id' => $returnedSessionId])->save();
+                if ($chat && $returnedSessionId && $chat->ai_session_id !== $returnedSessionId) {
+                    $chat->forceFill(['ai_session_id' => $returnedSessionId])->save();
                 }
 
                 return [
@@ -345,13 +380,13 @@ class AgentRunner
                         'usage' => $usageTotal ?: ($json['usage'] ?? null),
                         'conversation' => $conversation,
                         'endpoint' => $endpoint,
-                        'hermes_session_id' => $returnedSessionId,
+                        'ai_session_id' => $returnedSessionId,
                         'tools_called' => $toolsCalled,
                         'iterations' => $i + 1,
-                        'source' => 'hermes_tool_calling',
+                        'source' => 'ai_tool_calling',
                         'pre_tools' => $preTools['called'] ?? [],
                     ],
-                    'hermes_response_id' => $json['id'] ?? null,
+                    'ai_response_id' => $json['id'] ?? null,
                 ];
             }
 
@@ -404,8 +439,8 @@ class AgentRunner
             if ($pending) {
                 $summary = (string) ($pending['summary'] ?? 'Perubahan diajukan.');
 
-                if ($chat && $returnedSessionId && $chat->hermes_session_id !== $returnedSessionId) {
-                    $chat->forceFill(['hermes_session_id' => $returnedSessionId])->save();
+                if ($chat && $returnedSessionId && $chat->ai_session_id !== $returnedSessionId) {
+                    $chat->forceFill(['ai_session_id' => $returnedSessionId])->save();
                 }
 
                 return [
@@ -417,12 +452,12 @@ class AgentRunner
                         'usage' => $usageTotal ?: null,
                         'conversation' => $conversation,
                         'endpoint' => $endpoint,
-                        'hermes_session_id' => $returnedSessionId,
+                        'ai_session_id' => $returnedSessionId,
                         'tools_called' => $toolsCalled,
                         'iterations' => $i + 1,
-                        'source' => 'hermes_tool_calling_pending',
+                        'source' => 'ai_tool_calling_pending',
                     ],
-                    'hermes_response_id' => $lastJson['id'] ?? null,
+                    'ai_response_id' => $lastJson['id'] ?? null,
                 ];
             }
         }
@@ -434,9 +469,9 @@ class AgentRunner
             'metrics' => [
                 'tools_called' => $toolsCalled,
                 'iterations' => $maxIter,
-                'source' => 'hermes_tool_calling_limit',
+                'source' => 'ai_tool_calling_limit',
             ],
-            'hermes_response_id' => null,
+            'ai_response_id' => null,
         ];
     }
 
@@ -508,7 +543,7 @@ PROMPT;
     }
 
     /**
-     * Laravel-side query when the user clearly asks for data (safety net vs Hermes skills).
+     * Laravel-side query when the user clearly asks for data (safety net vs AI skills).
      *
      * @param  array<int,array{role?:string,content?:string}>  $history
      * @return array{results:list<array>,called:list<string>,pending:?array}
@@ -606,7 +641,7 @@ PROMPT;
 
     /**
      * Propose update_record immediately so Livewire shows the approval card.
-     * Does not call Hermes (avoids "curl retired" / fake approve chat).
+     * Does not call AI (avoids "curl retired" / fake approve chat).
      *
      * @param  array<int,array{role?:string,content?:string}>  $history
      * @return array{reply:string,pending:?array,model:string,metrics:array,driver:string}|null
@@ -977,7 +1012,7 @@ PROMPT;
                 );
             }
             $lines[] = '';
-            $lines[] = '_Sumber: query_records di server app — bukan HTTP ke Hermes/API eksternal._';
+            $lines[] = '_Sumber: query_records di server app — bukan HTTP ke AI/API eksternal._';
 
             return implode("\n", $lines);
         }

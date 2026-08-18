@@ -43,6 +43,11 @@ class RouteServiceProvider extends ServiceProvider
                 ->namespace($this->namespace)
                 ->group(base_path('routes/api.php'));
 
+            Route::prefix('api/v1/ai')
+                ->middleware('ai')
+                ->namespace($this->namespace)
+                ->group(base_path('routes/ai.php'));
+
             Route::middleware('web')
                 ->namespace($this->namespace)
                 ->group(base_path('routes/web.php'));
@@ -58,6 +63,16 @@ class RouteServiceProvider extends ServiceProvider
     {
         RateLimiter::for('api', function (Request $request) {
             return Limit::perMinute(60)->by(optional($request->user())->id ?: $request->ip());
+        });
+
+        RateLimiter::for('ai', function (Request $request) {
+            if (app()->environment('testing')) {
+                return Limit::none();
+            }
+
+            $limit = max(1, (int) config('ai.guard.ip_per_minute', 120));
+
+            return Limit::perMinute($limit)->by($request->ip());
         });
     }
 }

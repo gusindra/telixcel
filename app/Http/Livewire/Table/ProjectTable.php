@@ -74,9 +74,9 @@ class ProjectTable extends LivewireDatatable
             Column::callback(['status'], function ($status) {
                 return view('label.label', ['type' => $status]);
             })->label('Status')->filterable(['DRAFT', 'APPROVED', 'SUBMIT']),
-            NumberColumn::name('link')->label('Link')->callback('id', function ($value) {
+            NumberColumn::name('link')->label('Link')->callback(['uuid', 'id'], function ($uuid, $id) {
                 return view('tables.link', [
-                    'href' => "/project/" . $value,
+                    'href' => '/project/'.($uuid ?: $id),
                     'slot' => 'View'
                 ]);
             }),

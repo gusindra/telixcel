@@ -11,6 +11,8 @@ class All extends Component
     public $keyword;
     public $results = [];
 
+    protected $listeners = ['openGlobalSearch' => 'actionShowModal'];
+
     private $models = [
         'Order',
         'Quotation',
@@ -59,7 +61,13 @@ class All extends Component
                 }
                 $parsedResult['fields_formatted']   = $formattedField;
 
-                $parsedResult['url'] = url(str_replace(':id', $model=='Billing'?$result->order_id:$result->id, $this->urls[$model]));
+                $key = $result->id;
+                if ($model === 'Billing') {
+                    $key = $result->order_id;
+                } elseif (! empty($result->uuid)) {
+                    $key = $result->uuid;
+                }
+                $parsedResult['url'] = url(str_replace(':id', $key, $this->urls[$model]));
 
                 $this->results[$model][] = $parsedResult;
             }

@@ -34,7 +34,7 @@ class ToolExecutor
 
         $this->log($tool, $args, $result);
 
-        // Hermes/API path: surface pending proposals to the Livewire approval card.
+        // AI/API path: surface pending proposals to the Livewire approval card.
         if (($result['status'] ?? '') === 'pending' && ! empty($result['action'])) {
             $uid = (int) (auth()->id() ?? 0);
             if ($uid > 0) {
@@ -229,7 +229,7 @@ class ToolExecutor
                 $op    = $f[1];
                 $value = $f[2];
             } else {
-                // Accept field (tool schema) or column (Hermes skill / API docs).
+                // Accept field (tool schema) or column (AI skill / API docs).
                 $field = $f['field'] ?? $f['column'] ?? null;
                 $op    = $f['op']    ?? '=';
                 $value = $f['value'] ?? null;

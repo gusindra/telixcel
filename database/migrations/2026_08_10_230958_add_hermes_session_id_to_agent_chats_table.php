@@ -13,8 +13,8 @@ return new class extends Migration
         }
 
         Schema::table('agent_chats', function (Blueprint $table) {
-            if (! Schema::hasColumn('agent_chats', 'hermes_session_id')) {
-                $table->string('hermes_session_id', 128)->nullable()->after('title')->index();
+            if (! Schema::hasColumn('agent_chats', 'ai_session_id')) {
+                $table->string('ai_session_id', 128)->nullable()->after('title')->index();
             }
         });
     }
@@ -26,8 +26,8 @@ return new class extends Migration
         }
 
         Schema::table('agent_chats', function (Blueprint $table) {
-            if (Schema::hasColumn('agent_chats', 'hermes_session_id')) {
-                $table->dropColumn('hermes_session_id');
+            if (Schema::hasColumn('agent_chats', 'ai_session_id')) {
+                $table->dropColumn('ai_session_id');
             }
         });
     }

@@ -27,6 +27,11 @@ class RoleController extends Controller
 
     public function show(Role $role)
     {
-        return view('role.role-detail', ['role'=>$role]);
+        $key = request()->segment(2);
+        if ($role->uuid && $key !== $role->uuid && ctype_digit((string) $key)) {
+            return redirect()->route('role.show', array_merge(['role' => $role], request()->query()));
+        }
+
+        return view('role.role-detail', ['role' => $role]);
     }
 }

@@ -39,49 +39,45 @@ class Approval extends LivewireDatatable
     		Column::callback(['model', 'model_id'], function ($m, $id) {
                 $m = strtolower($m);
                 if($m=='product'){
+                    $slot = \App\Models\CommerceItem::find($id);
                     return view('datatables::link', [
-                        'href' => "/commercial/item/" . $id,
+                        'href' => '/commercial/item/'.($slot->uuid ?? $id),
                         'slot' => $m
                     ]);
                 }elseif($m=='project'){
                     $slot = Project::find($id);
                     return view('datatables::link', [
-                        'href' => "/project/" . $id,
+                        'href' => '/project/'.($slot->uuid ?? $id),
                         'slot' => 'Project: '.$slot->name
                     ]);
                 }elseif($m=='order'){
                     $slot = Order::find($id);
                     return view('datatables::link', [
-                        'href' => "/order/" . $id,
+                        'href' => '/order/'.($slot->uuid ?? $id),
                         'slot' => 'Order: '.$slot->name
                     ]);
                 }elseif($m=='quotation'){
                     $slot = Quotation::find($id);
                     return view('datatables::link', [
-                        'href' => "/commercial/quotation/" . $id,
+                        'href' => '/commercial/quotation/'.($slot->uuid ?? $id),
                         'slot' => 'Quotation: '.$slot->title
                     ]);
                 }elseif($m=='contract'){
                     $slot = Contract::find($id);
                     return view('datatables::link', [
-                        'href' => "/commercial/contract/" . $id,
+                        'href' => '/commercial/contract/'.($slot->uuid ?? $id),
                         'slot' => 'Contract: '.$slot->title
                     ]);
-                }elseif($m=='order'){
-                    $slot = Order::find($id);
-                    return view('datatables::link', [
-                        'href' => "/order/" . $id,
-                        'slot' => 'Order: '.$slot->name
-                    ]);
                 }elseif($m=='commission'){
+                    $slot = \App\Models\Commision::find($id);
                     return view('datatables::link', [
-                        'href' => "/commission/" . $id,
+                        'href' => '/commission/'.($slot->uuid ?? $id),
                         'slot' => $m
                     ]);
                 }elseif($m=='invoice'){
                     $slot = Billing::find($id);
                     return view('datatables::link', [
-                        'href' => "/invoice-order/" . $id,
+                        'href' => '/invoice-order/'.($slot->uuid ?? $id),
                         'slot' => 'Invoice: '.$slot->code
                     ]);
                 }

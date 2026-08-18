@@ -5,8 +5,8 @@ namespace App\Services\Agent;
 use Illuminate\Support\Facades\Cache;
 
 /**
- * Handoff UPDATE/DELETE proposals from the agent API (Hermes curl) back to
- * the Livewire AI Console. Hermes cannot set Livewire $pendingAction itself.
+ * Handoff UPDATE/DELETE proposals from the agent API (AI curl) back to
+ * the Livewire AI Console. AI cannot set Livewire $pendingAction itself.
  *
  * Kept until approve/reject (forget) so a late poll still finds it.
  */

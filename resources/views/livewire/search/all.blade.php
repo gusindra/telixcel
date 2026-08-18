@@ -1,11 +1,4 @@
 <div>
-    <div class="flex items-center p-4 text-right">
-        <a wire:click="actionShowModal" class="inline-flex dark:hover:bg-slate-600 cursor-pointer items-center px-2 py-1 text-gray-600 dark:bg-slate-800 border border-transparent rounded-md font-normal text-xs dark:text-white 1g-widest hover:text-slate-700 active:bg-green-900 focus:outline-none focus:border-gray-900 focus:shadow-outline-gray disabled:opacity-25 transition" wire:click="actionShowModal">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-        </a>
-    </div>
 
     <!-- Form Action Modal -->
     <x-jet-dialog-modal wire:model="modalActionVisible">

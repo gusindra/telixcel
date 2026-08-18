@@ -2,6 +2,7 @@
 
 namespace App\Exceptions;
 
+use App\Exceptions\AiGatewayException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Throwable;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -14,7 +15,7 @@ class Handler extends ExceptionHandler
      * @var array
      */
     protected $dontReport = [
-        //
+        AiGatewayException::class,
     ];
 
     /**
@@ -26,6 +27,8 @@ class Handler extends ExceptionHandler
         'current_password',
         'password',
         'password_confirmation',
+        'api_key',
+        'authorization',
     ];
 
     /**
@@ -38,5 +41,14 @@ class Handler extends ExceptionHandler
         $this->reportable(function (Throwable $e) {
             //
         });
+    }
+
+    public function render($request, Throwable $e)
+    {
+        if ($e instanceof AiGatewayException) {
+            return $e->toResponse();
+        }
+
+        return parent::render($request, $e);
     }
 }

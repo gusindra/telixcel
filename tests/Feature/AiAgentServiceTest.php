@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\AgentActionLog;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\RoleUser;
@@ -13,8 +14,8 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
-/** AI Console → AgentRunner (Hermes + model-chosen tools). */
-class HermesAgentServiceTest extends TestCase
+/** AI Console → AgentRunner (AI + model-chosen tools). */
+class AiAgentServiceTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -48,14 +49,14 @@ class HermesAgentServiceTest extends TestCase
     }
 
     /** @test */
-    public function hermes_posts_chat_completions_with_tools(): void
+    public function ai_posts_chat_completions_with_tools(): void
     {
         config([
-            'services.ai.endpoint' => 'http://ai.test/v1/chat/completions',
-            'services.ai.api_key' => 'test-key',
-            'services.ai.model' => 'telixcel',
-            'services.ai.timeout' => 30,
-            'services.ai.max_iterations' => 6,
+            'ai.endpoint' => 'http://ai.test/v1/chat/completions',
+            'ai.api_key' => 'test-key',
+            'ai.model' => 'telixcel',
+            'ai.timeout' => 30,
+            'ai.max_iterations' => 6,
         ]);
 
         $user = $this->admin();
@@ -73,14 +74,14 @@ class HermesAgentServiceTest extends TestCase
         $result = app(AgentRunner::class)->run([], 'Halo apa kabar?', 42);
 
         $this->assertSame('Halo', $result['reply']);
-        $this->assertSame('hermes', $result['driver']);
+        $this->assertSame('ai', $result['driver']);
         $this->assertNull($result['pending']);
         $this->assertSame('http://ai.test/v1/chat/completions', AgentRunner::endpoint());
 
         Http::assertSent(function ($request) use ($user) {
             $body = $request->data();
             $headers = $request->headers();
-            $sessionKey = $headers['X-Hermes-Session-Key'][0] ?? ($headers['x-hermes-session-key'][0] ?? null);
+            $sessionKey = $headers['X-AI-Session-Key'][0] ?? ($headers['x-ai-session-key'][0] ?? null);
             $tools = $body['tools'] ?? [];
             $names = collect($tools)->map(fn ($t) => $t['function']['name'] ?? null)->filter()->all();
 
@@ -97,11 +98,11 @@ class HermesAgentServiceTest extends TestCase
     public function model_tool_call_query_records_then_final_reply(): void
     {
         config([
-            'services.ai.endpoint' => 'http://ai.test/v1/chat/completions',
-            'services.ai.api_key' => 'test-key',
-            'services.ai.model' => 'telixcel',
-            'services.ai.timeout' => 30,
-            'services.ai.max_iterations' => 6,
+            'ai.endpoint' => 'http://ai.test/v1/chat/completions',
+            'ai.api_key' => 'test-key',
+            'ai.model' => 'telixcel',
+            'ai.timeout' => 30,
+            'ai.max_iterations' => 6,
         ]);
         $user = $this->admin();
 
@@ -166,7 +167,7 @@ class HermesAgentServiceTest extends TestCase
 
         $result = app(AgentRunner::class)->run([], 'status Write Articles', null);
 
-        $this->assertSame('hermes', $result['driver']);
+        $this->assertSame('ai', $result['driver']);
         $this->assertStringContainsString('complete', $result['reply']);
         $this->assertContains('query_records', $result['metrics']['tools_called'] ?? []);
         $this->assertSame(2, $callCount);
@@ -176,11 +177,11 @@ class HermesAgentServiceTest extends TestCase
     public function model_update_record_returns_pending_approval(): void
     {
         config([
-            'services.ai.endpoint' => 'http://ai.test/v1/chat/completions',
-            'services.ai.api_key' => 'test-key',
-            'services.ai.model' => 'telixcel',
-            'services.ai.timeout' => 30,
-            'services.ai.max_iterations' => 6,
+            'ai.endpoint' => 'http://ai.test/v1/chat/completions',
+            'ai.api_key' => 'test-key',
+            'ai.model' => 'telixcel',
+            'ai.timeout' => 30,
+            'ai.max_iterations' => 6,
         ]);
         $user = $this->admin();
 
@@ -221,7 +222,7 @@ class HermesAgentServiceTest extends TestCase
 
         $result = app(AgentRunner::class)->run([], 'Write Articles ubah jadi complete', null);
 
-        $this->assertSame('hermes', $result['driver']);
+        $this->assertSame('ai', $result['driver']);
         $this->assertNotNull($result['pending']);
         $this->assertContains($task->id, $result['pending']['ids']);
         $this->assertSame('complete', $result['pending']['values']['status']);
@@ -246,7 +247,7 @@ class HermesAgentServiceTest extends TestCase
             'target_date' => now()->addDays(7),
         ]);
 
-        Http::fake(); // must not call Hermes
+        Http::fake(); // must not call AI
 
         $result = app(AgentRunner::class)->run(
             [],
@@ -267,11 +268,11 @@ class HermesAgentServiceTest extends TestCase
     public function list_request_does_not_show_approval_card(): void
     {
         config([
-            'services.ai.endpoint' => 'http://ai.test/v1/chat/completions',
-            'services.ai.api_key' => 'test-key',
-            'services.ai.model' => 'telixcel',
-            'services.ai.timeout' => 30,
-            'services.ai.max_iterations' => 6,
+            'ai.endpoint' => 'http://ai.test/v1/chat/completions',
+            'ai.api_key' => 'test-key',
+            'ai.model' => 'telixcel',
+            'ai.timeout' => 30,
+            'ai.max_iterations' => 6,
         ]);
         $user = $this->admin();
 
@@ -305,14 +306,14 @@ class HermesAgentServiceTest extends TestCase
     }
 
     /** @test */
-    public function hermes_text_only_update_still_materializes_approval_card(): void
+    public function ai_text_only_update_still_materializes_approval_card(): void
     {
         config([
-            'services.ai.endpoint' => 'http://ai.test/v1/chat/completions',
-            'services.ai.api_key' => 'test-key',
-            'services.ai.model' => 'telixcel',
-            'services.ai.timeout' => 30,
-            'services.ai.max_iterations' => 6,
+            'ai.endpoint' => 'http://ai.test/v1/chat/completions',
+            'ai.api_key' => 'test-key',
+            'ai.model' => 'telixcel',
+            'ai.timeout' => 30,
+            'ai.max_iterations' => 6,
         ]);
         $user = $this->admin();
 
@@ -353,13 +354,13 @@ class HermesAgentServiceTest extends TestCase
     }
 
     /** @test */
-    public function hermes_path_picks_up_existing_pending_from_store(): void
+    public function ai_path_picks_up_existing_pending_from_store(): void
     {
         config([
-            'services.ai.endpoint' => 'http://ai.test/v1/chat/completions',
-            'services.ai.api_key' => 'test-key',
-            'services.ai.model' => 'telixcel',
-            'services.ai.timeout' => 30,
+            'ai.endpoint' => 'http://ai.test/v1/chat/completions',
+            'ai.api_key' => 'test-key',
+            'ai.model' => 'telixcel',
+            'ai.timeout' => 30,
         ]);
 
         $user = $this->admin();
@@ -387,7 +388,35 @@ class HermesAgentServiceTest extends TestCase
 
         // Update intent may still pick up store if no new proposal.
         $upd = app(AgentRunner::class)->run([], 'ubah #99 jadi complete', null);
-        $this->assertSame('hermes', $upd['driver']);
+        $this->assertSame('ai', $upd['driver']);
         $this->assertNotNull($upd['pending']);
+    }
+
+    /** @test */
+    public function plain_llm_turn_is_logged_as_chat_action(): void
+    {
+        $user = $this->admin();
+        config([
+            'ai.endpoint' => 'http://ai.test/v1/chat/completions',
+            'ai.api_key' => 'test-key',
+            'ai.model' => 'telixcel',
+            'ai.timeout' => 30,
+        ]);
+        Http::fake([
+            'ai.test/*' => Http::response([
+                'choices' => [[
+                    'message' => ['role' => 'assistant', 'content' => 'Halo'],
+                    'finish_reason' => 'stop',
+                ]],
+            ], 200),
+        ]);
+
+        app(AgentRunner::class)->run([], 'Halo apa kabar?', null);
+
+        $log = AgentActionLog::where('tool', 'chat')->first();
+        $this->assertNotNull($log);
+        $this->assertSame($user->id, $log->user_id);
+        $this->assertSame('ok', $log->status);
+        $this->assertSame('Halo', $log->result['reply'] ?? null);
     }
 }

@@ -24,5 +24,9 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
+Route::get('/v1/health', function () {
+    return response()->json(['status' => 'ok']);
+})->name('api.v1.health');
+
 // AI Console does NOT expose a public data API.
-// Tools (query/update) run inside Laravel via ToolExecutor → Hermes only formats replies.
+// Tools (query/update) run inside Laravel via ToolExecutor → AI only formats replies.

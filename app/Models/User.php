@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasUuid;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Jetstream\HasTeams;
@@ -17,6 +19,7 @@ class User extends Authenticatable
     use HasFactory;
     use HasProfilePhoto;
     use HasTeams;
+    use HasUuid;
     use Notifiable;
     use TwoFactorAuthenticatable;
 
@@ -26,8 +29,25 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'name', 'email', 'password', 'handling', 'phone_no', 'nick', 'current_team_id'
+        'uuid', 'name', 'email', 'password', 'handling', 'phone_no', 'nick', 'current_team_id'
     ];
+
+    public function resolveRouteBinding($value, $field = null)
+    {
+        if ($field) {
+            return $this->where($field, $value)->firstOrFail();
+        }
+
+        if (Str::isUuid((string) $value)) {
+            return $this->where('uuid', $value)->firstOrFail();
+        }
+
+        if (ctype_digit((string) $value)) {
+            return $this->whereKey($value)->firstOrFail();
+        }
+
+        return $this->where('uuid', $value)->firstOrFail();
+    }
 
     /**
      * The attributes that should be hidden for arrays.

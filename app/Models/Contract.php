@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasUuid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Contract extends Model
 {
     use HasFactory;
+    use HasUuid;
 
     /**
      * The attributes that are mass assignable.
@@ -15,6 +17,7 @@ class Contract extends Model
      * @var array
      */
     protected $fillable = [
+        'uuid',
         'title',
         'status',
         'signer_email',
