@@ -5,15 +5,12 @@
         </h2>
     </x-slot>
 
-    <div>
-        <div class="max-w-7xl mx-auto py-10 sm:px-6 lg:px-8">
+    <div class="tx-stack">
+        <x-page-section :title="__('API Tokens')">
             @livewire('api.api-token-manager')
-        </div>
-    </div>
-
-    <div>
-        <div class="max-w-7xl mx-auto py-10 sm:px-6 lg:px-8">
+        </x-page-section>
+        <x-page-section :title="__('Webhooks')">
             @livewire('api.webhook-manager')
-        </div>
+        </x-page-section>
     </div>
 </x-app-layout>

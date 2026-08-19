@@ -63,14 +63,14 @@ class Quotation extends LivewireDatatable
     		Column::callback(['status'], function ($status) {
                 return view('label.label', ['type' => $status]);
             })->label('Status')->filterable(['DRAFT', 'APPROVED', 'SUBMIT']),
-            NumberColumn::name('id')->label('Detail')->sortBy('id')->callback('id', function ($value) {
+            NumberColumn::name('id')->label('Detail')->sortBy('id')->callback(['uuid', 'id'], function ($uuid, $id) {
                 if ($this->emitView) {
-                    return '<button type="button" onclick="Livewire.emit(\'viewCommercialItem\', \'quotation\', ' . (int) $value . ')" '
+                    return '<button type="button" onclick="Livewire.emit(\'viewCommercialItem\', \'quotation\', ' . (int) $id . ')" '
                         . 'class="text-xs font-medium text-blue-600 hover:text-blue-800">View</button>';
                 }
 
                 return view('datatables::link', [
-                    'href' => "/commercial/quotation/" . $value,
+                    'href' => '/commercial/quotation/'.($uuid ?: $id),
                     'slot' => 'View'
                 ]);
             }),

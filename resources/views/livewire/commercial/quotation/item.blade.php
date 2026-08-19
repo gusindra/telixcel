@@ -8,7 +8,7 @@
 
         <!-- Team Action List -->
         <x-slot name="content">
-            <div class="flex items-center justify-end text-right">
+            <div class="flex items-center gap-2">
                 <x-jet-action-message class="mr-3" on="added">
                     {{ __('Action added.') }}
                 </x-jet-action-message>
@@ -16,7 +16,7 @@
                     {{ __('Action saved.') }}
                 </x-jet-action-message>
                 @if($data->status=='draft')
-                    <a href="#" wire:click.prevent="showCreateModal" class="cursor-pointer inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:shadow-outline-gray disabled:opacity-25 transition">
+                    <a href="#" wire:click.prevent="showCreateModal" class="tx-btn">
                         {{__('Add Item')}}
                     </a>
                 @endif

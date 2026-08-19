@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\AdminSmsController;
+use App\Http\Controllers\Ai\AiAdminController;
+use App\Http\Controllers\Ai\AiSwaggerController;
 use App\Http\Controllers\ApiBulkSmsController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DevhookController;
@@ -61,7 +63,12 @@ use Illuminate\Support\Facades\Http;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    // return view('welcome');
+    if (Auth::check()) {
+        return redirect()->route('dashboard');
+    } else {
+        return redirect()->route('login');
+    }
 })->name('welcome');
 
 // Language switcher — stores chosen locale in session, applied by SetLocale middleware.
@@ -99,6 +106,20 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/agent-console', function () {
         return view('agent-console');
     })->name('agent');
+
+    Route::prefix('ai')->name('ai.')->group(function () {
+        Route::get('/applications', [AiAdminController::class, 'applications'])->name('applications');
+        Route::get('/applications/{application:uuid}', [AiAdminController::class, 'application'])->name('applications.show');
+        Route::get('/applications/{application:uuid}/usage', [AiAdminController::class, 'applicationUsage'])->name('applications.usage');
+        Route::get('/applications/{application:uuid}/requests', [AiAdminController::class, 'applicationRequests'])->name('applications.requests');
+        Route::get('/applications/{application:uuid}/test', [AiAdminController::class, 'applicationTest'])->name('applications.test');
+        Route::get('/usage', [AiAdminController::class, 'usage'])->name('usage');
+        Route::get('/logs', [AiAdminController::class, 'logs'])->name('logs');
+        Route::redirect('/requests', '/ai/applications')->name('requests');
+        Route::get('/settings', [AiAdminController::class, 'settings'])->name('settings');
+        Route::get('/docs', [AiSwaggerController::class, 'ui'])->name('docs');
+        Route::get('/docs.json', [AiSwaggerController::class, 'spec'])->name('docs.spec');
+    });
 
     Route::get('/client', function () {
         return view('client');
@@ -198,8 +219,9 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/ticket', fn () => view('ticket.index'))->name('ticket');
 
     Route::get('report', [ReportController::class, 'index'])->name('report.index');
-    Route::get('report/{key}', [ReportController::class, 'show'])->name('report.show');
-
+        Route::get('report/{key}', [ReportController::class, 'show'])->name('report.show');
+        Route::get('/reports/{id}/download', [ReportController::class, 'download'])->name('reports.download');
+        Route::get('/reports/{id}/view', [ReportController::class, 'view'])->name('reports.view');
     Route::get('commercial/{key}/{id}', [CommercialController::class, 'edit'])->name('commercial.edit.show');
     Route::get('commercial/{id}/{type}/print', [CommercialController::class, 'template'])->name('commercial.print');
     Route::get('product/commercial/syn', [CommercialController::class, 'sync'])->name('commercial.sync');

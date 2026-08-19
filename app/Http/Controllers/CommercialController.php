@@ -58,23 +58,47 @@ class CommercialController extends Controller
 
     public function edit($key, $id)
     {
-        if($key=='quotation'){
-            $data = Quotation::find($id);
-            if($data){
-                return view('assistant.commercial.quotation.show', ['code'=>$id, 'quote' => $data]);
+        if ($key == 'quotation') {
+            $data = Quotation::findPublic($id);
+            if ($data) {
+                if ($redir = $this->redirectCommercialUuid('quotation', $data, $id)) {
+                    return $redir;
+                }
+
+                return view('assistant.commercial.quotation.show', ['code' => $data->id, 'quote' => $data]);
             }
-        }elseif($key=='contract'){
-            $data = Contract::find($id);
-            if($data){
-                return view('assistant.commercial.contract.show', ['code'=>$id, 'contract' => $data]);
+        } elseif ($key == 'contract') {
+            $data = Contract::findPublic($id);
+            if ($data) {
+                if ($redir = $this->redirectCommercialUuid('contract', $data, $id)) {
+                    return $redir;
+                }
+
+                return view('assistant.commercial.contract.show', ['code' => $data->id, 'contract' => $data]);
             }
         }
-        $data = CommerceItem::find($id);
-        if($data){
-            return view('assistant.commercial.show', ['code'=>$id, 'data' => $data]);
+
+        $data = CommerceItem::findPublic($id);
+        if ($data) {
+            if ($redir = $this->redirectCommercialUuid('item', $data, $id)) {
+                return $redir;
+            }
+
+            return view('assistant.commercial.show', ['code' => $data->id, 'data' => $data]);
         }
         abort(404);
+    }
 
+    private function redirectCommercialUuid(string $key, $model, $id)
+    {
+        if ($model->uuid && (string) $id !== (string) $model->uuid && ctype_digit((string) $id)) {
+            return redirect()->route('commercial.edit.show', array_merge(
+                ['key' => $key, 'id' => $model->uuid],
+                request()->query()
+            ));
+        }
+
+        return null;
     }
 
     public function template($key, $id){
@@ -82,13 +106,13 @@ class CommercialController extends Controller
         if($id=='quotation'){
             // clientRef = the customer chosen in Customer Information (client_id);
             // company/project/client load the Source entity (model_id) for the logo.
-            $q = Quotation::with(['clientRef', 'company', 'project.company', 'client', 'items'])->find($key);
+            $q = Quotation::with(['clientRef', 'company', 'project.company', 'client', 'items'])->findPublic($key);
             return view('assistant.commercial.quotation.template', ['data' => $q]);
         }elseif($id=='contract'){
-            $c = Contract::find($key);
+            $c = Contract::findPublic($key);
             return view('assistant.commercial.contract.template', ['code'=>$c]);
         }elseif($id=='invoice'){
-            $o = Order::find($key);
+            $o = Order::findPublic($key);
             return view('assistant.order.template', ['data'=>$o]);
         }
     }

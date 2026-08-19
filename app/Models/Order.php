@@ -2,12 +2,16 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasUuid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Order extends Model
 {
     use HasFactory;
+    use HasUuid;
+    use SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -15,6 +19,7 @@ class Order extends Model
      * @var array
      */
     protected $fillable = [
+        'uuid',
         'no',
         'name',
         'type',

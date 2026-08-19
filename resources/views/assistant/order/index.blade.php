@@ -1,24 +1,14 @@
 <x-app-layout>
-    <x-slot name="header"></x-slot>
-
-    @if(request()->routeIs('commercial'))
-        @include('assistant.nav')
-    @endif
+    <x-slot name="header">
+        <h2>{{ __('Order') }}</h2>
+    </x-slot>
 
     @include('assistant.order.nav')
 
-    <div class="py-4">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white dark:bg-slate-600 overflow-hidden shadow-xl sm:rounded-lg">
-
-                <div class="mx-auto">
-                    <div class="px-4 py-2">
-                        @livewire('order.add')
-
-                        <livewire:table.order searchable="name" exportable/>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <x-page-section>
+        <x-slot name="toolbar">
+            @livewire('order.add')
+        </x-slot>
+        <livewire:table.order searchable="name" exportable/>
+    </x-page-section>
 </x-app-layout>

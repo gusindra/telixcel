@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasUuid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Company extends Model
 {
     use HasFactory;
+    use HasUuid;
 
     /**
      * The attributes that are mass assignable.
@@ -15,6 +17,7 @@ class Company extends Model
      * @var array
      */
     protected $fillable = [
+        'uuid',
         'name',
         'code',
         'tax_id',

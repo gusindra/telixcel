@@ -6,7 +6,9 @@
     </x-slot>
 
     @if(auth()->user()->currentTeam)
-        @livewire('dashboard.gantt-view')
+        <x-page-section>
+            @livewire('dashboard.gantt-view')
+        </x-page-section>
     @endif
 
 </x-app-layout>

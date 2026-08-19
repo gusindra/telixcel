@@ -58,9 +58,9 @@ class Order extends LivewireDatatable
             Column::callback(['status'], function ($status) {
                 return view('label.label', ['type' => $status]);
             })->label('Status')->filterable(['DRAFT', 'UNPAID', 'PAID', 'CANCEL']),
-            NumberColumn::name('id')->label('Detail')->sortBy('id')->callback('id', function ($value) {
+            NumberColumn::name('id')->label('Detail')->sortBy('id')->callback(['uuid', 'id'], function ($uuid, $id) {
                 return view('datatables::link', [
-                    'href' => "/order/" . $value,
+                    'href' => '/order/'.($uuid ?: $id),
                     'slot' => 'View'
                 ]);
             }),

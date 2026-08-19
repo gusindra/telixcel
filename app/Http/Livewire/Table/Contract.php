@@ -50,14 +50,14 @@ class Contract extends LivewireDatatable
     		Column::callback(['status'], function ($s) {
                 return view('label.label', ['type' => $s]);
             })->label('Status')->filterable(['DRAFT', 'APPROVED', 'SUBMIT']),
-            NumberColumn::name('id')->label('Detail')->sortBy('id')->callback('id', function ($value) {
+            NumberColumn::name('id')->label('Detail')->sortBy('id')->callback(['uuid', 'id'], function ($uuid, $id) {
                 if ($this->emitView) {
-                    return '<button type="button" onclick="Livewire.emit(\'viewCommercialItem\', \'contract\', ' . (int) $value . ')" '
+                    return '<button type="button" onclick="Livewire.emit(\'viewCommercialItem\', \'contract\', ' . (int) $id . ')" '
                         . 'class="text-xs font-medium text-blue-600 hover:text-blue-800">View</button>';
                 }
 
                 return view('datatables::link', [
-                    'href' => "/commercial/contract/" . $value,
+                    'href' => '/commercial/contract/'.($uuid ?: $id),
                     'slot' => 'View'
                 ]);
             }),

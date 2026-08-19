@@ -1,0 +1,348 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Telixcel AI Gateway",
+    "version": "1.0.0",
+    "description": "OpenAI-compatible chat completions.\n\nClients authenticate with a Telixcel application key (`sk-...`). Telixcel may try another source for the same public model if the first is down.\n\n`metadata` is Telixcel-only (usage / request logs). It is not sent upstream."
+  },
+  "servers": [
+    {
+      "url": "/api/v1",
+      "description": "Telixcel"
+    }
+  ],
+  "tags": [
+    {
+      "name": "AI",
+      "description": "Chat completions"
+    }
+  ],
+  "paths": {
+    "/ai/models": {
+      "get": {
+        "tags": ["AI"],
+        "operationId": "aiListModels",
+        "summary": "List models this application may use",
+        "description": "Returns the allow-list set on the Telixcel application. An empty allow-list means every enabled model. Sources that share a public name (kr/claude-... and ag/claude-...) are returned once. Completions try the next source if the first is down.",
+        "security": [{ "AiClientKey": [] }],
+        "responses": {
+          "200": {
+            "description": "Model list",
+            "headers": {
+              "X-Request-ID": {
+                "schema": { "type": "string" }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "object": { "type": "string", "example": "list" },
+                    "default": { "type": "string" },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": { "type": "string" },
+                          "object": { "type": "string", "example": "model" },
+                          "name": { "type": "string" },
+                          "owned_by": { "type": "string" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid API key"
+          }
+        }
+      }
+    },
+    "/ai/chat/completions": {
+      "post": {
+        "tags": ["AI"],
+        "operationId": "aiChatCompletions",
+        "summary": "Create a chat completion",
+        "description": "OpenAI-compatible.\n\nTelixcel authenticates the application, checks model permission, rate limit, and quota, then returns JSON (`stream=false`) or `text/event-stream` (`stream=true`).\n\nEvery response includes `X-Request-ID`.\n\nOptional headers `X-End-User-Id`, `X-End-User-Name`, `X-End-User-Email`, `X-Client-Feature`, `X-Client-Session-Id` are alternatives to `metadata`.",
+        "security": [
+          {
+            "AiClientKey": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-End-User-Id",
+            "in": "header",
+            "required": false,
+            "schema": { "type": "string" },
+            "description": "End-user id if not sent in metadata"
+          },
+          {
+            "name": "X-End-User-Name",
+            "in": "header",
+            "required": false,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "X-End-User-Email",
+            "in": "header",
+            "required": false,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "X-Client-Feature",
+            "in": "header",
+            "required": false,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "X-Client-Session-Id",
+            "in": "header",
+            "required": false,
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AiChatCompletionRequest"
+              },
+              "example": {
+                "model": "anthropic/claude-sonnet-4",
+                "messages": [
+                  { "role": "user", "content": "Hello" }
+                ],
+                "stream": true,
+                "user": "app:42",
+                "metadata": {
+                  "end_user_id": "42",
+                  "end_user_name": "Dika",
+                  "end_user_email": "dika@company.com",
+                  "feature": "cv-assistant",
+                  "session_id": "sess_abc"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "JSON completion when stream=false, or text/event-stream when stream=true",
+            "headers": {
+              "X-Request-ID": {
+                "description": "Unique request id",
+                "schema": {
+                  "type": "string",
+                  "example": "req_ai_01j..."
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiChatCompletionResponse"
+                }
+              },
+              "text/event-stream": {
+                "schema": {
+                  "type": "string",
+                  "example": "data: {\"choices\":[{\"delta\":{\"content\":\"Hi\"}}]}\n\ndata: [DONE]\n\n"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid API key",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AiError" }
+              }
+            }
+          },
+          "403": {
+            "description": "Inactive application, model not allowed, or quota exceeded",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AiError" }
+              }
+            }
+          },
+          "404": {
+            "description": "Model not found or disabled",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AiError" }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AiError" }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AiError" }
+              }
+            }
+          },
+          "502": {
+            "description": "Upstream error or unavailable",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AiError" }
+              }
+            }
+          },
+          "504": {
+            "description": "Upstream timeout",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AiError" }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "AiClientKey": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "sk-",
+        "description": "Application API key from AI → Applications. Example: `Bearer sk-xxxxx`"
+      }
+    },
+    "schemas": {
+      "AiChatMessage": {
+        "type": "object",
+        "required": ["role", "content"],
+        "properties": {
+          "role": { "type": "string", "example": "user" },
+          "content": {
+            "description": "String or multimodal array",
+            "example": "Hello"
+          }
+        }
+      },
+      "AiRequestMetadata": {
+        "type": "object",
+        "description": "Telixcel-only. Not forwarded upstream. Required end_user_id (or `user`) when the application has Require end user enabled.",
+        "properties": {
+          "end_user_id": { "type": "string", "example": "42" },
+          "end_user_name": { "type": "string", "example": "Dika" },
+          "end_user_email": { "type": "string", "example": "dika@company.com" },
+          "feature": { "type": "string", "example": "cv-assistant" },
+          "session_id": { "type": "string", "example": "sess_abc" }
+        }
+      },
+      "AiChatCompletionRequest": {
+        "type": "object",
+        "required": ["model", "messages"],
+        "properties": {
+          "model": { "type": "string", "example": "anthropic/claude-sonnet-4" },
+          "messages": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AiChatMessage" }
+          },
+          "stream": { "type": "boolean", "example": true },
+          "temperature": { "type": "number" },
+          "top_p": { "type": "number" },
+          "max_tokens": { "type": "integer" },
+          "max_completion_tokens": { "type": "integer" },
+          "stop": {},
+          "presence_penalty": { "type": "number" },
+          "frequency_penalty": { "type": "number" },
+          "response_format": {},
+          "user": {
+            "type": "string",
+            "example": "app:42",
+            "description": "OpenAI user field. Used as end_user_id when metadata.end_user_id is omitted."
+          },
+          "metadata": { "$ref": "#/components/schemas/AiRequestMetadata" }
+        }
+      },
+      "AiChatCompletionResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "example": "chatcmpl_test" },
+          "model": { "type": "string", "example": "anthropic/claude-sonnet-4" },
+          "choices": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "index": { "type": "integer", "example": 0 },
+                "message": {
+                  "type": "object",
+                  "properties": {
+                    "role": { "type": "string", "example": "assistant" },
+                    "content": { "type": "string", "example": "Hello" }
+                  }
+                },
+                "finish_reason": { "type": "string", "example": "stop" }
+              }
+            }
+          },
+          "usage": {
+            "type": "object",
+            "properties": {
+              "prompt_tokens": { "type": "integer", "example": 12 },
+              "completion_tokens": { "type": "integer", "example": 8 },
+              "total_tokens": { "type": "integer", "example": 20 }
+            }
+          }
+        }
+      },
+      "AiError": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string",
+                "enum": [
+                  "INVALID_API_KEY",
+                  "APPLICATION_INACTIVE",
+                  "MODEL_NOT_FOUND",
+                  "MODEL_NOT_ALLOWED",
+                  "RATE_LIMIT_EXCEEDED",
+                  "QUOTA_EXCEEDED",
+                  "UPSTREAM_TIMEOUT",
+                  "UPSTREAM_UNAVAILABLE",
+                  "UPSTREAM_ERROR",
+                  "VALIDATION_ERROR",
+                  "INTERNAL_ERROR"
+                ],
+                "example": "MODEL_NOT_ALLOWED"
+              },
+              "message": {
+                "type": "string",
+                "example": "This application is not allowed to use the requested model."
+              },
+              "request_id": {
+                "type": "string",
+                "example": "req_ai_01j..."
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

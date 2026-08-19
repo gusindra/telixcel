@@ -14,7 +14,7 @@ use Livewire\Livewire;
 use Tests\TestCase;
 
 /**
- * The /user/{id} detail page reuses DashboardOverview with a `forUserId` so the dashboard cards
+ * The /user/{uuid} detail page reuses DashboardOverview with a `forUserId` so the dashboard cards
  * are scoped to that user's owned/assigned tasks, while the default dashboard stays team-wide.
  */
 class UserDashboardScopeTest extends TestCase
@@ -65,5 +65,22 @@ class UserDashboardScopeTest extends TestCase
         $c = Livewire::test(DashboardOverview::class);
 
         $this->assertSame(2, $c->get('totalTasks'));
+    }
+
+    /** @test */
+    public function user_detail_url_uses_uuid_not_numeric_id(): void
+    {
+        [$admin, $team] = $this->bootSuperAdmin();
+        $target = User::create(['name' => 'Member', 'email' => uniqid('m').'@test.com', 'password' => bcrypt('x')]);
+        $this->assertNotEmpty($target->uuid);
+
+        $legacy = $this->get('/user/'.$target->id.'?month=08&year=2026');
+        $legacy->assertRedirect();
+        $this->assertStringContainsString('/user/'.$target->uuid, $legacy->headers->get('Location'));
+        $this->assertStringContainsString('month=08', $legacy->headers->get('Location'));
+        $this->assertStringContainsString('year=2026', $legacy->headers->get('Location'));
+
+        $this->assertSame(url('/user/'.$target->uuid), route('user.show', $target));
+        $this->assertNotEquals(404, $this->get(route('user.show', $target))->status());
     }
 }

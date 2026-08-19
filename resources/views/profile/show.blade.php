@@ -5,7 +5,7 @@
         </h2>
     </x-slot>
 
-    <div class="max-w-7xl mx-auto py-10 sm:px-6 lg:px-8">
+    <x-page-section>
         <div x-data="{ ptab: 'profile' }" class="md:flex md:gap-8">
 
             {{-- Left sidebar (Profile / Credential / Team) --}}
@@ -102,5 +102,5 @@
 
             </div>
         </div>
-    </div>
+    </x-page-section>
 </x-app-layout>

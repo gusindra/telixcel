@@ -101,11 +101,41 @@ class AgentConsoleHistoryTest extends TestCase
     }
 
     /** @test */
+    public function polling_surfaces_a_pending_approval_card_from_the_store(): void
+    {
+        $user = $this->admin();
+
+        \App\Services\Agent\PendingActionStore::put($user->id, [
+            'type' => 'update', 'model' => 'task', 'ids' => [4],
+            'values' => ['status' => 'complete'],
+            'diff' => [[
+                'label' => 'Content Production',
+                'before' => ['status' => 'pending'],
+                'after' => ['status' => 'complete'],
+            ]],
+            'summary' => 'Update 1 Task record(s).',
+        ]);
+
+        Livewire::test(AgentConsole::class)
+            ->call('checkPendingAction')
+            ->assertSee('Konfirmasi perubahan')
+            ->assertSee('Content Production');
+    }
+
+    /** @test */
     public function a_user_only_sees_their_own_sessions(): void
     {
         $me = $this->admin();
-        AgentChat::create(['user_id' => $me->id + 999, 'title' => 'Someone else']);
+        $other = User::create([
+            'name' => 'Other', 'email' => uniqid('o') . '@test.com',
+            'password' => bcrypt('password'), 'current_team_id' => 1,
+        ]);
+        AgentChat::create(['user_id' => $other->id, 'title' => 'Someone else']);
         AgentChat::create(['user_id' => $me->id, 'title' => 'Mine']);
+
+        Livewire::test(AgentConsole::class)
+            ->assertSee('Mine')
+            ->assertDontSee('Someone else');
 
         $this->assertSame(1, AgentChat::where('user_id', $me->id)->count());
     }

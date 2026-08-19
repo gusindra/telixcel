@@ -27,9 +27,13 @@ class TeamTable extends LivewireDatatable
     		Column::name('team_user.team_id')->label('Team'),
     		Column::name('team_user.status')->label('Status'),
     		DateColumn::name('updated_at')->label('Last Online')->format('d F Y H:i:s'),
-            NumberColumn::name('user.id')->label('Detail')->sortBy('user.id')->callback('user.id', function ($value) {
+            NumberColumn::name('user.id')->label('Detail')->sortBy('user.id')->callback(['user.id', 'user.uuid'], function ($id, $uuid) {
+                $href = $uuid
+                    ? route('user.show', $uuid).'?month='.date('m').'&year='.date('Y')
+                    : route('user.show', $id).'?month='.date('m').'&year='.date('Y');
+
                 return view('datatables::link', [
-                    'href' => "/user/" . $value . '?month='.date('m').'&year='.date('Y'),
+                    'href' => $href,
                     'slot' => 'View'
                 ]);
             }),

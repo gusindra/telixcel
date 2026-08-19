@@ -12,6 +12,7 @@ class AgentChat extends Model
     protected $fillable = [
         'user_id',
         'title',
+        'ai_session_id',
     ];
 
     /** Messages (request/response turns) in this chat session, oldest first. */

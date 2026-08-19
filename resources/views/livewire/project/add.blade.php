@@ -2,8 +2,8 @@
     <!-- <a class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:shadow-outline-gray disabled:opacity-25 transition" href="{{route('create.template')}}">
         {{ __('Create') }}
     </a> -->
-    <div class="flex items-center p-4 text-right">
-        <a wire:click="actionShowModal" class="inline-flex cursor-pointer items-center px-2 py-1 bg-green-800 border border-transparent rounded-md font-normal text-xs text-white 1g-widest hover:bg-green-700 active:bg-green-900 focus:outline-none focus:border-gray-900 focus:shadow-outline-gray disabled:opacity-25 transition" wire:click="actionShowModal">
+    <div class="flex items-center">
+        <a wire:click="actionShowModal" class="tx-btn">
             {{__('+ Project')}}
         </a>
     </div>

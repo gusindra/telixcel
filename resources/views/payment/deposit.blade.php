@@ -22,20 +22,7 @@
         </div>
     </header>
 
-    <!-- Team Dashboard -->
-    <div class="py-3">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white dark:bg-slate-600 overflow-hidden shadow-xl sm:rounded-lg">
-                <div class="p-2 border-b border-gray-200">
-                    <div class="mt-2 text-2xl">
-                        History Balance Saldo
-                    </div>
-                </div>
-
-                <div class="p-3">
-                    <livewire:table.balance user="{{auth()->user()->id}}" exportable />
-                </div>
-            </div>
-        </div>
-    </div>
+    <x-page-section :title="__('History Balance Saldo')">
+        <livewire:table.balance user="{{auth()->user()->id}}" exportable />
+    </x-page-section>
 </x-app-layout>

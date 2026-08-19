@@ -29,19 +29,21 @@ class Commission extends LivewireDatatable
                         'slot' => $p
                     ]);
                 }elseif($m=='project'){
+                    $project = \App\Models\Project::find($mi);
                     return view('datatables::link', [
-                        'href' => "/project/" . $mi,
+                        'href' => '/project/'.($project->uuid ?? $mi),
                         'slot' => $v
                     ]);
                 }
+                $order = \App\Models\Order::find($mi);
                 return view('datatables::link', [
-                    'href' => "/order/" . $mi,
+                    'href' => '/order/'.($order->uuid ?? $mi),
                     'slot' => $o
                 ]);
             })->label('Data')->filterable(),
-    		Column::name('agent.name')->callback('client_id, agent.name, agent.user.id', function ($c, $slot, $id) {
+    		Column::name('agent.name')->callback('client_id, agent.name, agent.user.uuid', function ($c, $slot, $uuid) {
                 return view('datatables::link', [
-                            'href' => "/user/" . $id,
+                            'href' => $uuid ? route('user.show', $uuid) : '#',
                             'slot' => $slot
                         ]);
             })->label('Agent')->filterable(),
@@ -50,9 +52,9 @@ class Commission extends LivewireDatatable
     		Column::callback(['status'], function ($y) {
                 return view('label.label', ['type' => $y]);
             })->label('Status')->filterable(['DRAFT', 'SUBMITED', 'APPROVED', 'RELEASED']),
-            NumberColumn::name('id')->label('Detail')->sortBy('id')->callback('id', function ($value) {
+            NumberColumn::name('id')->label('Detail')->sortBy('id')->callback(['uuid', 'id'], function ($uuid, $id) {
                 return view('datatables::link', [
-                    'href' => "/commission/" . $value,
+                    'href' => '/commission/'.($uuid ?: $id),
                     'slot' => 'View'
                 ]);
             }),

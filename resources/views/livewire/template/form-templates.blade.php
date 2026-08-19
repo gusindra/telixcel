@@ -151,13 +151,13 @@
     </x-jet-form-section>
 
 
-    <div class="flex items-center justify-end px-4 py-3 text-right sm:px-6">
+    <div class="flex items-center gap-2 px-4 py-3 sm:px-6">
         <x-jet-button wire:click="actionShowModal">
             {{__('Add Action')}}
         </x-jet-button>
     </div>
 
-    <div class="flex items-center justify-end px-4 py-3 text-right sm:px-6">
+    <div class="flex items-center gap-2 px-4 py-3 sm:px-6">
         <a class="items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:shadow-outline-gray disabled:opacity-25 transition" href="{{route('create.template')}}?id=1">
             {{ __('Add Respond') }}
         </a>
