@@ -11,7 +11,7 @@
         </div>
     </div>
 
-    <div class="px-6 py-4 bg-gray-100 dark:bg-slate-900 text-right">
+    <div class="px-6 py-4 bg-gray-100 dark:bg-slate-900 flex flex-wrap items-center justify-end gap-2">
         {{ $footer }}
     </div>
 </x-jet-modal>

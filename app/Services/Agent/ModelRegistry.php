@@ -46,12 +46,12 @@ class ModelRegistry
                 'class' => Task::class,
                 'permission' => 'PROJECT',
                 'label' => 'Task',
-                'readable' => ['id', 'project_id', 'title', 'type', 'status', 'priority', 'target_date', 'owner_id', 'created_at', 'updated_at', 'deleted_at'],
-                'writable' => ['title', 'type', 'status', 'priority', 'target_date'],
+                'readable' => ['id', 'project_id', 'title', 'type', 'status', 'priority', 'target_date', 'owner_id', 'assigned_to', 'created_at', 'updated_at', 'deleted_at'],
+                'writable' => ['title', 'type', 'status', 'priority', 'target_date', 'assigned_to'],
                 'statuses'   => ['progress', 'pending', 'complete'],
                 'types'      => ['finance', 'admin', 'operasional'],
                 'priorities' => ['low', 'medium', 'high'],
-                'notes' => 'project_id links to project.id; use "in" op with a list of project_ids for cross-model queries',
+                'notes' => 'project_id links to project.id; assigned_to = user id of assignee. Use "in" op with project_ids for cross-model queries. Query results include assigned_to_name and owner_name when available.',
             ],
             'contract' => [
                 'class' => Contract::class,
@@ -107,5 +107,31 @@ class ModelRegistry
     public static function keys(): array
     {
         return array_keys(self::map());
+    }
+
+    /**
+     * Columns whose values are tokenized (PII / financial) before any data
+     * reaches the LLM. field => TYPE (NAME|PHONE|EMAIL|MONEY|TEXT).
+     * TEXT = free-text scanned for embedded PII; others = whole value tokenized.
+     * (assigned_to_name / owner_name etc. are auto-detected by the Tokenizer.)
+     */
+    private static function sensitiveMap(): array
+    {
+        return [
+            'order'         => ['total' => 'MONEY'],
+            'project'       => ['customer_name' => 'NAME'],
+            'task'          => [],
+            'contract'      => [],
+            'ticket'        => ['reasons' => 'TEXT', 'solution' => 'TEXT'],
+            'blast-message' => ['msisdn' => 'PHONE', 'price' => 'MONEY'],
+            'quotation'     => ['price' => 'MONEY', 'discount' => 'MONEY'],
+            'invoice'       => ['amount' => 'MONEY', 'description' => 'TEXT'],
+        ];
+    }
+
+    /** @return array<string,string> field => TYPE for the given model key. */
+    public static function sensitive(string $key): array
+    {
+        return self::sensitiveMap()[strtolower(trim($key))] ?? [];
     }
 }

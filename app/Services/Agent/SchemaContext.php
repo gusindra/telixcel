@@ -3,14 +3,14 @@
 namespace App\Services\Agent;
 
 /**
- * Builds the {SCHEMA_CONTEXT} block injected into the system prompt so the
- * LLM knows which models, columns and status values it may work with.
+ * Builds the schema block injected into the system prompt so the
+ * LLM knows which models, columns and status values it may use with tools.
  */
 class SchemaContext
 {
     public static function build(): string
     {
-        $lines = ['AVAILABLE DATA MODELS (you may only operate on these):'];
+        $lines = ['AVAILABLE DATA MODELS (you may only operate on these via tools):'];
 
         foreach (ModelRegistry::map() as $key => $reg) {
             $cols = implode(', ', $reg['readable']);

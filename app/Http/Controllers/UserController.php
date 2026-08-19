@@ -29,6 +29,9 @@ class UserController extends Controller
 
     public function show(User $user)
     {
+        if ($redirect = $this->redirectLegacyId($user, 'user.show')) {
+            return $redirect;
+        }
         if($user->name != 'Admin1'){
             return view('user.user-detail', ['user'=>$user]);
         }
@@ -37,6 +40,9 @@ class UserController extends Controller
 
     public function profile(User $user)
     {
+        if ($redirect = $this->redirectLegacyId($user, 'user.show.profile')) {
+            return $redirect;
+        }
         if($user->name != 'Admin'){
             return view('user.user-profile', ['user'=>$user]);
         }
@@ -45,9 +51,19 @@ class UserController extends Controller
 
     public function balance(User $user, Request $request)
     {
-        // if($user->name != 'Admin'){
-            return view('user.user-balance', ['user'=>$user, 'team'=>$request->has('team')?$request->team:0]);
-        // }
-        // return redirect('user');
+        if ($redirect = $this->redirectLegacyId($user, 'user.show.balance')) {
+            return $redirect;
+        }
+        return view('user.user-balance', ['user'=>$user, 'team'=>$request->has('team')?$request->team:0]);
+    }
+
+    private function redirectLegacyId(User $user, string $route)
+    {
+        $key = request()->segment(2);
+        if ($user->uuid && $key !== $user->uuid && ctype_digit((string) $key)) {
+            return redirect()->route($route, array_merge(['user' => $user], request()->query()));
+        }
+
+        return null;
     }
 }

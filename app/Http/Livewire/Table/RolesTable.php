@@ -25,9 +25,9 @@ class RolesTable extends LivewireDatatable
     		Column::name('description')->label('Description'),
     		Column::name('type')->label('Type'),
             BooleanColumn::name('status')->label('Active'),
-            NumberColumn::name('id')->label('Detail')->sortBy('id')->callback('id', function ($value) {
+            NumberColumn::name('id')->label('Detail')->sortBy('id')->callback(['uuid', 'id'], function ($uuid, $id) {
                 return view('datatables::link', [
-                    'href' => "/roles/" . $value . '?month='.date('m').'&year='.date('Y'),
+                    'href' => '/roles/'.($uuid ?: $id).'?month='.date('m').'&year='.date('Y'),
                     'slot' => 'View'
                 ]);
             }),

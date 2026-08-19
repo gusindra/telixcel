@@ -23,6 +23,10 @@ class LogChange extends Model
 
     protected $guarded = [];
 
+    protected $casts = [
+        'before' => 'array',
+    ];
+
      /**
      * Get the flow that belongs to user.
      *

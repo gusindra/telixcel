@@ -13,6 +13,8 @@ class AppLayout extends Component
      */
     public function render()
     {
+        // layouts.app      = sidebar kiri (sekarang)
+        // layouts.app_old  = Jetstream top-nav (lama)
         return view('layouts.app');
     }
 }

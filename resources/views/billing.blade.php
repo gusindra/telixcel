@@ -1,35 +1,17 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Subscription') }}
-        </h2>
+        <h2>{{ __('Billing') }}</h2>
     </x-slot>
 
     @include('report.nav')
 
-    <div class="py-4">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-2">
-            <div class="sm:px-6 lg:px-6">
-                <h3 class="font-semibold text-gray-800 dark:text-slate-300 leading-tight pb-2">
-                    {{ __('Billing Table') }}
-                </h3>
-                <div class="bg-white dark:bg-slate-600  overflow-hidden shadow-xl sm:rounded-lg">
-                    <livewire:table.billings-table searchable="code, description, status, amount, created_at" exportable />
-                </div>
-            </div>
-        </div>
-    </div>
+    <div class="tx-stack">
+        <x-page-section :title="__('Billing Table')">
+            <livewire:table.billings-table searchable="code, description, status, amount, created_at" exportable />
+        </x-page-section>
 
-    <div class="py-1">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-2">
-            <div class="sm:px-6 lg:px-6">
-                <h3 class="font-semibold text-gray-800 dark:text-slate-300 leading-tight pb-2">
-                    {{ __('Request Table') }}
-                </h3>
-                <div class="bg-white dark:bg-slate-600  overflow-hidden shadow-xl sm:rounded-lg">
-                    <livewire:table.requests-table searchable="user_id, type, created_at" exportable />
-                </div>
-            </div>
-        </div>
+        <x-page-section :title="__('Request Table')">
+            <livewire:table.requests-table searchable="user_id, type, created_at" exportable />
+        </x-page-section>
     </div>
 </x-app-layout>

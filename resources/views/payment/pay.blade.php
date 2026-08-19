@@ -5,6 +5,8 @@
         </h2>
     </x-slot>
     <!-- Payment Dashboard -->
-    @livewire('payment.transfer', ['order'=>$order])
+    <x-page-section>
+        @livewire('payment.transfer', ['order'=>$order])
+    </x-page-section>
 
 </x-app-layout>

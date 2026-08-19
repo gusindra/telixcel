@@ -67,8 +67,10 @@ class SmsBlastTable extends LivewireDatatable
                 return (string) $value;
             }),
     		Column::name('user_id')->callback(['user_id'], function ($value) {
+                $uuid = optional(\App\Models\User::query()->find($value))->uuid;
+
                 return view('datatables::link', [
-                    'href' => "/user/" . $value,
+                    'href' => $uuid ? route('user.show', $uuid) : '/user/'.$value,
                     'slot' => $value
                 ]);
             })->label('User')->filterable()->exportCallback(function ($value) {

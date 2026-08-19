@@ -15,7 +15,7 @@
             <!-- Team Action List -->
             <x-slot name="content">
                 @if(!$errorTemplate)
-                <div class="flex items-center justify-end text-right">
+                <div class="flex items-center gap-2">
                     <x-jet-action-message class="mr-3" on="added">
                         {{ __('Error message added.') }}
                     </x-jet-action-message>

@@ -5,8 +5,8 @@ namespace App\Http\Livewire;
 use App\Models\AgentChat;
 use App\Models\AgentChatMessage;
 use App\Models\Report;
+use App\Services\Agent\AgentRunner;
 use App\Services\Agent\ApprovalExecutor;
-use App\Services\Agent\OllamaAgentService;
 use Illuminate\Support\Str;
 use Livewire\Component;
 
@@ -32,20 +32,43 @@ class AgentConsole extends Component
     public ?int $deleteTargetId = null;
     public string $deleteTargetTitle = '';
 
-    /** Latest ready report for notification (null = none). */
-    public ?array $readyReport = null;
+    /** Report ids already announced in chat this session (avoid duplicate notices). */
+    public array $notifiedReportIds = [];
 
     public function mount(): void
     {
         abort_unless($this->isAdmin(), 403);
 
+        // Warm AI backend (AI) while the page loads.
+        AgentRunner::maybeWarm();
+
         // Restore the most recent session so a refresh keeps the conversation.
-        $latest = AgentChat::where('user_id', auth()->id())->orderByDesc('updated_at')->first();
+        $latest = $this->ownedChatsQuery()->orderByDesc('updated_at')->first();
 
         if ($latest) {
             $this->loadChat($latest->id);
         } else {
             $this->newChat();
+        }
+    }
+
+    /**
+     * Guard against Livewire public-property tampering of chatId.
+     * Foreign session IDs are discarded so user A never binds to user B's chat.
+     */
+    public function updatedChatId($value): void
+    {
+        if ($value === null || $value === '') {
+            $this->chatId = null;
+
+            return;
+        }
+
+        if (! $this->ownedChat((int) $value)) {
+            $this->chatId = null;
+            $this->pendingAction = null;
+            $this->isThinking = false;
+            $this->messages = [$this->welcomeMessage()];
         }
     }
 
@@ -62,7 +85,7 @@ class AgentConsole extends Component
     /** Load a past session's messages into the view. */
     public function loadChat(int $id): void
     {
-        $chat = AgentChat::where('user_id', auth()->id())->find($id);
+        $chat = $this->ownedChat($id);
         if (! $chat) {
             return;
         }
@@ -82,7 +105,7 @@ class AgentConsole extends Component
     /** Show the delete confirmation UI for a chat. */
     public function confirmDeleteChat(int $id): void
     {
-        $chat = AgentChat::where('user_id', auth()->id())->find($id);
+        $chat = $this->ownedChat($id);
         if (! $chat) {
             return;
         }
@@ -116,7 +139,7 @@ class AgentConsole extends Component
     /** Delete a session and its messages. */
     public function deleteChat(int $id): void
     {
-        $chat = AgentChat::where('user_id', auth()->id())->find($id);
+        $chat = $this->ownedChat($id);
         if (! $chat) {
             return;
         }
@@ -139,6 +162,11 @@ class AgentConsole extends Component
             return;
         }
 
+        // Re-verify ownership before writing (public chatId can be tampered with).
+        if ($this->chatId && ! $this->ownedChat($this->chatId)) {
+            $this->chatId = null;
+        }
+
         // Create the session on the first message (title from the question).
         if (! $this->chatId) {
             $chat = AgentChat::create([
@@ -158,8 +186,8 @@ class AgentConsole extends Component
         $this->dispatchBrowserEvent('agent-run');
     }
 
-    /** Step 2: the actual (blocking) LLM call. */
-    public function runAgent(OllamaAgentService $agent): void
+    /** Step 2: the actual (blocking) agent call — AI profile telixcel by default. */
+    public function runAgent(AgentRunner $agent): void
     {
         abort_unless($this->isAdmin(), 403);
 
@@ -173,14 +201,26 @@ class AgentConsole extends Component
         }
 
         try {
-            $result = $agent->run($this->historyForModel(), $lastUser);
+            // Pass chatId so AI conversation / session-key stay per-user + per-console session.
+            $result = $agent->run($this->historyForModel(), $lastUser, $this->chatId);
             $this->messages[] = ['role' => 'assistant', 'content' => $result['reply']];
             $this->persistMessage('assistant', $result['reply']);
-            $this->pendingAction = $result['pending'];
+            // Only show approval card when THIS turn returned a real update proposal.
+            // Do not pull stale PendingActionStore on list/read replies.
+            $this->pendingAction = $result['pending'] ?? null;
+
+            if (is_array($this->pendingAction) && empty($this->pendingAction['ids'])) {
+                $this->pendingAction = null;
+            }
+            if ($this->pendingAction) {
+                $this->dispatchBrowserEvent('agent-pending');
+            }
         } catch (\Throwable $e) {
             $reply = 'Gagal menghubungi AI service: ' . $e->getMessage();
             $this->messages[] = ['role' => 'assistant', 'content' => $reply];
             $this->persistMessage('assistant', $reply);
+            // Still surface a late proposal if the store was written before the error.
+            $this->pendingAction = \App\Services\Agent\PendingActionStore::get(auth()->id());
         } finally {
             $this->isThinking = false;
         }
@@ -198,11 +238,13 @@ class AgentConsole extends Component
         $this->messages[] = ['role' => 'assistant', 'content' => $outcome['message']];
         $this->persistMessage('assistant', $outcome['message']);
         $this->pendingAction = null;
+        \App\Services\Agent\PendingActionStore::forget(auth()->id());
     }
 
     public function rejectPendingAction(): void
     {
         $this->pendingAction = null;
+        \App\Services\Agent\PendingActionStore::forget(auth()->id());
         $message = 'Dibatalkan. Tidak ada yang berubah.';
         $this->messages[] = ['role' => 'assistant', 'content' => $message];
         $this->persistMessage('assistant', $message);
@@ -211,25 +253,49 @@ class AgentConsole extends Component
     /** Save a message to the current session and bump its updated_at. */
     private function persistMessage(string $role, string $content): void
     {
-        if (! $this->chatId) {
+        $chat = $this->ownedChat();
+        if (! $chat) {
+            // Drop a tampered foreign chatId so subsequent writes open a new session.
+            $this->chatId = null;
+
             return;
         }
 
         AgentChatMessage::create([
-            'agent_chat_id' => $this->chatId,
+            'agent_chat_id' => $chat->id,
             'role'          => $role,
             'content'       => $content,
         ]);
 
         // Bump session so it sorts to the top of the history list.
-        AgentChat::where('id', $this->chatId)->update(['updated_at' => now()]);
+        $chat->forceFill(['updated_at' => now()])->save();
+    }
+
+    /**
+     * Fetch a chat owned by the authenticated user (null when missing or foreign).
+     * Always scope by user_id so sessions never cross users.
+     */
+    private function ownedChat(?int $id = null): ?AgentChat
+    {
+        $id = $id ?? $this->chatId;
+        if (! $id || ! auth()->id()) {
+            return null;
+        }
+
+        return $this->ownedChatsQuery()->find($id);
+    }
+
+    /** Base query for the current user's chat sessions only. */
+    private function ownedChatsQuery()
+    {
+        return AgentChat::where('user_id', auth()->id());
     }
 
     /** History for the model: prior user/assistant turns, excluding the current trailing user message. */
     private function historyForModel(): array
     {
         return collect($this->messages)
-            ->map(fn ($m) => ['role' => $m['role'], 'content' => $m['content']])
+            ->map(fn ($m) => ['role' => $m['role'], 'content' => (string) ($m['content'] ?? '')])
             ->slice(0, -1)
             ->values()
             ->all();
@@ -279,43 +345,62 @@ class AgentConsole extends Component
             && str_contains($user->activeRole->role->name ?? '', 'Admin');
     }
 
-    /** Polled — checks if user has a recently ready report. */
-    public function checkReportStatus(): void
+    /** Single poll entry (Livewire honours one wire:poll per component). */
+    public function pollUpdates(): void
     {
-        if ($this->readyReport) {
-            return; // already showing a ready report
+        $this->checkPendingAction();
+        $this->checkReportStatus();
+    }
+
+    /**
+     * Polled — surfaces approval card when ToolExecutor proposed an UPDATE
+     * (PendingActionStore). Handles proposals that land after runAgent returns.
+     */
+    public function checkPendingAction(): void
+    {
+        if ($this->pendingAction) {
+            return; // already showing one
         }
 
+        $pending = \App\Services\Agent\PendingActionStore::get(auth()->id());
+        if ($pending) {
+            $this->pendingAction = $pending;
+            $this->dispatchBrowserEvent('agent-pending');
+        }
+    }
+
+    /** Polled — drops a one-time "report ready" message (with download link) into the chat. */
+    public function checkReportStatus(): void
+    {
         $report = Report::where('user_id', auth()->id())
             ->where('status', 'ready')
+            ->when($this->notifiedReportIds, fn ($q) => $q->whereNotIn('id', $this->notifiedReportIds))
             ->where('created_at', '>=', now()->subHour())
             ->orderByDesc('created_at')
             ->first();
 
-        if ($report) {
-            $this->readyReport = [
-                'id' => $report->id,
-                'label' => $report->label(),
-                'download_url' => url("/reports/{$report->id}/download"),
-            ];
-
-            $message = "✅ Laporan sudah siap!\n\n"
-                . "**{$report->label()}**\n\n"
-                . "[Download PDF]({$this->readyReport['download_url']})";
-            $this->messages[] = ['role' => 'assistant', 'content' => $message];
-            $this->persistMessage('assistant', $message);
+        if (! $report) {
+            return;
         }
-    }
 
-    /** Dismiss the ready report notification. */
-    public function dismissReport(): void
-    {
-        $this->readyReport = null;
+        $this->notifiedReportIds[] = $report->id;
+
+        // Don't repeat the notice if this chat already shows the link (e.g. after a reload).
+        $downloadPath = "/reports/{$report->id}/download";
+        if (collect($this->messages)->contains(fn ($m) => str_contains($m['content'] ?? '', $downloadPath))) {
+            return;
+        }
+
+        $message = "✅ Laporan sudah siap!\n\n"
+            . "**{$report->label()}**\n\n"
+            . '[Download PDF](' . url($downloadPath) . ')';
+        $this->messages[] = ['role' => 'assistant', 'content' => $message];
+        $this->persistMessage('assistant', $message);
     }
 
     public function render()
     {
-        $chats = AgentChat::where('user_id', auth()->id())
+        $chats = $this->ownedChatsQuery()
             ->when($this->search !== '', fn ($q) => $q->where('title', 'like', '%' . $this->search . '%'))
             ->orderByDesc('updated_at')
             ->get(['id', 'title', 'updated_at']);

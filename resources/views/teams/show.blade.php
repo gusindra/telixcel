@@ -5,8 +5,7 @@
         </h2>
     </x-slot>
 
-    <div>
-        <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+    <x-page-section>
 
             <!-- This example requires Tailwind CSS v2.0+ -->
             <!-- <div class="bg-indigo-600 mb-4">
@@ -54,6 +53,5 @@
                     @livewire('teams.delete-team-form', ['team' => $team])
                 </div>
             @endif
-        </div>
-    </div>
+    </x-page-section>
 </x-app-layout>

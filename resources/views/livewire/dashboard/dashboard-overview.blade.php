@@ -1,341 +1,156 @@
-<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
-    <!-- Header Section -->
-    <div class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div class="flex justify-between items-start">
-                <div>
-                    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
-                    <p class="text-gray-600 dark:text-gray-400 mt-1">Welcome back! Here's your project overview.</p>
-                </div>
-                <div class="flex items-center gap-4">
-                    <div class="text-right">
-                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Last updated: <span class="text-gray-700 dark:text-gray-200">Just now</span></p>
-                    </div>
-                    <a href="{{ route('gantt.view') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition shadow-md">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h12M4 12h8M4 18h14"/></svg>
-                        <span>Gantt Chart</span>
-                    </a>
-                    <a href="{{ route('calendar.view') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition shadow-md">
-                        <i class="fas fa-calendar-alt"></i>
-                        <span>Monthly View</span>
-                    </a>
-                </div>
-            </div>
+<div class="tx-stack">
+    <div class="tx-toolbar">
+        <p class="tx-13 tx-fg-muted m-0">{{ __('Project overview') }}</p>
+        <a href="{{ route('gantt.view') }}" class="tx-btn">{{ __('Gantt') }}</a>
+        <a href="{{ route('calendar.view') }}" class="tx-btn tx-btn-ghost">{{ __('Calendar') }}</a>
+    </div>
+
+    <div class="grid grid-cols-2 lg:grid-cols-5 gap-3">
+        <div class="tx-card tx-stat tx-stat-blue">
+            <p class="tx-11 tx-fg-muted m-0">{{ __('Projects') }}</p>
+            <p class="text-2xl font-semibold tx-stat-value mt-1 mb-0">{{ $totalProjects }}</p>
+        </div>
+        <div class="tx-card tx-stat tx-stat-slate">
+            <p class="tx-11 tx-fg-muted m-0">{{ __('Tasks') }}</p>
+            <p class="text-2xl font-semibold tx-stat-value mt-1 mb-0">{{ $totalTasks }}</p>
+        </div>
+        <div class="tx-card tx-stat tx-stat-rose">
+            <p class="tx-11 tx-fg-muted m-0">{{ __('Pending') }}</p>
+            <p class="text-2xl font-semibold tx-stat-value mt-1 mb-0">{{ $tasksByStatus['pending'] ?? 0 }}</p>
+        </div>
+        <div class="tx-card tx-stat tx-stat-amber">
+            <p class="tx-11 tx-fg-muted m-0">{{ __('In Progress') }}</p>
+            <p class="text-2xl font-semibold tx-stat-value mt-1 mb-0">{{ $tasksInProgress }}</p>
+        </div>
+        <div class="tx-card tx-stat tx-stat-green">
+            <p class="tx-11 tx-fg-muted m-0">{{ __('Completed') }}</p>
+            <p class="text-2xl font-semibold tx-stat-value mt-1 mb-0">{{ $tasksCompleted }}</p>
         </div>
     </div>
 
-    <!-- Main Content -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
-        <!-- Statistics Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <!-- Total Projects Card -->
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition p-6 border-l-4 border-blue-500">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-gray-600 dark:text-gray-400 text-sm font-medium">Total Projects</p>
-                        <p class="text-3xl font-bold text-gray-900 dark:text-white mt-2">{{ $totalProjects }}</p>
-                    </div>
-                    <div class="bg-blue-100 dark:bg-blue-900/30 p-3 rounded-lg">
-                        <i class="fas fa-folder text-blue-600 dark:text-blue-400 text-xl"></i>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Total Tasks Card -->
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition p-6 border-l-4 border-purple-500">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-gray-600 dark:text-gray-400 text-sm font-medium">Total Tasks</p>
-                        <p class="text-3xl font-bold text-gray-900 dark:text-white mt-2">{{ $totalTasks }}</p>
-                    </div>
-                    <div class="bg-purple-100 dark:bg-purple-900/30 p-3 rounded-lg">
-                        <i class="fas fa-tasks text-purple-600 dark:text-purple-400 text-xl"></i>
-                    </div>
-                </div>
-            </div>
-
-            <!-- In Progress Card -->
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition p-6 border-l-4 border-yellow-500">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-gray-600 dark:text-gray-400 text-sm font-medium">In Progress</p>
-                        <p class="text-3xl font-bold text-gray-900 dark:text-white mt-2">{{ $tasksInProgress }}</p>
-                    </div>
-                    <div class="bg-yellow-100 dark:bg-yellow-900/30 p-3 rounded-lg">
-                        <i class="fas fa-spinner text-yellow-600 dark:text-yellow-400 text-xl"></i>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Completed Tasks Card -->
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition p-6 border-l-4 border-green-500">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-gray-600 dark:text-gray-400 text-sm font-medium">Completed</p>
-                        <p class="text-3xl font-bold text-gray-900 dark:text-white mt-2">{{ $tasksCompleted }}</p>
-                    </div>
-                    <div class="bg-green-100 dark:bg-green-900/30 p-3 rounded-lg">
-                        <i class="fas fa-check-circle text-green-600 dark:text-green-400 text-xl"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Tasks Status Overview -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-            @foreach(['pending' => 'Pending', 'in_progress' => 'In Progress', 'completed' => 'Completed'] as $status => $label)
-                @php
-                    $statusKey = $status === 'in_progress' ? 'in_progress' : ($status === 'completed' ? 'completed' : 'pending');
-                    $count = $tasksByStatus[$statusKey] ?? 0;
-                    $colors = [
-                        'pending' => ['bg' => 'bg-gray-100 dark:bg-gray-700', 'text' => 'text-gray-700 dark:text-gray-300', 'icon' => 'fas fa-clock', 'iconBg' => 'bg-gray-200 dark:bg-gray-600'],
-                        'in_progress' => ['bg' => 'bg-blue-100 dark:bg-blue-900/30', 'text' => 'text-blue-700 dark:text-blue-300', 'icon' => 'fas fa-play-circle', 'iconBg' => 'bg-blue-200 dark:bg-blue-600'],
-                        'completed' => ['bg' => 'bg-green-100 dark:bg-green-900/30', 'text' => 'text-green-700 dark:text-green-300', 'icon' => 'fas fa-check-circle', 'iconBg' => 'bg-green-200 dark:bg-green-600'],
-                    ];
-                    $color = $colors[$statusKey] ?? [];
-                @endphp
-                <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 {{ $color['bg'] }}">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0">
-                            <i class="{{ $color['icon'] }} {{ $color['text'] }} text-2xl"></i>
-                        </div>
-                        <div class="ml-4">
-                            <h3 class="text-sm font-medium text-gray-600 dark:text-gray-400">{{ $label }}</h3>
-                            <p class="text-2xl font-semibold {{ $color['text'] }} mt-1">{{ $count }}</p>
-                        </div>
-                    </div>
-                </div>
-            @endforeach
-        </div>
-
-        <div class="flex gap-2">
-            <!-- Projects Section -->
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
-                <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">
-                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
-                        <i class="fas fa-layer-group mr-3 text-blue-600 dark:text-blue-400"></i>
-                        Projects Overview
-                    </h2>
-                </div>
-
-                @if($projectStats->count() > 0)
-                    <div class="overflow-x-auto">
-                        <table class="w-full">
-                            <thead>
-                                <tr class="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">Project Name</th>
-                                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">Total Tasks</th>
-                                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">Progress</th>
-                                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">Task Breakdown</th>
+    <div class="grid grid-cols-1 {{ $selectedProject !== null ? 'xl:grid-cols-2' : '' }} gap-4">
+        <x-page-section :title="__('Projects')">
+            @if ($projectStats->count() > 0)
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-sm">
+                        <thead>
+                            <tr class="text-left tx-fg-muted">
+                                <th class="py-2 pr-3 font-medium">{{ __('Project') }}</th>
+                                <th class="py-2 px-3 font-medium text-center">{{ __('Tasks') }}</th>
+                                <th class="py-2 px-3 font-medium">{{ __('Progress') }}</th>
+                                <th class="py-2 pl-3 font-medium text-center">{{ __('Breakdown') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($projectStats as $stat)
+                                <tr wire:click="selectProject({{ $stat['id'] }})" class="cursor-pointer" style="box-shadow: inset 0 -1px 0 var(--tx-border);">
+                                    <td class="py-2.5 pr-3">
+                                        <span class="tx-project-link">{{ $stat['name'] }}</span>
+                                    </td>
+                                    <td class="py-2.5 px-3 text-center tx-fg">{{ $stat['total_tasks'] }}</td>
+                                    <td class="py-2.5 px-3">
+                                        <div class="flex items-center gap-2">
+                                            <div class="flex-1 h-1.5 rounded-full" style="background: var(--tx-surface-1); min-width: 64px;">
+                                                <div class="h-1.5 rounded-full" style="width: {{ $stat['progress_percentage'] }}%; background: var(--tx-primary);"></div>
+                                            </div>
+                                            <span class="tx-11 tx-fg-muted whitespace-nowrap">{{ $stat['progress_percentage'] }}%</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-2.5 pl-3 text-center">
+                                        <span class="tx-pill tx-pill-amber">{{ $stat['in_progress_tasks'] }} {{ __('progress') }}</span>
+                                        <span class="tx-pill tx-pill-green">{{ $stat['completed_tasks'] }} {{ __('done') }}</span>
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                                @php $totaltask = 0; @endphp
-                                @foreach($projectStats as $stat)
-                                    <tr wire:click="selectProject({{ $stat['id'] }})" class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition cursor-pointer">
-                                        <td class="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
-                                            <div class="flex items-center">
-                                                <div class="ml-3">
-                                                    <p class="text-gray-900 dark:text-white font-semibold">{{ $stat['name'] }}</p>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-4 text-sm text-center">
-                                            <span class="inline-flex items-center justify-center h-8 w-8 rounded-full bg-gray-100 dark:bg-gray-700 font-semibold text-gray-900 dark:text-white">
-                                                {{ $stat['total_tasks'] }}
-                                                @php $totaltask = $totaltask + $stat['total_tasks'] @endphp
-                                            </span>
-                                        </td>
-                                        <td class="px-6 py-4 text-sm">
-                                            <div class="flex items-center justify-center">
-                                                <div class="w-32 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                                                    <div class="bg-gradient-to-r from-green-400 to-green-600 h-2 rounded-full transition-all duration-300" style="width: {{ $stat['progress_percentage'] }}%"></div>
-                                                </div>
-                                                <span class="ml-2 text-xs font-semibold text-gray-700 dark:text-gray-300">{{ $stat['progress_percentage'] }}%</span>
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-4 text-sm">
-                                            <div class="flex items-center justify-center space-x-2">
-                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300">
-                                                    <i class="fas fa-spinner text-xs mr-1"></i> {{ $stat['in_progress_tasks'] }}
-                                                </span>
-                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300">
-                                                    <i class="fas fa-check text-xs mr-1"></i> {{ $stat['completed_tasks'] }}
-                                                </span>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                                @php
-                                    $allCompleted = $projectStats->sum('completed_tasks');
-                                    $allInProgress = $projectStats->sum('in_progress_tasks');
-                                    $allTotal = $projectStats->sum('total_tasks');
-                                    $allProgress = $allTotal > 0 ? round(($allCompleted / $allTotal) * 100) : 0;
-                                @endphp
-                                <tr wire:click="loadProjectTasks(0, 'all')" class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition cursor-pointer">
-                                        <td class="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
-                                            <div class="flex items-center">
-                                                <div class="ml-3">
-                                                    <p class="text-gray-900 dark:text-white font-semibold">All Task</p>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-4 text-sm text-center">
-                                            <span class="inline-flex items-center justify-center h-8 w-8 rounded-full bg-gray-100 dark:bg-gray-700 font-semibold text-gray-900 dark:text-white">
-                                                {{ $allTotal }}
-                                            </span>
-                                        </td>
-                                        <td class="px-6 py-4 text-sm">
-                                            <div class="flex items-center justify-center">
-                                                <div class="w-32 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                                                    <div class="bg-gradient-to-r from-green-400 to-green-600 h-2 rounded-full transition-all duration-300" style="width: {{ $allProgress }}%"></div>
-                                                </div>
-                                                <span class="ml-2 text-xs font-semibold text-gray-700 dark:text-gray-300">{{ $allProgress }}%</span>
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-4 text-sm">
-                                            <div class="flex items-center justify-center space-x-2">
-                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300">
-                                                    <i class="fas fa-spinner text-xs mr-1"></i> {{ $allInProgress }}
-                                                </span>
-                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300">
-                                                    <i class="fas fa-check text-xs mr-1"></i> {{ $allCompleted }}
-                                                </span>
-                                            </div>
-                                        </td>
-                                    </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                @else
-                    <div class="px-6 py-12 text-center">
-                        <i class="fas fa-inbox text-4xl text-gray-300 dark:text-gray-600 mb-4"></i>
-                        <p class="text-gray-600 dark:text-gray-400 text-lg">No projects yet. Create your first project to get started!</p>
-                        <a href="{{ route('project') }}" class="mt-4 inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
-                            <i class="fas fa-plus mr-2"></i> Create Project
-                        </a>
+                            @endforeach
+                            @php
+                                $allCompleted = $projectStats->sum('completed_tasks');
+                                $allInProgress = $projectStats->sum('in_progress_tasks');
+                                $allTotal = $projectStats->sum('total_tasks');
+                                $allProgress = $allTotal > 0 ? round(($allCompleted / $allTotal) * 100) : 0;
+                            @endphp
+                            <tr wire:click="loadProjectTasks(0, 'all')" class="cursor-pointer">
+                                <td class="py-2.5 pr-3">
+                                    <span class="tx-project-link">{{ __('All tasks') }}</span>
+                                </td>
+                                <td class="py-2.5 px-3 text-center tx-fg">{{ $allTotal }}</td>
+                                <td class="py-2.5 px-3">
+                                    <div class="flex items-center gap-2">
+                                        <div class="flex-1 h-1.5 rounded-full" style="background: var(--tx-surface-1); min-width: 64px;">
+                                            <div class="h-1.5 rounded-full" style="width: {{ $allProgress }}%; background: var(--tx-primary);"></div>
+                                        </div>
+                                        <span class="tx-11 tx-fg-muted whitespace-nowrap">{{ $allProgress }}%</span>
+                                    </div>
+                                </td>
+                                <td class="py-2.5 pl-3 text-center">
+                                    <span class="tx-pill tx-pill-amber">{{ $allInProgress }} {{ __('progress') }}</span>
+                                    <span class="tx-pill tx-pill-green">{{ $allCompleted }} {{ __('done') }}</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            @else
+                <p class="tx-13 tx-fg-muted m-0">{{ __('No projects yet.') }}</p>
+                <a href="{{ route('project') }}" class="tx-btn mt-3">{{ __('Open projects') }}</a>
+            @endif
+        </x-page-section>
+
+        @if ($selectedProject !== null && ($selectedProject == 0 || ($projectStats->isNotEmpty() && $projectStats->firstWhere('id', $selectedProject))))
+            @php
+                $selectedStat = $selectedProject == 0 ? null : $projectStats->firstWhere('id', $selectedProject);
+            @endphp
+            <x-page-section :title="$selectedStat ? $selectedStat['name'] : __('All tasks')">
+                <x-slot name="toolbar">
+                    <span></span>
+                    <button type="button" wire:click="clearSelection()" class="tx-btn tx-btn-ghost">{{ __('Close') }}</button>
+                </x-slot>
+
+                @if ($selectedStat)
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 mb-3">
+                        <button type="button" wire:click="loadProjectTasks({{ $selectedProject }}, 'all')" class="tx-card tx-stat tx-stat-slate text-left">
+                            <p class="tx-11 tx-fg-muted m-0">{{ __('Total') }}</p>
+                            <p class="text-lg font-semibold tx-stat-value m-0">{{ $selectedStat['total_tasks'] }}</p>
+                        </button>
+                        <button type="button" wire:click="loadProjectTasks({{ $selectedProject }}, 'complete')" class="tx-card tx-stat tx-stat-green text-left">
+                            <p class="tx-11 tx-fg-muted m-0">{{ __('Completed') }}</p>
+                            <p class="text-lg font-semibold tx-stat-value m-0">{{ $selectedStat['completed_tasks'] }}</p>
+                        </button>
+                        <button type="button" wire:click="loadProjectTasks({{ $selectedProject }}, 'progress')" class="tx-card tx-stat tx-stat-amber text-left">
+                            <p class="tx-11 tx-fg-muted m-0">{{ __('In Progress') }}</p>
+                            <p class="text-lg font-semibold tx-stat-value m-0">{{ $selectedStat['in_progress_tasks'] }}</p>
+                        </button>
+                        <button type="button" wire:click="loadProjectTasks({{ $selectedProject }}, 'pending')" class="tx-card tx-stat tx-stat-rose text-left">
+                            <p class="tx-11 tx-fg-muted m-0">{{ __('Pending') }}</p>
+                            <p class="text-lg font-semibold tx-stat-value m-0">{{ $selectedStat['pending_tasks'] }}</p>
+                        </button>
                     </div>
                 @endif
-            </div>
 
-            <!-- Selected Project Tasks Details -->
-            @if($selectedProject !== null && ($selectedProject == 0 || ($projectStats->isNotEmpty() && $projectStats->firstWhere('id', $selectedProject))))
-                @php
-                    $selectedStat = $selectedProject == 0 ? null : $projectStats->firstWhere('id', $selectedProject);
-                @endphp
-                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden animate-fadeIn">
-                        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-700/50 dark:to-gray-700/50 flex justify-between items-center">
-                            <h2 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
-                                <svg class="w-5 h-5 mr-3 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
-                                Task Details for <span class="ml-2 text-blue-600 dark:text-blue-400">{{ $selectedStat ? $selectedStat['name'] : 'All Tasks' }}</span>
-                            </h2>
-                            <button wire:click="clearSelection()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition">
-                                <i class="fas fa-times text-xl"></i>
-                            </button>
-                        </div>
-
-                        <div class="p-6">
-                            @if($selectedStat)
-                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                                <div wire:click="loadProjectTasks({{ $selectedProject }}, 'all')" class="bg-gradient-to-br from-gray-50 to-gray-100 hover:cursor-pointer dark:from-gray-700/50 dark:to-gray-700 rounded-lg p-4">
-                                    <p class="text-sm text-gray-600 dark:text-gray-400">Total Tasks</p>
-                                    <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ $selectedStat['total_tasks'] }}</p>
+                @if (count($selectedProjectTasks) > 0)
+                    <div class="space-y-2 max-h-96 overflow-y-auto">
+                        @foreach ($selectedProjectTasks as $task)
+                            <div class="flex items-start justify-between gap-3 py-2" style="box-shadow: inset 0 -1px 0 var(--tx-border);">
+                                <div class="min-w-0">
+                                    <p class="tx-13 font-medium tx-fg m-0">{{ $task['title'] }}</p>
+                                    <p class="tx-11 tx-fg-muted m-0 mt-0.5">
+                                        {{ $task['owner_name'] }}
+                                        @if ($task['target_date'])
+                                            - {{ \Carbon\Carbon::parse($task['target_date'])->format('d M Y') }}
+                                        @endif
+                                        - {{ ucfirst($task['priority'] ?? 'medium') }}
+                                        - {{ ucfirst($task['status']) }}
+                                    </p>
                                 </div>
-                                <div wire:click="loadProjectTasks({{ $selectedProject }}, 'complete')" class="bg-gradient-to-br from-green-50 to-green-100 hover:cursor-pointer dark:from-green-900/30 dark:to-green-900/20 rounded-lg p-4">
-                                    <p class="text-sm text-green-700 dark:text-green-300">Completed</p>
-                                    <p class="text-2xl font-bold text-green-600 dark:text-green-400 mt-1">{{ $selectedStat['completed_tasks'] }}</p>
-                                </div>
-                                <div wire:click="loadProjectTasks({{ $selectedProject }}, 'progress')" class="bg-gradient-to-br from-yellow-50 to-yellow-100 hover:cursor-pointer dark:from-yellow-900/30 dark:to-yellow-900/20 rounded-lg p-4">
-                                    <p class="text-sm text-yellow-700 dark:text-yellow-300">In Progress</p>
-                                    <p class="text-2xl font-bold text-yellow-600 dark:text-yellow-400 mt-1">{{ $selectedStat['in_progress_tasks'] }}</p>
-                                </div>
-                                <div wire:click="loadProjectTasks({{ $selectedProject }}, 'pending')" class="bg-gradient-to-br from-blue-50 to-blue-100 hover:cursor-pointer dark:from-blue-900/30 dark:to-blue-900/20 rounded-lg p-4">
-                                    <p class="text-sm text-blue-700 dark:text-blue-300">Pending</p>
-                                    <p class="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">{{ $selectedStat['pending_tasks'] }}</p>
-                                </div>
+                                @if ($task['status'] !== 'complete')
+                                    <input type="checkbox" class="mt-1" wire:click="setStatus({{ $task['id'] }})" title="{{ __('Mark done') }}">
+                                @endif
                             </div>
-                            @endif
-
-                            <!-- Active Tasks List -->
-                            @if(count($selectedProjectTasks) > 0)
-                                <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
-                                    <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
-                                        <i class="fas fa-list mr-2 text-blue-600 dark:text-blue-400"></i>
-                                        Active Tasks ({{ count($selectedProjectTasks) }})
-                                    </h3>
-                                    <div class="space-y-3 max-h-96 overflow-y-auto">
-                                        @foreach($selectedProjectTasks as $task)
-                                            <div class="bg-white dark:bg-gray-800 rounded-lg p-4 border-l-4 
-                                                @if($task['status'] == 'progress') border-yellow-500 
-                                                @else border-blue-500 @endif">
-                                                <div class="flex items-start justify-between">
-                                                    <div class="flex-1">
-                                                        <div class="flex items-center gap-2 mb-1">
-                                                            <h4 class="text-sm font-medium text-gray-900 dark:text-white">{{ $task['title'] }}</h4>
-                                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium 
-                                                                @if($task['status'] == 'progress') 
-                                                                    bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300
-                                                                @else 
-                                                                    bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300
-                                                                @endif">
-                                                                @if($task['status'] == 'progress')
-                                                                    <i class="fas fa-spinner text-xs mr-1"></i> In Progress
-                                                                @else
-                                                                    <i class="fas fa-clock text-xs mr-1"></i> <span>{{ ucfirst($task['status']) }}</span>
-                                                                @endif
-                                                            </span>
-                                                        </div>
-                                                        <div class="flex items-center gap-4 text-xs text-gray-600 dark:text-gray-400 justify-between">
-                                                            <span><i class="fas fa-user mr-1"></i>{{ $task['owner_name'] }}</span>
-                                                            @if($task['target_date'])
-                                                                <span><i class="fas fa-calendar mr-1"></i>{{ \Carbon\Carbon::parse($task['target_date'])->format('M d, Y') }}</span>
-                                                            @endif
-                                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold
-                                                                @if(strtolower($task['priority']) == 'high') bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300
-                                                                @elseif(strtolower($task['priority']) == 'medium') bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300
-                                                                @else bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300
-                                                                @endif">
-                                                                {{ ucfirst($task['priority'] ?? 'medium') }}
-                                                            </span>
-                                                            @if ($task['status'] !== 'complete')
-                                                                <input type="checkbox" class="form-checkbox h-4 w-4 text-blue-600 cursor-pointer" wire:click="setStatus({{ $task['id'] }})">
-                                                            @else
-                                                                <svg wire:click="setStatus({{ $task['id'] }})" class="w-4 h-4 text-green-500 cursor-pointer hover:text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                                                            @endif
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        @endforeach
-                                    </div>
-                                </div>
-                            @else
-                                <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-8 text-center">
-                                    <i class="fas fa-check-circle text-4xl text-green-400 dark:text-green-600 mb-2 opacity-50"></i>
-                                    <p class="text-gray-600 dark:text-gray-400">No active tasks. All tasks are completed! 🎉</p>
-                                </div>
-                            @endif
-                        </div>
+                        @endforeach
                     </div>
-            @endif
-        </div>
+                @else
+                    <p class="tx-13 tx-fg-muted m-0">{{ __('No tasks in this filter.') }}</p>
+                @endif
+            </x-page-section>
+        @endif
     </div>
 </div>
-
-<style>
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-            transform: translateY(-10px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .animate-fadeIn {
-        animation: fadeIn 0.3s ease-in-out;
-    }
-</style>

@@ -307,8 +307,8 @@ class Todo extends Component
                   ->orWhere('assigned_to', $this->ownerId);
             });
         } else {
-            // Visibility rule: task.type must match the active role's type
-            // (Super Admin is exempt and sees everything).
+            // Visibility: Super Admin → all; else own/assigned + role-type matches.
+            // (Assigned tasks must show even when type differs from active role.)
             $q->forMyType();
         }
 
@@ -324,7 +324,7 @@ class Todo extends Component
         $visibleIds = $this->scopedQuery()->pluck('id')->all();
 
         $roots = $this->scopedQuery()
-            ->with('owner')
+            ->with(['owner', 'assignedTo'])
             ->where(function ($q) use ($visibleIds) {
                 $q->where('parent_id', 0);
                 if (! empty($visibleIds)) {
@@ -345,7 +345,7 @@ class Todo extends Component
         ])->values();
 
         // Only VISIBLE tasks are nested as children (same scope as the roots).
-        $childMap = $this->scopedQuery()->with('owner')->get()->groupBy('parent_id');
+        $childMap = $this->scopedQuery()->with(['owner', 'assignedTo'])->get()->groupBy('parent_id');
 
         $roots->getCollection()->each(function ($root) use ($childMap, $sorter) {
             $this->attachChildNodes($root, $childMap, $sorter);
@@ -388,9 +388,15 @@ class Todo extends Component
 
     private function canManage(Task $task): bool
     {
-        if ($this->isManager() || $task->owner_id === auth()->id()) {
+        // Managers, task owners, and assignees can update status / delete.
+        if (
+            $this->isManager()
+            || (int) $task->owner_id === (int) auth()->id()
+            || (int) $task->assigned_to === (int) auth()->id()
+        ) {
             return true;
         }
+
         return in_array($task->type, $this->myTypes(), true);
     }
 

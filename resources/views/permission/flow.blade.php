@@ -35,9 +35,7 @@
         </div>
     </header>
 
-    <div>
-        <div class="max-w-7xl mx-auto pt-4 pb-10 sm:px-6 lg:px-8">
-            @livewire('permission.flow', ['model'=>$model])
-        </div>
-    </div>
+    <x-page-section>
+        @livewire('permission.flow', ['model'=>$model])
+    </x-page-section>
 </x-app-layout>

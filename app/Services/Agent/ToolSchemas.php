@@ -3,8 +3,8 @@
 namespace App\Services\Agent;
 
 /**
- * OpenAI-compatible tool definitions passed to Ollama's /api/chat `tools` param.
- * Only query, update, and generate_report — no create/delete.
+ * OpenAI-compatible tool definitions for AI chat/completions `tools`.
+ * Executed only on Laravel via ToolExecutor (never on the VPS).
  */
 class ToolSchemas
 {
@@ -15,7 +15,7 @@ class ToolSchemas
         return [
             self::tool(
                 'query_records',
-                'Read / list records of a whitelisted model with optional filters. Executes immediately. Always returns the "id" field.',
+                'Read / list records of a whitelisted model with optional filters. Executes immediately against the live database. Always returns the "id" field.',
                 [
                     'model' => ['type' => 'string', 'enum' => $models],
                     'filters' => [
@@ -30,21 +30,32 @@ class ToolSchemas
 
             self::tool(
                 'update_record',
-                'Propose an UPDATE. Does NOT write — returns a pending change for the user to approve. Use "id" for a single record or "filters" for bulk.',
+                'Propose an UPDATE. Does NOT write — returns a pending change for the user to approve in the UI. Use "id" for a single record or "filters" for bulk.',
                 [
                     'model' => ['type' => 'string', 'enum' => $models],
-                    'id' => ['type' => 'integer', 'description' => 'Single record ID. Use this when you know the exact ID from a previous query.'],
-                    'filters' => ['type' => 'array', 'description' => 'Bulk filter. Ignored when id is provided.', 'items' => self::filterItem()],
-                    'values' => ['type' => 'object', 'description' => 'column => new value pairs (writable columns only).'],
+                    'id' => ['type' => 'integer', 'description' => 'Single record ID from a previous query_records result.'],
+                    'filters' => [
+                        'type' => 'array',
+                        'description' => 'Bulk filter. Ignored when id is provided.',
+                        'items' => self::filterItem(),
+                    ],
+                    'values' => [
+                        'type' => 'object',
+                        'description' => 'column => new value pairs (writable columns only).',
+                    ],
                 ],
                 ['model', 'values']
             ),
 
             self::tool(
                 'generate_report',
-                'Generate monthly task report DATA. Returns summary and task lists for display in chat. Does NOT create PDF — use download_report for that. Admin gets all users; user gets personal.',
+                'Generate monthly task report DATA for display in chat. Does NOT create PDF — use download_report for that.',
                 [
-                    'type' => ['type' => 'string', 'enum' => ['admin', 'user'], 'description' => '"admin" or "user". Super Admin only for admin.'],
+                    'type' => [
+                        'type' => 'string',
+                        'enum' => ['admin', 'user'],
+                        'description' => '"admin" (Super Admin only) or "user" (personal).',
+                    ],
                     'month' => ['type' => 'integer', 'description' => 'Month (1-12). Default: current.'],
                     'year' => ['type' => 'integer', 'description' => 'Year. Default: current.'],
                 ],
@@ -53,9 +64,12 @@ class ToolSchemas
 
             self::tool(
                 'download_report',
-                'Generate PDF from a previously generated report. Dispatches background Job — user gets notified when ready. Requires report_id from generate_report result.',
+                'Generate PDF from a previously generated report (background job). Requires report_id from generate_report.',
                 [
-                    'report_id' => ['type' => 'integer', 'description' => 'The report_id returned by generate_report.'],
+                    'report_id' => [
+                        'type' => 'integer',
+                        'description' => 'The report_id returned by generate_report.',
+                    ],
                 ],
                 ['report_id']
             ),
@@ -68,7 +82,10 @@ class ToolSchemas
             'type' => 'object',
             'properties' => [
                 'field' => ['type' => 'string'],
-                'op' => ['type' => 'string', 'enum' => ['=', '!=', 'like', 'in', '>', '<', '>=', '<=']],
+                'op' => [
+                    'type' => 'string',
+                    'enum' => ['=', '!=', 'like', 'in', '>', '<', '>=', '<='],
+                ],
                 'value' => ['description' => 'string|number, or array for "in".'],
             ],
             'required' => ['field', 'op', 'value'],

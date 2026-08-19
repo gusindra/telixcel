@@ -103,7 +103,7 @@
                             </span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-center">
-                            <a href="{{ route('project.show', $project->id) }}" class="inline-flex items-center justify-center h-9 w-9 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900/50 transition">
+                            <a href="{{ route('project.show', $project) }}" class="inline-flex items-center justify-center h-9 w-9 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900/50 transition">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                             </a>
                         </td>

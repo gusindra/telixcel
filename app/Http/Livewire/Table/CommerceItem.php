@@ -20,8 +20,8 @@ class CommerceItem extends LivewireDatatable
     		Column::callback(['type'], function ($y) {
                 return view('label.type', ['type' => $y]);
             })->label('Type')->searchable(),
-            Column::callback(['id'], function ($id) {
-                return view('tables.product-actions', ['id' => $id, 'name' => '', 'url' =>  "/commercial/item/" . $id, 'source' => null ]);
+            Column::callback(['uuid', 'id'], function ($uuid, $id) {
+                return view('tables.product-actions', ['id' => $id, 'name' => '', 'url' => '/commercial/item/'.($uuid ?: $id), 'source' => null ]);
             })->label('Action')
 
     	];

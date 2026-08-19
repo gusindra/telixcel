@@ -1,5 +1,5 @@
 <div x-data="{ open: false }" class="inline-flex">
-    <button type="button" x-on:click="open = true" class="text-xs border-2 dark:text-slate-400 hover:border-red-500 hover:bg-red-100 hover:shadow-lg text-red-600 rounded-lg px-3 py-1">
+    <button type="button" x-on:click="open = true" class="tx-row-link tx-row-link-danger">
         Delete
     </button>
 

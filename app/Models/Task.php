@@ -48,20 +48,33 @@ class Task extends Model
     }
 
     /**
-     * Limit to tasks whose type matches the current user's role type(s).
-     * Admin / Super Admin are exempt — they see every task.
-     * For other roles: no matching role type -> no tasks (strict task.type === role.type).
+     * Tasks the current user may see in lists (Assistant project To-do, dashboard, etc.):
+     *  - Super Admin (active) → everything
+     *  - Always: tasks they own OR are assigned to (any type)
+     *  - Plus: tasks whose type matches the active role (admin/finance/operasional)
+     *
+     * Previously assigned tasks of a different type were hidden — that made
+     * "someone assigned a task to me but I can't see it" a real bug.
      */
     public function scopeForMyType($query)
     {
         if (is_task_manager()) {
-            return $query; // managers see all tasks
+            return $query; // Super Admin sees all tasks
         }
+
+        $uid = auth()->id();
         $types = my_task_types();
-        if (empty($types)) {
-            return $query->whereRaw('1 = 0');
-        }
-        return $query->whereIn('type', $types);
+
+        return $query->where(function ($w) use ($uid, $types) {
+            // Always show work that belongs to this user, regardless of type.
+            $w->where('owner_id', $uid)
+              ->orWhere('assigned_to', $uid);
+
+            // Plus role-type matches (other people's tasks in my lane).
+            if (! empty($types)) {
+                $w->orWhereIn('type', $types);
+            }
+        });
     }
 
     /** Direct child tasks (one level). */

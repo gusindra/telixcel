@@ -1,81 +1,23 @@
 <x-app-layout>
+    <x-slot name="header">
+        <h2>{{ __('Project') }}</h2>
+    </x-slot>
 
-    <div x-data="{ tab: 'project', sub: 'product' }">{{-- single Alpine scope for all tabs + commercial sub-tabs --}}
-
-    {{-- Header --}}
-    <header class="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700">
-        <div class="w-full px-4 sm:px-6 lg:px-8 pt-5 pb-4">
-            {{-- Breadcrumb --}}
-            <nav class="flex items-center text-xs text-gray-400 dark:text-slate-400 mb-3">
-                <a href="{{ route('project') }}" class="hover:text-gray-600 dark:hover:text-slate-200 transition">{{ __('Project') }}</a>
-                <svg class="h-3.5 w-3.5 mx-1" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-                </svg>
-                <span class="text-gray-600 dark:text-slate-200 font-medium capitalize">{{ $project->name }}</span>
-            </nav>
-
-            {{-- Title + status --}}
-            <div class="flex items-center justify-between mb-4">
-                <div class="flex items-center gap-3">
-                    <span class="flex items-center justify-center h-10 w-10 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 font-bold text-lg uppercase">
-                        {{ Str::substr($project->name, 0, 1) }}
-                    </span>
-                    <div>
-                        <h1 class="text-xl font-bold text-gray-800 dark:text-white capitalize leading-tight">
-                            {{ $project->name }}
-                        </h1>
-                        <span class="text-xs text-gray-400 dark:text-slate-400 capitalize">{{ $project->type }}</span>
-                    </div>
-                </div>
-                @php
-                    $st = strtolower($project->status);
-                    $styles = [
-                        'draft'    => ['bg-gray-100 text-gray-600 ring-gray-300', 'bg-gray-400'],
-                        'submit'   => ['bg-blue-50 text-blue-700 ring-blue-300', 'bg-blue-500'],
-                        'approved' => ['bg-green-50 text-green-700 ring-green-300', 'bg-green-500'],
-                        'done'     => ['bg-green-50 text-green-700 ring-green-300', 'bg-green-500'],
-                        'decline'  => ['bg-red-50 text-red-700 ring-red-300', 'bg-red-500'],
-                    ];
-                    [$cls, $dot] = $styles[$st] ?? ['bg-gray-100 text-gray-600 ring-gray-300', 'bg-gray-400'];
-                @endphp
-                <span class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide ring-1 ring-inset {{ $cls }}">
-                    <span class="h-1.5 w-1.5 rounded-full {{ $dot }}"></span>
-                    {{ $project->status }}
-                </span>
-            </div>
-
-            {{-- Tabs (segmented pill) --}}
-            <div class="inline-flex items-center gap-1 p-1 bg-gray-100 dark:bg-slate-700/60 rounded-xl mt-5">
-                @php
-                    $tabBtn = "inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition focus:outline-none whitespace-nowrap";
-                    $tabOn  = "bg-white dark:bg-slate-800 text-blue-600 shadow-sm";
-                    $tabOff = "text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200";
-                @endphp
-                <button @click="tab = 'project'" :class="tab === 'project' ? '{{ $tabOn }}' : '{{ $tabOff }}'" class="{{ $tabBtn }}">
-                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                    {{ __('Project') }}
-                </button>
-                <button @click="tab = 'commercial'" :class="tab === 'commercial' ? '{{ $tabOn }}' : '{{ $tabOff }}'" class="{{ $tabBtn }}">
-                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5a1.99 1.99 0 011.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.99 1.99 0 013 12V7a4 4 0 014-4z"/></svg>
-                    {{ __('Commercial') }}
-                </button>
-                <button @click="tab = 'contract'" :class="tab === 'contract' ? '{{ $tabOn }}' : '{{ $tabOff }}'" class="{{ $tabBtn }}">
-                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                    {{ __('Contract') }}
-                </button>
-                <button @click="tab = 'order'" :class="tab === 'order' ? '{{ $tabOn }}' : '{{ $tabOff }}'" class="{{ $tabBtn }}">
-                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                    {{ __('Order') }}
-                </button>
-                <button @click="tab = 'todo'" :class="tab === 'todo' ? '{{ $tabOn }}' : '{{ $tabOff }}'" class="{{ $tabBtn }}">
-                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7l2 2 4-4"/></svg>
-                    {{ __('To-do List') }}
-                </button>
-            </div>
+    <div x-data="{ tab: 'project', sub: 'product' }">
+    <nav class="tx-subnav" aria-label="{{ __('Project') }}">
+        <div class="tx-subnav-track">
+            <button type="button" class="tx-tab" :class="tab === 'project' && 'tx-tab-active'" @click="tab = 'project'">{{ __('Project') }}</button>
+            <button type="button" class="tx-tab" :class="tab === 'commercial' && 'tx-tab-active'" @click="tab = 'commercial'">{{ __('Commercial') }}</button>
+            <button type="button" class="tx-tab" :class="tab === 'contract' && 'tx-tab-active'" @click="tab = 'contract'">{{ __('Contract') }}</button>
+            <button type="button" class="tx-tab" :class="tab === 'order' && 'tx-tab-active'" @click="tab = 'order'">{{ __('Order') }}</button>
+            <button type="button" class="tx-tab" :class="tab === 'todo' && 'tx-tab-active'" @click="tab = 'todo'">{{ __('To-do List') }}</button>
         </div>
-    </header>
+        <div class="tx-subnav-meta" title="{{ $project->name }}">
+            <span class="tx-subnav-meta-name capitalize">{{ $project->name }}</span>
+        </div>
+    </nav>
 
-    <div class="w-full px-4 sm:px-6 lg:px-8 py-6">
+    <div class="tx-stack">
 
         {{-- Submitted banner --}}
         @if(strtolower($project->status) === 'submit')

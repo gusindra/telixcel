@@ -4,9 +4,7 @@
             {{ __('Edit Profile') }}
         </h2>
     </x-slot>
-    <div>
-        <div class="max-w-7xl mx-auto py-4 sm:px-6 lg:px-8 mb-6">
-            @livewire('user.profile', ['user' => $user])
-        </div>
-    </div>
+    <x-page-section>
+        @livewire('user.profile', ['user' => $user])
+    </x-page-section>
 </x-app-layout>

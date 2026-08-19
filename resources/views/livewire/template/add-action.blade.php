@@ -14,7 +14,7 @@
 
             <!-- Team Action List -->
             <x-slot name="content">
-                <div class="flex items-center justify-end text-right">
+                <div class="flex items-center gap-2">
                     <x-jet-action-message class="mr-3" on="added">
                         {{ __('Action added.') }}
                     </x-jet-action-message>

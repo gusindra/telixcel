@@ -1,18 +1,253 @@
+@php
+    $userName = auth()->user()?->name ?? 'User';
+    $activeTitle = null;
+    if ($chatId) {
+        $activeTitle = collect($chats)->firstWhere('id', $chatId)?->title;
+    }
+    $today = now()->startOfDay();
+    $chatsToday = $chats->filter(fn ($c) => $c->updated_at && $c->updated_at->gte($today));
+    $chatsOlder = $chats->filter(fn ($c) => ! $c->updated_at || $c->updated_at->lt($today));
+@endphp
+
 @push('scripts')
     <style>
-        .agent-md p { margin-bottom: 0.5rem; }
-        .agent-md p:last-child { margin-bottom: 0; }
-        .agent-md ul { list-style: disc; padding-left: 1.25rem; margin: 0.25rem 0 0.5rem; }
-        .agent-md ol { list-style: decimal; padding-left: 1.25rem; margin: 0.25rem 0 0.5rem; }
-        .agent-md li { margin-bottom: 0.15rem; }
-        .agent-md strong { font-weight: 600; }
-        .agent-md code { background: rgba(0,0,0,.08); border-radius: 3px; padding: 0 4px; font-size: .85em; }
-        .agent-md table { width: 100%; border-collapse: collapse; margin: 0.5rem 0; font-size: .9em; }
-        .agent-md th, .agent-md td { border: 1px solid rgba(0,0,0,.12); padding: 4px 8px; text-align: left; }
+        .agent-nova {
+            flex: 1 1 auto;
+            min-height: 0;
+            height: 100%;
+            --ac-bg: var(--tx-surface);
+            --ac-rail: #f4f6fb;
+            --ac-line: var(--tx-border);
+            --ac-text: var(--tx-fg);
+            --ac-muted: var(--tx-fg-muted);
+            --ac-subtle: var(--tx-fg-subtle);
+            --ac-blue: var(--tx-primary);
+            --ac-blue-soft: var(--tx-active);
+            color: var(--ac-text);
+        }
+        .agent-nova .scrollbar::-webkit-scrollbar { width: 6px; }
+        .agent-nova .scrollbar::-webkit-scrollbar-thumb {
+            background: var(--ac-line); border-radius: 999px;
+        }
+
+        .agent-shell {
+            display: flex; height: 100%; overflow: hidden;
+            background: var(--ac-bg); border: 1px solid var(--ac-line); border-radius: 12px;
+        }
+
+        .agent-sidebar {
+            width: 272px; flex: none; overflow: hidden;
+            background: var(--ac-rail); border-right: 1px solid var(--ac-line);
+            transition: width .2s ease, transform .2s ease;
+        }
+        .agent-sidebar-inner { display: flex; flex-direction: column; height: 100%; width: 272px; min-width: 0; overflow: hidden; }
+        .agent-sidebar.is-collapsed { width: 0; border-right-color: transparent; }
+        .agent-backdrop { position: absolute; inset: 0; z-index: 20; background: rgba(15,23,42,.28); }
+
+        .agent-brand { padding: 16px 16px 8px; }
+        .agent-brand-name { margin: 0; font-size: 14px; font-weight: 700; letter-spacing: -.01em; }
+        .agent-brand-sub { margin: 2px 0 0; font-size: 11px; color: var(--ac-subtle); }
+
+        .agent-side-actions { display: flex; flex-direction: column; gap: 8px; padding: 8px 12px 12px; }
+        .agent-new {
+            display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 12px;
+            border: 1px solid var(--ac-line); border-radius: 8px;
+            background: var(--ac-bg); color: var(--ac-text);
+            font: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
+        }
+        .agent-new:hover { border-color: var(--tx-border-strong); }
+        .agent-search {
+            width: 100%; height: 32px; padding: 0 12px;
+            border: 1px solid var(--ac-line); border-radius: 8px;
+            background: var(--ac-bg); color: var(--ac-text); font-size: 13px;
+        }
+
+        .agent-sec {
+            margin: 8px 12px 4px; font-size: 11px; font-weight: 700;
+            letter-spacing: .06em; text-transform: uppercase; color: var(--ac-subtle);
+        }
+        .agent-chat-item { min-width: 0; }
+        .agent-row {
+            display: flex; align-items: center; gap: 8px;
+            flex: 1 1 auto; min-width: 0; min-height: 36px; padding: 8px 8px 8px 10px; border: 0; border-radius: 8px;
+            background: transparent; color: var(--ac-text); text-align: left;
+            font: inherit; font-size: 13px; cursor: pointer;
+        }
+        .agent-row:hover { background: rgba(0,90,194,.05); }
+        .agent-row.is-on { background: var(--ac-blue-soft); color: var(--ac-blue); font-weight: 600; }
+        .agent-dot-item {
+            width: 6px; height: 6px; border-radius: 99px; flex: none; background: var(--tx-border-strong);
+        }
+        .agent-row.is-on .agent-dot-item { background: var(--ac-blue); }
+        .agent-del {
+            flex: none; width: 24px; height: 24px; padding: 0; border: 0; border-radius: 6px;
+            background: transparent; color: var(--ac-subtle); cursor: pointer; opacity: 0;
+        }
+        .agent-chat-item:hover .agent-del { opacity: 1; }
+        .agent-del:hover { color: #be123c; background: #fff1f3; }
+        .agent-foot {
+            padding: 12px 16px; border-top: 1px solid var(--ac-line);
+            font-size: 12px; color: var(--ac-muted);
+        }
+        .agent-foot b { display: block; font-size: 12px; font-weight: 650; color: var(--ac-text); }
+
+        .agent-main { display: flex; flex-direction: column; min-width: 0; flex: 1; background: var(--ac-bg); }
+        .agent-head {
+            display: flex; align-items: center; justify-content: space-between; gap: 12px;
+            height: 56px; padding: 0 16px; border-bottom: 1px solid var(--ac-line); flex: none;
+        }
+        .agent-head-id { display: flex; align-items: center; gap: 12px; min-width: 0; }
+        .agent-head-mark {
+            width: 32px; height: 32px; border-radius: 8px; flex: none;
+            display: grid; place-items: center; border: 0; padding: 0; cursor: pointer;
+            background: transparent; color: var(--ac-muted);
+        }
+        .agent-head-mark:hover { background: var(--tx-hover); color: var(--ac-blue); }
+        .agent-head-mark .material-symbols-outlined { font-size: 18px; font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24; }
+        .agent-head h2 { margin: 0; font-size: 14px; font-weight: 700; line-height: 1.2; }
+        .agent-head p { margin: 2px 0 0; font-size: 12px; color: var(--ac-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .agent-head-actions { display: flex; align-items: center; gap: 4px; flex: none; }
+
+        .agent-thread { flex: 1; overflow-y: auto; }
+        .agent-col { width: 100%; max-width: 920px; margin: 0 auto; padding: 20px 16px 16px; }
+        .agent-turn { margin: 0 0 16px; }
+        .agent-turn.is-user { display: flex; justify-content: flex-end; }
+        .agent-turn.is-ai { display: flex; justify-content: flex-start; }
+        .agent-user {
+            max-width: min(72%, 640px);
+            padding: 8px 12px; border-radius: 16px;
+            background: #eef3fb; color: var(--ac-text);
+            font-size: 14px; line-height: 1.5; word-break: break-word; white-space: pre-wrap;
+        }
+        .agent-ai { width: 100%; max-width: 100%; min-width: 0; }
+
+        .agent-md { font-size: 14px; line-height: 1.55; color: var(--ac-text); }
+        .agent-md > *:first-child { margin-top: 0; }
+        .agent-md > *:last-child { margin-bottom: 0; }
+        .agent-md p { margin: 0 0 8px; }
+        .agent-md h1, .agent-md h2, .agent-md h3 {
+            font-weight: 700; letter-spacing: -.015em; color: var(--ac-text);
+            margin: 16px 0 8px; line-height: 1.3;
+        }
+        .agent-md h1 { font-size: 16px; }
+        .agent-md h2 { font-size: 15px; }
+        .agent-md h3 { font-size: 14px; }
+        .agent-md ul, .agent-md ol { margin: 0 0 8px; padding-left: 20px; }
+        .agent-md li { margin: 4px 0; }
+        .agent-md li::marker { color: var(--ac-subtle); }
+        .agent-md strong { font-weight: 700; }
+        .agent-md a { color: var(--ac-blue); text-decoration: underline; text-underline-offset: 2px; }
+        .agent-md code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            font-size: 12px; background: #eef3fb; color: #0a4ea1;
+            border-radius: 4px; padding: 1px 6px;
+        }
+        .agent-md pre {
+            margin: 8px 0 12px; padding: 12px; border-radius: 8px;
+            background: #0f172a; color: #e2e8f0; overflow-x: auto; font-size: 12px; line-height: 1.5;
+        }
+        .agent-md pre code { background: transparent; padding: 0; color: inherit; }
+        .agent-md table {
+            width: 100%; border-collapse: collapse; margin: 8px 0 12px; font-size: 13px;
+            border: 1px solid var(--ac-line); border-radius: 8px; overflow: hidden;
+        }
+        .agent-md th, .agent-md td { padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--ac-line); }
+        .agent-md th { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--ac-muted); background: var(--ac-rail); }
+        .agent-md tr:last-child td { border-bottom: 0; }
+        .agent-md blockquote { margin: 8px 0; padding: 4px 0 4px 12px; border-left: 3px solid var(--ac-blue); color: var(--ac-muted); }
+        .agent-copy {
+            margin-top: 4px; height: 28px; padding: 0 8px; border: 0; border-radius: 6px;
+            background: transparent; color: var(--ac-subtle); font-size: 12px; cursor: pointer;
+            opacity: 0;
+        }
+        .agent-turn.is-ai:hover .agent-copy { opacity: 1; }
+
+        .agent-think {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 8px 12px; border-radius: 8px;
+            background: var(--ac-blue-soft); color: var(--ac-blue);
+            font-size: 13px; font-weight: 600;
+        }
+        .agent-think-note { margin: 8px 0 0; font-size: 11px; color: var(--ac-subtle); }
+
+        .agent-tool {
+            border: 1px solid var(--ac-line); border-radius: 12px;
+            background: var(--ac-bg); padding: 12px;
+        }
+        .agent-tool-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+        .agent-badge {
+            display: inline-flex; align-items: center; height: 20px; padding: 0 8px;
+            border-radius: 999px; background: var(--ac-blue-soft); color: var(--ac-blue);
+            font-size: 11px; font-weight: 700; letter-spacing: .02em;
+        }
+        .agent-tool h3 { margin: 0; font-size: 13px; font-weight: 700; }
+        .agent-tool-row {
+            margin-top: 8px; padding: 8px 12px; border: 1px solid var(--ac-line);
+            border-radius: 8px; background: var(--ac-rail); font-size: 13px;
+        }
+        .agent-tool-actions { display: flex; gap: 8px; margin-top: 12px; }
+
+        .agent-dock { flex: none; padding: 12px 16px 16px; }
+        .agent-composer {
+            border: 1px solid var(--ac-line); border-radius: 16px;
+            background: #fff; box-shadow: 0 1px 2px rgba(15,23,42,.06);
+            padding: 8px 8px 8px 12px;
+        }
+        .agent-composer-row { display: flex; align-items: flex-end; gap: 8px; }
+        .agent-composer input {
+            flex: 1; min-height: 36px; border: 0; background: transparent;
+            color: var(--ac-text); font: inherit; font-size: 14px; outline: none; box-shadow: none;
+        }
+        .agent-send {
+            width: 32px; height: 32px; padding: 0; border: 0; border-radius: 8px;
+            background: var(--ac-blue); color: var(--tx-on-primary); cursor: pointer; flex: none;
+            display: grid; place-items: center;
+        }
+        .agent-send:hover { background: var(--tx-primary-hover); }
+        .agent-send:disabled { opacity: .4; cursor: default; }
+        .agent-composer-meta {
+            display: flex; align-items: center; gap: 8px;
+            padding: 4px 4px 0; font-size: 11px; color: var(--ac-subtle);
+        }
+        .agent-disclaimer {
+            margin: 8px 0 0; text-align: center; font-size: 10px; line-height: 1.4; color: var(--ac-subtle);
+        }
+
+        [x-cloak] { display: none !important; }
+        .agent-head-burger { display: none !important; }
+        @media (min-width: 768px) { .agent-backdrop { display: none !important; } }
+        @media (max-width: 767px) {
+            .agent-head-burger { display: inline-flex !important; }
+        }
+        @media (max-width: 767px) {
+            .agent-sidebar {
+                position: absolute; top: 0; bottom: 0; left: 0; z-index: 30;
+                width: min(280px, 86vw); transform: translateX(-105%);
+            }
+            .agent-sidebar-inner { width: min(280px, 86vw); }
+            .agent-sidebar.is-collapsed { width: min(280px, 86vw); }
+            .agent-sidebar.is-open { transform: translateX(0); box-shadow: 8px 0 24px rgba(15,23,42,.12); }
+            .agent-col, .agent-dock { padding-left: 12px; padding-right: 12px; }
+            .agent-user { max-width: 86%; }
+            .agent-copy { opacity: 1; }
+        }
+        @media (max-width: 640px) {
+            .agent-md table { display: block; overflow-x: auto; }
+            .agent-head { padding: 0 12px; }
+        }
     </style>
     <script>
         let agentForceScroll = false;
 
+        function agentFmtDur(ms) {
+            const s = Math.max(0, ms / 1000);
+            if (s < 60) return s.toFixed(1) + ' dtk';
+            return Math.floor(s / 60) + ' mnt ' + Math.floor(s % 60) + ' dtk';
+        }
+        function agentClock(d) {
+            const p = n => String(n).padStart(2, '0');
+            return p(d.getHours()) + ':' + p(d.getMinutes());
+        }
         function agentHasSelection() {
             const s = window.getSelection ? window.getSelection().toString() : '';
             return !!s && s.length > 0;
@@ -25,7 +260,7 @@
             if (input && !input.disabled) input.focus();
         }
         function agentIsNearBottom(el) {
-            return el.scrollHeight - el.scrollTop - el.clientHeight < 60;
+            return el.scrollHeight - el.scrollTop - el.clientHeight < 90;
         }
         function agentScrollToBottom() {
             const el = document.getElementById('agent-messages');
@@ -33,15 +268,44 @@
         }
         function agentOnUserScroll() {
             const el = document.getElementById('agent-messages');
-            if (el && !agentIsNearBottom(el)) {
-                agentForceScroll = false;
-            }
+            if (el && !agentIsNearBottom(el)) agentForceScroll = false;
         }
         function agentOnSend() {
             agentForceScroll = true;
             agentScrollToBottom();
         }
+
+        let agentThinkMs = 0;
+        let agentThinkActive = false;
+        setInterval(() => {
+            const live = document.getElementById('agent-think-elapsed');
+            const note = document.getElementById('agent-think-note');
+            if (live) {
+                if (!live.dataset.start) {
+                    live.dataset.start = String(Date.now());
+                    if (note) note.textContent = '';
+                }
+                agentThinkMs = Date.now() - Number(live.dataset.start);
+                live.textContent = agentFmtDur(agentThinkMs);
+                agentThinkActive = true;
+            } else if (agentThinkActive) {
+                agentThinkActive = false;
+                if (note) note.textContent = agentFmtDur(agentThinkMs) + ' · ' + agentClock(new Date());
+            }
+        }, 100);
+
+        function agentScrollToApproval() {
+            const card = document.getElementById('agent-approval-card');
+            if (card) {
+                setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 80);
+            }
+        }
+        window.addEventListener('agent-pending', agentScrollToApproval);
+
         document.addEventListener('livewire:update', () => {
+            if (document.getElementById('agent-approval-card')) {
+                agentScrollToApproval();
+            }
             if (agentHasSelection()) return;
             const el = document.getElementById('agent-messages');
             if (!el) return;
@@ -61,77 +325,118 @@
     </script>
 @endpush
 
-<div class="w-full px-3 py-2" x-data @agent-run.window="$wire.runAgent()" wire:poll.10s="checkReportStatus">
-    <div class="flex bg-white dark:bg-slate-800 shadow rounded-xl overflow-hidden border border-gray-100 dark:border-slate-700" style="height: calc(100vh - 110px)">
+<div class="agent-nova"
+     x-data="{
+        open: false,
+        collapsed: (typeof localStorage !== 'undefined' && localStorage.getItem('agentSidebarCollapsed') === '1'),
+        toggleCollapse() {
+            this.collapsed = !this.collapsed;
+            try { localStorage.setItem('agentSidebarCollapsed', this.collapsed ? '1' : '0'); } catch (e) {}
+        },
+        toggleSidebar() {
+            if (window.innerWidth < 768) { this.open = !this.open; } else { this.toggleCollapse(); }
+        }
+     }"
+     @@agent-run.window="$wire.runAgent()"
+     wire:poll.3s="pollUpdates">
 
-        {{-- ============ SIDEBAR ============ --}}
-        <aside class="hidden md:flex md:flex-col w-64 flex-shrink-0 bg-gray-50 dark:bg-slate-900/40 border-r border-gray-100 dark:border-slate-700">
-            <div class="p-3 space-y-2">
-                {{-- New chat --}}
-                <button wire:click="newChat"
-                        class="w-full inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-slate-200 bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 hover:bg-gray-100 dark:hover:bg-slate-600 transition focus:outline-none"
-                        style="border-radius:9999px">
-                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m7-7H5"/></svg>
-                    New chat
-                </button>
+    <div class="agent-shell relative">
+        <div x-show="open" x-transition.opacity @click="open = false" class="agent-backdrop md:hidden" x-cloak></div>
 
-                {{-- Search chats --}}
-                <div class="relative">
-                    <svg class="h-4 w-4 absolute left-3 top-2.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.3-4.3M11 18a7 7 0 100-14 7 7 0 000 14z"/></svg>
-                    <input type="text" wire:model.debounce.300ms="search" placeholder="Search chats"
-                           class="w-full pl-9 pr-3 py-2 text-sm bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 text-gray-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-400"
-                           style="border-radius:0.5rem" />
+        <aside id="agent-sidebar" class="agent-sidebar" :class="{ 'is-collapsed': collapsed, 'is-open': open }">
+            <div class="agent-sidebar-inner">
+                <div class="agent-brand">
+                    <p class="agent-brand-name">{{ __('Chats') }}</p>
                 </div>
-            </div>
 
-            <div class="flex-1 overflow-y-auto px-2 pb-2">
-                <p class="px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-gray-400">Recents</p>
-                @forelse ($chats as $c)
-                    <div wire:key="chat-{{ $c->id }}"
-                         class="group flex items-center {{ $chatId === $c->id ? 'bg-gray-200/70 dark:bg-slate-700' : 'hover:bg-gray-100 dark:hover:bg-slate-700/50' }}"
-                         style="border-radius:0.5rem">
-                        <button wire:click="loadChat({{ $c->id }})" class="flex-1 min-w-0 text-left px-3 py-2 focus:outline-none">
-                            <div class="text-sm truncate {{ $chatId === $c->id ? 'font-medium text-gray-800 dark:text-white' : 'text-gray-600 dark:text-slate-300' }}">
-                                {{ $c->title ?: 'Untitled' }}
+                <div class="agent-side-actions">
+                    <button type="button" class="agent-new" wire:click="newChat" @click="window.innerWidth < 768 && (open = false)">
+                        <span class="material-symbols-outlined" style="font-size:18px;">add</span>
+                        {{ __('Percakapan baru') }}
+                    </button>
+                    <input type="search" wire:model.debounce.300ms="search" class="agent-search" placeholder="{{ __('Cari percakapan…') }}" aria-label="{{ __('Cari percakapan') }}">
+                </div>
+
+                <nav class="scrollbar flex-1 overflow-y-auto overflow-x-hidden px-2 pb-2" @click="window.innerWidth < 768 && $event.target.closest('[data-chat]') && (open = false)">
+                    @if ($chatsToday->isNotEmpty())
+                        <p class="agent-sec">{{ __('Recent') }}</p>
+                        @foreach ($chatsToday as $c)
+                            <div wire:key="chat-today-{{ $c->id }}" class="agent-chat-item flex items-center" data-chat>
+                                <button type="button" wire:click="loadChat({{ $c->id }})" class="agent-row {{ $chatId === $c->id ? 'is-on' : '' }}">
+                                    <span class="agent-dot-item"></span>
+                                    <span class="min-w-0 flex-1 truncate">{{ $c->title ?: __('Untitled') }}</span>
+                                </button>
+                                <button type="button" wire:click="confirmDeleteChat({{ $c->id }})" class="agent-del" title="{{ __('Delete') }}">
+                                    <span class="material-symbols-outlined" style="font-size:16px;">close</span>
+                                </button>
                             </div>
-                        </button>
-                        <button wire:click="confirmDeleteChat({{ $c->id }})"
-                                class="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-600 px-2 py-2 focus:outline-none transition" title="Hapus">
-                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.87 12.14A2 2 0 0116.14 21H7.86a2 2 0 01-1.99-1.86L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3M4 7h16"/></svg>
-                        </button>
-                    </div>
-                @empty
-                    <p class="text-xs text-gray-400 text-center py-6">{{ $search ? 'Tidak ditemukan.' : 'Belum ada riwayat.' }}</p>
-                @endforelse
+                        @endforeach
+                    @endif
+
+                    @if ($chatsOlder->isNotEmpty())
+                        <p class="agent-sec">{{ __('History') }}</p>
+                        @foreach ($chatsOlder as $c)
+                            <div wire:key="chat-old-{{ $c->id }}" class="agent-chat-item flex items-center" data-chat>
+                                <button type="button" wire:click="loadChat({{ $c->id }})" class="agent-row {{ $chatId === $c->id ? 'is-on' : '' }}">
+                                    <span class="agent-dot-item"></span>
+                                    <span class="min-w-0 flex-1 truncate">{{ $c->title ?: __('Untitled') }}</span>
+                                </button>
+                                <button type="button" wire:click="confirmDeleteChat({{ $c->id }})" class="agent-del" title="{{ __('Delete') }}">
+                                    <span class="material-symbols-outlined" style="font-size:16px;">close</span>
+                                </button>
+                            </div>
+                        @endforeach
+                    @endif
+
+                    @if ($chats->isEmpty())
+                        <p class="px-3 py-8 text-center text-sm" style="color: var(--ac-subtle);">
+                            {{ $search ? __('No conversations.') : __('No history yet.') }}
+                        </p>
+                    @endif
+                </nav>
+
+                <div class="agent-foot">
+                    <b>{{ $userName }}</b>
+                </div>
             </div>
         </aside>
 
-        {{-- ============ MAIN CHAT ============ --}}
-        <div class="flex-1 flex flex-col min-w-0">
+        <main class="agent-main">
+            <header class="agent-head">
+                <div class="agent-head-id">
+                    <button type="button" @click="toggleSidebar()" class="agent-head-burger tx-iconbtn h-8 w-8 rounded-lg" title="{{ __('Sidebar') }}">
+                        <span class="material-symbols-outlined" style="font-size:18px;">menu</span>
+                    </button>
+                    <button type="button" class="agent-head-mark" @click="toggleSidebar()" title="{{ __('Sidebar') }}">
+                        <span class="material-symbols-outlined">view_sidebar</span>
+                    </button>
+                    <div class="min-w-0">
+                        <h2>{{ $activeTitle ?: __('New conversation') }}</h2>
+                    </div>
+                </div>
+                <div class="agent-head-actions">
+                    <button type="button" class="tx-btn tx-btn-ghost" wire:click="newChat">{{ __('New') }}</button>
+                </div>
+            </header>
 
-            {{-- Messages --}}
-            <div class="flex-1 overflow-y-auto" id="agent-messages">
-                <div class="max-w-3xl mx-auto px-4 py-6 space-y-6">
-                    @foreach ($messages as $m)
+            <section id="agent-messages" class="agent-thread scrollbar">
+                <div class="agent-col">
+                    @foreach ($messages as $idx => $m)
                         @if ($m['role'] === 'user')
-                            <div class="flex justify-end">
-                                <div class="bg-gray-100 dark:bg-slate-700 text-gray-800 dark:text-slate-100 px-4 py-2.5 text-sm leading-relaxed max-w-xl"
-                                     style="border-radius:1.25rem">
-                                    {{ $m['content'] }}
-                                </div>
+                            <div class="agent-turn is-user" wire:key="msg-{{ $idx }}-u">
+                                <div class="agent-user">{{ $m['content'] }}</div>
                             </div>
                         @else
-                            <div class="flex gap-3 group" x-data="{ copied:false }">
-                                <span class="flex-shrink-0 flex items-center justify-center h-7 w-7 rounded-full bg-blue-600 text-white text-[11px] font-semibold">AI</span>
-                                <div class="min-w-0 flex-1">
-                                    <div class="agent-md text-sm leading-relaxed text-gray-800 dark:text-slate-100" x-ref="body">
+                            <div class="agent-turn is-ai" wire:key="msg-{{ $idx }}-a" x-data="{ copied:false }">
+                                <div class="agent-ai">
+                                    <div class="agent-md" x-ref="body">
                                         {!! $this->format($m['content']) !!}
                                     </div>
-                                    <button @click="navigator.clipboard.writeText($refs.body.innerText); copied=true; setTimeout(()=>copied=false,1500)"
-                                            class="mt-1.5 inline-flex items-center gap-1 text-[11px] text-gray-400 hover:text-gray-600 dark:hover:text-slate-200 opacity-0 group-hover:opacity-100 transition focus:outline-none">
-                                        <svg x-show="!copied" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-                                        <svg x-show="copied" x-cloak class="h-3.5 w-3.5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                                        <span x-text="copied ? 'Tersalin' : 'Salin'"></span>
+                                    <button type="button"
+                                            class="agent-copy"
+                                            @click="navigator.clipboard.writeText($refs.body.innerText); copied=true; setTimeout(()=>copied=false,1500)"
+                                            :title="copied ? '{{ __('Copied') }}' : '{{ __('Copy') }}'">
+                                        <span class="material-symbols-outlined" style="font-size:16px;vertical-align:-3px;" x-text="copied ? 'check' : 'content_copy'">content_copy</span>
                                     </button>
                                 </div>
                             </div>
@@ -139,121 +444,78 @@
                     @endforeach
 
                     @if ($isThinking)
-                        <div class="flex gap-3">
-                            <span class="flex-shrink-0 flex items-center justify-center h-7 w-7 rounded-full bg-blue-600 text-white text-[11px] font-semibold">AI</span>
-                            <div class="text-gray-400 text-sm italic pt-1">Mengetik…</div>
-                        </div>
-                    @endif
-                </div>
-            </div>
-
-            {{-- Report ready notification --}}
-            @if ($readyReport)
-                <div class="max-w-3xl mx-auto w-full px-4">
-                    <div class="mb-3 border border-green-400 bg-green-50 dark:bg-green-900/20 p-4 flex items-center justify-between"
-                         style="border-radius:0.75rem">
-                        <div class="flex items-center gap-3">
-                            <svg class="h-5 w-5 flex-shrink-0 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            <div>
-                                <div class="text-sm font-semibold text-green-700 dark:text-green-300">Laporan Siap!</div>
-                                <div class="text-xs text-green-600 dark:text-green-400">{{ $readyReport['label'] }}</div>
+                        <div class="agent-turn is-ai" id="agent-think-live">
+                            <div class="agent-think">
+                                {{ __('Thinking...') }}
+                                <span id="agent-think-elapsed" wire:ignore class="font-mono text-xs tabular-nums" style="font-weight:500;">0.0 dtk</span>
                             </div>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <a href="{{ url('/reports/' . $readyReport['id'] . '/view') }}" target="_blank"
-                               class="inline-flex items-center gap-1.5 bg-white border border-green-600 text-green-700 hover:bg-green-50 text-sm font-medium px-3 py-1.5 rounded-lg transition">
-                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                Lihat
-                            </a>
-                            <a href="{{ $readyReport['download_url'] }}"
-                               class="inline-flex items-center gap-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium px-3 py-1.5 rounded-lg transition">
-                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                Download
-                            </a>
-                            <button wire:click="dismissReport"
-                                    class="text-gray-400 hover:text-gray-600 dark:hover:text-slate-200 transition p-1">
-                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            @endif
+                    @endif
 
-            {{-- Approval card (ubah status) --}}
-            @if ($pendingAction)
-                <div class="max-w-3xl mx-auto w-full px-4">
-                    <div class="mb-3 border border-yellow-400 bg-yellow-50 dark:bg-yellow-900/20 p-4" style="border-radius:0.75rem">
-                        <div class="flex items-center gap-2 font-semibold text-yellow-700 dark:text-yellow-300 mb-2">
-                            <svg class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
-                            <span>Konfirmasi: {{ $pendingAction['summary'] }}</span>
-                        </div>
-                        <div class="text-sm space-y-2 max-h-64 overflow-y-auto">
-                            @foreach ($pendingAction['diff'] as $row)
-                                <div class="border-b border-yellow-200 dark:border-yellow-700 pb-1">
-                                    <span class="font-mono text-xs text-gray-600 dark:text-slate-300">{{ $row['label'] }}</span>
-                                    @if ($pendingAction['type'] === 'update')
-                                        @foreach ($row['after'] as $field => $newValue)
-                                            <div class="text-gray-700 dark:text-slate-200">
-                                                <span class="font-medium">{{ $field }}:</span>
-                                                <s class="text-red-500">{{ $row['before'][$field] ?? '—' }}</s>
-                                                <span class="mx-1">→</span>
-                                                <b class="text-green-600 dark:text-green-400">{{ $newValue }}</b>
-                                            </div>
-                                        @endforeach
-                                    @endif
-                                </div>
-                            @endforeach
-                        </div>
-                        <div class="mt-3 flex gap-2">
-                            <button wire:click="approvePendingAction" wire:loading.attr="disabled"
-                                    class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-1.5 rounded font-medium">Terapkan</button>
-                            <button wire:click="rejectPendingAction"
-                                    class="bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm px-4 py-1.5 rounded font-medium">Batalkan</button>
-                        </div>
-                    </div>
+                    <p id="agent-think-note" wire:ignore class="agent-think-note empty:hidden"></p>
                 </div>
-            @endif
+            </section>
 
-            {{-- Input (ChatGPT-style pill) --}}
-            <div class="px-4 pb-3 pt-1">
-                <form wire:submit.prevent="send" @submit="agentOnSend()" class="max-w-3xl mx-auto">
-                    <div class="flex items-center gap-2 bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 px-3 py-1.5 shadow-sm"
-                         style="border-radius:9999px">
-                        <input type="text" id="agent-input" wire:model.defer="input" :disabled="$wire.isThinking"
-                               autocomplete="off" autofocus
-                               @keydown.enter.shift.prevent
-                               class="flex-1 border-0 bg-transparent text-sm text-gray-800 dark:text-white focus:ring-0 focus:outline-none"
-                               placeholder="Ask anything" />
-                        <button type="submit" wire:loading.attr="disabled" wire:target="send,runAgent" :disabled="$wire.isThinking"
-                                class="flex-shrink-0 flex items-center justify-center h-8 w-8 rounded-full bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white focus:outline-none">
-                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19V5M5 12l7-7 7 7"/></svg>
-                        </button>
-                    </div>
-                    <p class="text-[11px] text-gray-400 mt-2 text-center">
-                        AI bisa keliru — periksa info penting. · Ubah status perlu konfirmasi · Tidak bisa buat / hapus data
-                    </p>
-                </form>
+            <div class="agent-dock">
+                <div class="agent-col" style="padding-top: 0; padding-bottom: 0;">
+                    @if ($pendingAction)
+                        <div id="agent-approval-card" class="agent-tool" style="margin-bottom: 12px;"
+                             wire:key="agent-approval-{{ implode('-', $pendingAction['ids'] ?? []) }}-{{ md5(json_encode($pendingAction['values'] ?? [])) }}">
+                            <h3>{{ __('Konfirmasi perubahan') }}</h3>
+                            <p class="mt-1 mb-0 text-sm" style="color: var(--ac-muted);">{{ $pendingAction['summary'] ?? __('Change proposed') }}</p>
+                            <div class="max-h-36 overflow-y-auto scrollbar">
+                                @foreach (($pendingAction['diff'] ?? []) as $row)
+                                    <div class="agent-tool-row">
+                                        <p class="m-0 text-xs font-medium" style="color: var(--ac-muted);">{{ $row['label'] }}</p>
+                                        @if ($pendingAction['type'] === 'update')
+                                            @foreach ($row['after'] as $field => $newValue)
+                                                <p class="mt-1 mb-0">
+                                                    <code>{{ $field }}</code>
+                                                    <s style="color:#be123c;">{{ $row['before'][$field] ?? '—' }}</s>
+                                                    →
+                                                    <strong>{{ $newValue }}</strong>
+                                                </p>
+                                            @endforeach
+                                        @endif
+                                    </div>
+                                @endforeach
+                            </div>
+                            <div class="agent-tool-actions">
+                                <button type="button" wire:click="approvePendingAction" wire:loading.attr="disabled" class="tx-btn">{{ __('Apply') }}</button>
+                                <button type="button" wire:click="rejectPendingAction" class="tx-btn tx-btn-ghost">{{ __('Cancel') }}</button>
+                            </div>
+                        </div>
+                    @endif
+
+                    <form wire:submit.prevent="send" @submit="agentOnSend()">
+                        <div class="agent-composer">
+                            <div class="agent-composer-row">
+                                <input type="text" id="agent-input" wire:model.defer="input" :disabled="$wire.isThinking"
+                                       autocomplete="off" autofocus
+                                       @keydown.enter.shift.prevent
+                                       placeholder="Write a message..." />
+                                <button type="submit" class="agent-send" wire:loading.attr="disabled" wire:target="send,runAgent" :disabled="$wire.isThinking" aria-label="{{ __('Send') }}">
+                                    <span class="material-symbols-outlined" style="font-size:18px;">arrow_upward</span>
+                                </button>
+                            </div>
+                        </div>
+                        <p class="agent-disclaimer">{{ __('AI can be wrong. Verify important data. Status updates need confirmation.') }}</p>
+                    </form>
+                </div>
             </div>
-        </div>
+        </main>
     </div>
 
-    {{-- Delete confirmation overlay --}}
     @if ($confirmingDelete)
         <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40" wire:click="cancelDeleteChat">
-            <div class="bg-white dark:bg-slate-800 rounded-xl shadow-xl w-full max-w-sm mx-4 p-6 border border-gray-200 dark:border-slate-600" wire:click.stop>
-                <h3 class="text-base font-semibold text-gray-800 dark:text-slate-100 mb-1">Hapus chat?</h3>
-                <p class="text-sm text-gray-500 dark:text-slate-400 mb-5">
-                    Hapus <span class="font-medium text-gray-700 dark:text-slate-200">"{{ Str::limit($deleteTargetTitle, 40) }}"</span>? Semua pesan akan hilang.
+            <div class="w-full max-w-sm mx-4 rounded-xl border p-5" style="background: var(--ac-bg); border-color: var(--ac-line);" wire:click.stop>
+                <h3 class="text-sm font-semibold m-0">{{ __('Delete conversation?') }}</h3>
+                <p class="mt-2 mb-0 text-sm" style="color: var(--ac-muted);">
+                    {{ __('Delete') }} <span class="font-medium" style="color: var(--ac-text);">"{{ \Illuminate\Support\Str::limit($deleteTargetTitle, 40) }}"</span>?
                 </p>
-                <div class="flex justify-end gap-2">
-                    <button wire:click="cancelDeleteChat"
-                            class="px-4 py-2 text-sm font-medium text-gray-600 dark:text-slate-300 bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 rounded-lg transition">
-                        Batal
-                    </button>
-                    <button wire:click="executeDeleteChat"
-                            class="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition">
-                        Hapus
-                    </button>
+                <div class="mt-5 flex justify-end gap-2">
+                    <button type="button" wire:click="cancelDeleteChat" class="tx-btn tx-btn-ghost">{{ __('Cancel') }}</button>
+                    <button type="button" wire:click="executeDeleteChat" class="tx-btn tx-btn-danger">{{ __('Delete') }}</button>
                 </div>
             </div>
         </div>

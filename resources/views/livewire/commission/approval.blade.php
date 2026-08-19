@@ -106,7 +106,7 @@
                     @if($client)
                         @if($client->user && $client->user_id == 0)
                             <div class="absolute p-3 ml-20" style=" margin-top: -35px; ">
-                                <a href="{{route('user.show', $client->user->id)}}" class="text-xs">view</a>
+                                <a href="{{route('user.show', $client->user)}}" class="text-xs">view</a>
                             </div>
                         @endif
                         <span class="border dark:bg-slate-800 rounded-md shadow-sm mt-1 block w-full p-2 capitalize">{{$client->name}}</span>

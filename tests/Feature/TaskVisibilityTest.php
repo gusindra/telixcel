@@ -205,4 +205,56 @@ class TaskVisibilityTest extends TestCase
         $this->actingAsRole('Super Admin');
         $this->assertNull(my_invited_project_ids(), 'null means all projects (no invite restriction)');
     }
+
+    /** @test */
+    public function assignee_sees_task_even_when_type_differs_from_active_role(): void
+    {
+        // Accounting (finance) is assigned an operasional task → must still see it.
+        $assignee = $this->actingAsRole('Accounting');
+        $project = $this->makeProject(1, [$assignee->id]);
+
+        $mine = Task::create([
+            'project_id' => $project->id,
+            'parent_id' => 0,
+            'title' => 'Assigned to me (operasional)',
+            'type' => 'operasional',
+            'priority' => 'high',
+            'status' => 'pending',
+            'team_id' => 1,
+            'owner_id' => 999,
+            'assigned_to' => $assignee->id,
+            'target_date' => now(),
+        ]);
+        $other = $this->makeTask('operasional', $project->id); // not assigned to me
+        $finance = $this->makeTask('finance', $project->id);   // my type
+
+        $visibleIds = Task::where('team_id', 1)->forMyType()->pluck('id')->all();
+
+        $this->assertContains($mine->id, $visibleIds, 'assigned task of other type must be visible');
+        $this->assertContains($finance->id, $visibleIds, 'matching type still visible');
+        $this->assertNotContains($other->id, $visibleIds, 'unrelated other-type task stays hidden');
+    }
+
+    /** @test */
+    public function owner_sees_own_task_even_when_type_differs_from_active_role(): void
+    {
+        $owner = $this->actingAsRole('Project Manager'); // operasional
+        $project = $this->makeProject(1, [$owner->id]);
+
+        $mine = Task::create([
+            'project_id' => $project->id,
+            'parent_id' => 0,
+            'title' => 'I created a finance task',
+            'type' => 'finance',
+            'priority' => 'medium',
+            'status' => 'pending',
+            'team_id' => 1,
+            'owner_id' => $owner->id,
+            'assigned_to' => null,
+            'target_date' => now(),
+        ]);
+
+        $visibleIds = Task::where('team_id', 1)->forMyType()->pluck('id')->all();
+        $this->assertContains($mine->id, $visibleIds);
+    }
 }

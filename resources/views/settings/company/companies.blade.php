@@ -1,18 +1,14 @@
 <x-app-layout>
-    <x-slot name="header"></x-slot>
+    <x-slot name="header">
+        <h2>{{ __('Company') }}</h2>
+    </x-slot>
 
     @include('settings.navigation', ['page'=>$page])
 
-    <div class="py-4">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-12">
-            <div class="bg-white dark:bg-slate-600  overflow-hidden shadow-xl sm:rounded-lg">
-                <div class="container mx-auto">
-                    @livewire('setting.company.company-add')
-                    <div class="px-4 py-2">
-                        <livewire:table.companies searchable="name" />
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <x-page-section>
+        <x-slot name="toolbar">
+            @livewire('setting.company.company-add')
+        </x-slot>
+        <livewire:table.companies searchable="name" />
+    </x-page-section>
 </x-app-layout>

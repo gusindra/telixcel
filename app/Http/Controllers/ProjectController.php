@@ -30,6 +30,14 @@ class ProjectController extends Controller
 
     public function show(Project $project)
     {
-        return view('assistant.project.show', ['project'=>$project]);
+        $key = request()->segment(2);
+        if ($project->uuid && $key !== $project->uuid && ctype_digit((string) $key)) {
+            return redirect()->route('project.show', array_merge(
+                ['project' => $project],
+                request()->query()
+            ));
+        }
+
+        return view('assistant.project.show', ['project' => $project]);
     }
 }

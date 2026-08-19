@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasUuid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -9,6 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Contract extends Model
 {
     use HasFactory;
+    use HasUuid;
     use SoftDeletes;
 
     /**
@@ -17,6 +19,7 @@ class Contract extends Model
      * @var array
      */
     protected $fillable = [
+        'uuid',
         'title',
         'status',
         'signer_email',

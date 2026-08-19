@@ -30,6 +30,11 @@ class CommissionController extends Controller
 
     public function show(Commision $commission)
     {
-        return view('assistant.order.commission_show', ['data'=>$commission]);
+        $key = request()->segment(2);
+        if ($commission->uuid && $key !== $commission->uuid && ctype_digit((string) $key)) {
+            return redirect()->route('show.commission', array_merge(['commission' => $commission], request()->query()));
+        }
+
+        return view('assistant.order.commission_show', ['data' => $commission]);
     }
 }
